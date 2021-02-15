@@ -1,0 +1,32 @@
+{
+  "root": true,
+  "plugins": [
+    "@typescript-eslint",
+    "prettier"
+  ],
+  "extends": [
+    "plugin:@typescript-eslint/recommended",
+    "prettier",
+    "prettier/@typescript-eslint"
+  ],
+  "rules": {
+    "prettier/prettier": "warn",
+    "arrow-body-style": "error",
+    "no-console": "off",
+    "no-shadow": "error",
+    "func-style": ["error", "expression"],
+    "curly": "error",
+    "no-unused-vars": [
+      "error",
+      { "ignoreRestSiblings": true }
+    ]
+  },
+  "parserOptions": {
+      "ecmaVersion": 2017,
+      "sourceType": "module"
+  },
+  "env": {
+    "es6": true,
+    "node": true
+  }
+}

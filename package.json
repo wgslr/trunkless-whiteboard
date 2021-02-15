@@ -1,0 +1,15 @@
+{
+  "name": "trunkless-whiteboard",
+  "version": "",
+  "main": "",
+  "repository": "git@github.com:wgslr/trunkless-whiteboard.git",
+  "author": "",
+  "license": "",
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^7.20.0",
+    "eslint-config-prettier": "^7.2.0",
+    "eslint-plugin-prettier": "^3.3.1",
+    "prettier": "^2.2.1"
+  }
+}
