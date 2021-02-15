@@ -1,17 +1,9 @@
 {
-<<<<<<< HEAD
-  "lerna": "3.19.0",
-=======
   "lerna": "3.22.1",
->>>>>>> a6fbd8c504d925be3d5b4736f6e26e37bd549b2f
   "packages": [
     "packages/*"
   ],
   "version": "0.0.0",
-<<<<<<< HEAD
-  "npmClient": "yarn"
-=======
   "npmClient": "yarn",
   "useWorkspaces": true
->>>>>>> a6fbd8c504d925be3d5b4736f6e26e37bd549b2f
 }
