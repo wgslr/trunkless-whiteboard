@@ -1,10 +1,15 @@
 {
   "name": "trunkless-whiteboard",
-  "version": "",
-  "main": "",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "repository": "git@github.com:wgslr/trunkless-whiteboard.git",
+<<<<<<< HEAD
   "author": "",
   "license": "",
+=======
+>>>>>>> a6fbd8c504d925be3d5b4736f6e26e37bd549b2f
   "scripts": {
       "bootstrap": "lerna bootstrap"
   },

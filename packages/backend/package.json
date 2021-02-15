@@ -1,0 +1,14 @@
+{
+  "name": "backend",
+  "version": "0.0.0",
+  "description": "",
+  "author": "",
+  "homepage": "https://github.com/wgslr/trunkless-whiteboard#readme",
+  "license": "",
+  "main": "server.ts",
+  "directories": {},
+  "files": [],
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  }
+}
