@@ -11,7 +11,7 @@
     "noUnusedLocals": true,
     "alwaysStrict": true,
     "noFallthroughCasesInSwitch": true,
-    "typeRoots": ["./src/types", "./node_modules/@types"],
+    // "typeRoots": ["./src/types", "./node_modules/@types"],
     "baseUrl": "./src/types",
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
