@@ -44,17 +44,27 @@ class ClientConnection extends EventEmitter {
   }
 }
 
-wsserver.on('connection', (websocket, request) => {
+let connections: ClientConnection[] = [];
+
+const registerConnection = (socket: WebSocket) => {
+  const conn = new ClientConnection(socket);
+  connections.push(conn);
+  conn.on(ClientConnectionEvent.DISCONNECT, () => {
+    connections = connections.filter(c => c !== conn);
+  });
+};
+
+wsserver.on('connection', (websocket: WebSocket, request) => {
   console.log('Incoming websocket connection', { websocket, request });
-  websocket.on('message', (msg: any) => {
-    console.log('Incoming msg', msg);
-  });
-  websocket.on('close', () => {
-    console.log('Connetion closed');
-  });
+
+  registerConnection(websocket);
 
   console.log('Set up listener');
 });
+
+setInterval(() => {
+  console.log(`There are ${connections.length} connections`);
+}, 2000);
 
 // server.on(Event.UPGRADE, (request, socket, head) => {
 //   wsserver.handleUpgrade(request, socket, head, socket => {
