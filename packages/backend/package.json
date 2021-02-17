@@ -11,7 +11,8 @@
   "scripts": {
     "start": "tsc && node dist/app.js",
     "dev": "nodemon",
-    "test": "NODE_ENV=test jest --verbose --runInBand"
+    "test": "NODE_ENV=test jest --verbose --runInBand",
+    "test:watch": "NODE_ENV=test jest --verbose --runInBand --watch"
   },
   "devDependencies": {
     "@types/express": "^4.17.11",

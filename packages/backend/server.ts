@@ -2,7 +2,7 @@ import express from 'express';
 import wsServer from './ws-server';
 
 const app = express();
-const server = app.listen(3000);
+const server = app.listen(3001);
 
 enum Event {
   UPGRADE = 'upgrade',
