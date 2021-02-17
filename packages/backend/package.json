@@ -5,7 +5,7 @@
   "author": "",
   "homepage": "https://github.com/wgslr/trunkless-whiteboard#readme",
   "license": "",
-  "main": "server.ts",
+  "main": "index.ts",
   "directories": {},
   "files": [],
   "scripts": {

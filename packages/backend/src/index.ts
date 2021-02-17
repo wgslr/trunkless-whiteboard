@@ -55,11 +55,10 @@ const registerConnection = (socket: WebSocket) => {
 };
 
 wsserver.on('connection', (websocket: WebSocket, request) => {
-  console.log('Incoming websocket connection', { websocket, request });
+  console.log('Incoming websocket connection');
 
   registerConnection(websocket);
-
-  console.log('Set up listener');
+  console.log('Connection registered');
 });
 
 setInterval(() => {
