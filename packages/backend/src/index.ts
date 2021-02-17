@@ -1,13 +1,18 @@
 import express from 'express';
-import * as utils from './utils';
+import wsServer from './ws-server';
+
+const PORT = 3001;
 
 const app = express();
-const port = 3000;
+const server = app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 
-app.get('/', (req, res) => {
-  res.send(`Hello whiteboard! ${utils.add(3, 4)}`);
-});
+enum Event {
+  UPGRADE = 'upgrade',
+  CONNECTION = 'connection'
+}
 
-app.listen(port, () => {
-  return console.log(`server is listening on ${port}`);
+server.on(Event.UPGRADE, (request, socket, head) => {
+  wsServer.handleUpgrade(request, socket, head, socket => {
+    wsServer.emit(Event.CONNECTION, socket, request);
+  });
 });
