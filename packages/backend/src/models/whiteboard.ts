@@ -28,6 +28,6 @@ export const addWhiteboard = (host: ClientConnection) => {
 
 export const countWhiteboards = () => whiteboards.size;
 
-setInterval(() => {
-  console.log(`There are ${countWhiteboards()} whiteboards`, whiteboards);
-}, 2000);
+// setInterval(() => {
+//   console.log(`There are ${countWhiteboards()} whiteboards`, whiteboards);
+// }, 2000);

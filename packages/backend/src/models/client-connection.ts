@@ -48,6 +48,6 @@ export const registerClient = (socket: WebSocket) => {
   });
 };
 
-setInterval(() => {
-  console.log(`There are ${connections.length} connections`);
-}, 2000);
+// setInterval(() => {
+//   console.log(`There are ${connections.length} connections`);
+// }, 2000);
