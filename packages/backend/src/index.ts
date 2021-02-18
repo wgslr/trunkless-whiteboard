@@ -1,7 +1,7 @@
 import express from 'express';
 // import wsServer from './ws-server';
 import * as WebSocket from 'ws';
-import { registerClient } from './services/client-connection';
+import { registerClient } from './models/client-connection';
 
 const PORT = 3001;
 
