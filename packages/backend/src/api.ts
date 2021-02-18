@@ -7,6 +7,8 @@ export enum MessageCode {
   GET_ALL_RESP = 'getAllResp'
 }
 
+type WireFormat = string;
+
 export type Coord = [number, number];
 
 export type Figure = {
@@ -38,7 +40,7 @@ export type Message =
   | GetAllReqMsg
   | GetAllRespMsg;
 
-export const decodeMessage = (messageData: string): Message => {
+export const decodeMessage = (messageData: WireFormat): Message => {
   // TODO change to protobuf
   const parsed = JSON.parse(messageData);
   if (!parsed.code || !Object.values(MessageCode).includes(parsed.code)) {
@@ -47,3 +49,5 @@ export const decodeMessage = (messageData: string): Message => {
   }
   return parsed;
 };
+
+export const encode = (message: Message): WireFormat => JSON.stringify(message);

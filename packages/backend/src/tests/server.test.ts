@@ -1,5 +1,7 @@
 import { SSL_OP_EPHEMERAL_RSA } from 'constants';
 import request from 'superwstest';
+import { CreateWhiteboardMsg, encode } from '../api';
+import { countWhiteboards } from '../models/whiteboard';
 import server from '../server';
 
 describe('WebSockeet server', () => {
@@ -13,6 +15,15 @@ describe('WebSockeet server', () => {
   });
 
   it('communicates via websockets', async () => {
-    await request(server).ws('/ws').expectText('hello').close().expectClosed();
+    await request(server).ws('/ws').close().expectClosed();
+  });
+
+  it('creates a whiteboard', async () => {
+    await request(server)
+      .ws('/ws')
+      .sendText(encode(new CreateWhiteboardMsg()))
+      .close()
+      .expectClosed();
+    expect(countWhiteboards()).toBe(1);
   });
 });

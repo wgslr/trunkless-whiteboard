@@ -11,7 +11,6 @@ const wsserver = new WebSocket.Server({ server, path: '/ws' });
 
 wsserver.on('connection', (websocket: WebSocket, request) => {
   console.log('Incoming websocket connection');
-  websocket.send('hello');
 
   registerClient(websocket);
   console.log('Connection registered');

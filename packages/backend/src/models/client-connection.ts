@@ -5,7 +5,6 @@ import { addWhiteboard } from './whiteboard';
 
 let connections: ClientConnection[] = [];
 
-// define possible listeners
 declare interface ClientConnectionEvents {
   disconnect: () => void;
   message: (decoded: Message) => void;
@@ -33,6 +32,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     });
   }
 
+  // TODO extract a 'controller' to limti responsibility of this class, which should be concrened more about marshalling data
   private dispatch(message: Message) {
     if (message.code === MessageCode.CREATE_WHITEBOARD) {
       addWhiteboard(this);
@@ -47,6 +47,7 @@ export const registerClient = (socket: WebSocket) => {
     connections = connections.filter(c => c !== conn);
   });
 };
+// define possible listeners
 
 // setInterval(() => {
 //   console.log(`There are ${connections.length} connections`);
