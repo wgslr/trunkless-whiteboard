@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "express": "^4.17.1",
+    "tiny-typed-emitter": "^2.0.3",
     "ws": "^7.4.3"
   }
 }

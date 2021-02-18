@@ -2,6 +2,7 @@ import express from 'express';
 // import wsServer from './ws-server';
 import * as WebSocket from 'ws';
 import { EventEmitter } from 'events';
+import { TypedEmitter } from 'tiny-typed-emitter';
 
 const PORT = 3001;
 
@@ -14,17 +15,12 @@ enum Event {
   CONNECTION = 'connection'
 }
 
-enum ClientConnectionEvent {
-  DISCONNECT = 'disconnect'
-}
-
 // define possible listeners
-declare interface ClientConnection {
-  on(event: ClientConnectionEvent.DISCONNECT, listener: () => void): this;
-  on(event: string, listener: Function): this;
+declare interface ClientConnectionEvents {
+  disconnect: () => void;
 }
 
-class ClientConnection extends EventEmitter {
+class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
   socket: WebSocket;
   constructor(socket: WebSocket) {
     super();
@@ -33,13 +29,12 @@ class ClientConnection extends EventEmitter {
   }
 
   private setUpListeners() {
-    this.socket.on('message', (message: WebSocket.Data) => {
+    this.socket.on('message', message => {
       console.log(`Client connection received a message: '${message}''`);
-      this.emit(ClientConnectionEvent.DISCONNECT);
     });
     this.socket.on('close', () => {
       console.log('Client connection closed');
-      this.emit(ClientConnectionEvent.DISCONNECT);
+      this.emit('disconnect');
     });
   }
 }
@@ -49,7 +44,7 @@ let connections: ClientConnection[] = [];
 const registerConnection = (socket: WebSocket) => {
   const conn = new ClientConnection(socket);
   connections.push(conn);
-  conn.on(ClientConnectionEvent.DISCONNECT, () => {
+  conn.on('disconnect', () => {
     connections = connections.filter(c => c !== conn);
   });
 };
