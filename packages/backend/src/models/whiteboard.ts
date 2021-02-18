@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { UUID } from '../types';
 import type { User } from './user';
+import { ClientConnection } from './client-connection';
 
 abstract class Figure {
   id: UUID;
@@ -8,19 +9,25 @@ abstract class Figure {
 
 class Whiteboard {
   id: UUID;
-  host: User;
+  host: ClientConnection;
   figures: Map<Figure['id'], Figure> = new Map();
 
-  constructor(host: User) {
+  constructor(host: ClientConnection) {
     this.id = uuidv4();
     this.host = host;
   }
 }
 
-const whitebords: Map<Whiteboard['id'], Whiteboard> = new Map();
+const whiteboards: Map<Whiteboard['id'], Whiteboard> = new Map();
 
-export const addWhiteboard = (host: User) => {
+export const addWhiteboard = (host: ClientConnection) => {
   const board = new Whiteboard(host);
-  whitebords.set(board.id, board);
+  whiteboards.set(board.id, board);
   return board;
 };
+
+export const countWhiteboards = () => whiteboards.size;
+
+setInterval(() => {
+  console.log(`There are ${countWhiteboards()} whiteboards`, whiteboards);
+}, 2000);
