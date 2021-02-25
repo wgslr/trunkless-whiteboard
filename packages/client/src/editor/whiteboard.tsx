@@ -11,11 +11,11 @@
 //
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { createTextSpanFromBounds } from 'typescript';
+import { Coordinate } from '../types';
 
-type Coordinate = {
-  x: number;
-  y: number;
-}
+export const bitmap = new Map<Coordinate, number>();
+
 
 function Canvas(props: {x: number, y:number}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -24,9 +24,10 @@ function Canvas(props: {x: number, y:number}) {
 
   const startDraw = useCallback(
     (event: MouseEvent) => {
-      const xy = getCoordinates(event);
-      if (xy) {
-        setMousePos(xy);
+      const mousePos = getCoordinates(event);
+      if (mousePos) {
+        drawPixel(mousePos);
+        setMousePos(mousePos);
         setIsDrawing(true);
       }
     }, []);
@@ -47,8 +48,9 @@ function Canvas(props: {x: number, y:number}) {
       if (isDrawing) {
         const newMousePos = getCoordinates(event);
         if (mousePos && newMousePos) {
+          bitmap.set(newMousePos, 1);
           console.log(newMousePos);
-          drawLine(mousePos, newMousePos);
+          drawPixel(newMousePos);
           setMousePos(newMousePos);
         }
       }
@@ -94,27 +96,20 @@ function Canvas(props: {x: number, y:number}) {
     return { x: event.pageX - canvas.offsetLeft, y: event.pageY - canvas.offsetTop };
   }
 
-  function drawLine(originalMousePos: Coordinate, newMousePos: Coordinate) {
+  function drawPixel(mousePos: Coordinate) {
     if (!canvasRef.current) {
       return;
     }
     const canvas: HTMLCanvasElement = canvasRef.current;
     const context = canvas.getContext('2d');
     if (context) {
-      context.strokeStyle = 'black';
-      context.lineJoin = 'bevel';
-      context.lineWidth = 3;
-      context.beginPath();
-      context.moveTo(originalMousePos.x, originalMousePos.y);
-      context.lineTo(newMousePos.x, newMousePos.y);
-      context.closePath();
-      context.stroke();
+      context.fillRect(mousePos.x, mousePos.y, 1, 1);
     }
   }
 
   return (
     <div>
-      <canvas ref={canvasRef} height={props.y} width={props.x} style={{border: '1px solid black'}} />
+      <canvas ref={canvasRef} height={props.y} width={props.x} />
     </div>
   );
 }
