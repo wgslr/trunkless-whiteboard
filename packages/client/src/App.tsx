@@ -1,8 +1,8 @@
 import React from 'react';
 import './App.css';
 import Topbar from './Topbar'
-import Canvas from './editor/whiteboard'
-//import Canvas from './Canvas'
+//import Canvas from './editor/whiteboard'
+import Canvas from './Canvas'
 
 const topBarHeight = 60
 

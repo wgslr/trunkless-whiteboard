@@ -11,10 +11,25 @@
 //
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Coordinate } from './types'
 
-type Coordinate = {
-  x: number;
-  y: number;
+export const bitmap: Map<Coordinate, number>[] = [];
+export let lineIndex = -1;
+
+function linePoints (a: Coordinate, b: Coordinate) {
+  let xDiff = b.x - a.x;
+  let yDiff = b.y - a.y;
+  
+  let resolution = 1.5;
+  let noOfPoints = Math.sqrt(xDiff*xDiff+yDiff*yDiff) / resolution; // distance between points is equal to number of pixels between points
+
+  let xInterval = xDiff / (noOfPoints);
+  let yInterval = yDiff / (noOfPoints);
+  let coordList = [];
+  for (let i = 0; i <= noOfPoints; i++) {
+    coordList.push( {x: (a.x + xInterval*i), y: (a.y + yInterval*i)} )
+  }
+  return coordList; // coordList includes original Coords a & b
 }
 
 function Canvas(props: {x: number, y:number}) {
@@ -26,6 +41,8 @@ function Canvas(props: {x: number, y:number}) {
     (event: MouseEvent) => {
       const xy = getCoordinates(event);
       if (xy) {
+        bitmap.push(new Map<Coordinate, number>());
+        lineIndex++;
         setMousePos(xy);
         setIsDrawing(true);
       }
@@ -35,6 +52,7 @@ function Canvas(props: {x: number, y:number}) {
     if (!canvasRef.current) {
       return;
     }
+    console.log(bitmap);
     const canvas: HTMLCanvasElement = canvasRef.current;
     canvas.addEventListener('mousedown', startDraw);
     return () => {
@@ -47,7 +65,6 @@ function Canvas(props: {x: number, y:number}) {
       if (isDrawing) {
         const newMousePos = getCoordinates(event);
         if (mousePos && newMousePos) {
-          console.log(newMousePos);
           drawLine(mousePos, newMousePos);
           setMousePos(newMousePos);
         }
@@ -101,20 +118,19 @@ function Canvas(props: {x: number, y:number}) {
     const canvas: HTMLCanvasElement = canvasRef.current;
     const context = canvas.getContext('2d');
     if (context) {
-      context.strokeStyle = 'black';
-      context.lineJoin = 'bevel';
-      context.lineWidth = 3;
-      context.beginPath();
-      context.moveTo(originalMousePos.x, originalMousePos.y);
-      context.lineTo(newMousePos.x, newMousePos.y);
-      context.closePath();
-      context.stroke();
+      let list = linePoints(originalMousePos, newMousePos);
+
+      for (let i = 0; i < list.length; i++) {
+        let pixel = list[i];
+        context.fillRect(pixel.x, pixel.y, 1, 1)
+        bitmap[lineIndex].set(pixel, 1);
+      }
     }
   }
 
   return (
     <div>
-      <canvas ref={canvasRef} height={props.y} width={props.x} style={{border: '1px solid black'}} />
+      <canvas ref={canvasRef} height={props.y} width={props.x} style={{border: '1px solid black', backgroundColor: 'white'}} />
     </div>
   );
 }
