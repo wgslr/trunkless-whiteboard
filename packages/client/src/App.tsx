@@ -2,7 +2,7 @@ import React from 'react';
 import './App.css';
 import Topbar from './Topbar'
 //import Canvas from './editor/whiteboard'
-import Canvas from './Canvas'
+import Canvas from './editor/whiteboard'
 
 const topBarHeight = 60
 
@@ -17,7 +17,6 @@ function App() {
     <div className="App">
       <Topbar h={topBarHeight} />
       <Canvas x={canvasX} y={canvasY} />
-      <p>xD</p>
     </div>
   );
 }
