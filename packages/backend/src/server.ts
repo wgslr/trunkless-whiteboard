@@ -5,6 +5,8 @@ import { registerClient } from './models/client-connection';
 import { countWhiteboards } from './models/whiteboard';
 import * as http from 'http';
 
+import * as protocol from './protocol/protocol';
+
 const app = express();
 const server = http.createServer(app);
 const wsserver = new WebSocket.Server({ server, path: '/ws' });

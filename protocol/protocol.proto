@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+enum FigureType {
+  NOTE = 0;
+  LINE = 1;
+  IMAGE = 2;
+}
+
+message Coordinates {
+  int32 x = 1;
+  int32 y = 2;
+}
+
+message NoteData  {
+  string content = 1;
+}
+message LineData  {
+  bytes bitmap = 1;
+}
+
+message Figure {
+  FigureType type = 1;
+  Coordinates Coordinates = 2;
+  oneof data {
+    LineData line_data = 3;
+    NoteData note_data = 4;
+  }
+}
