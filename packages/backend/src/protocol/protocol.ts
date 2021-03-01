@@ -55,10 +55,22 @@ export interface LineData {
 }
 
 export interface Figure {
-  type: FigureType;
-  Coordinates: Coordinates | undefined;
   lineData: LineData | undefined;
   noteData: NoteData | undefined;
+}
+
+export interface CreateWhiteboardRequest {}
+
+export interface GetAllFiguresRequest {}
+
+export interface GetAllFiguresResponse {
+  figures: Figure[];
+}
+
+export interface MessageWrapper {
+  createWhiteboardRequest: CreateWhiteboardRequest | undefined;
+  getAllFiguresRequest: GetAllFiguresRequest | undefined;
+  getAllFiguresResponse: GetAllFiguresResponse | undefined;
 }
 
 const baseCoordinates: object = { x: 0, y: 0 };
@@ -253,22 +265,13 @@ export const LineData = {
   }
 };
 
-const baseFigure: object = { type: 0 };
+const baseFigure: object = {};
 
 export const Figure = {
   encode(
     message: Figure,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.type !== 0) {
-      writer.uint32(8).int32(message.type);
-    }
-    if (message.Coordinates !== undefined) {
-      Coordinates.encode(
-        message.Coordinates,
-        writer.uint32(18).fork()
-      ).ldelim();
-    }
     if (message.lineData !== undefined) {
       LineData.encode(message.lineData, writer.uint32(26).fork()).ldelim();
     }
@@ -285,12 +288,6 @@ export const Figure = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1:
-          message.type = reader.int32() as any;
-          break;
-        case 2:
-          message.Coordinates = Coordinates.decode(reader, reader.uint32());
-          break;
         case 3:
           message.lineData = LineData.decode(reader, reader.uint32());
           break;
@@ -307,16 +304,6 @@ export const Figure = {
 
   fromJSON(object: any): Figure {
     const message = { ...baseFigure } as Figure;
-    if (object.type !== undefined && object.type !== null) {
-      message.type = figureTypeFromJSON(object.type);
-    } else {
-      message.type = 0;
-    }
-    if (object.Coordinates !== undefined && object.Coordinates !== null) {
-      message.Coordinates = Coordinates.fromJSON(object.Coordinates);
-    } else {
-      message.Coordinates = undefined;
-    }
     if (object.lineData !== undefined && object.lineData !== null) {
       message.lineData = LineData.fromJSON(object.lineData);
     } else {
@@ -332,11 +319,6 @@ export const Figure = {
 
   toJSON(message: Figure): unknown {
     const obj: any = {};
-    message.type !== undefined && (obj.type = figureTypeToJSON(message.type));
-    message.Coordinates !== undefined &&
-      (obj.Coordinates = message.Coordinates
-        ? Coordinates.toJSON(message.Coordinates)
-        : undefined);
     message.lineData !== undefined &&
       (obj.lineData = message.lineData
         ? LineData.toJSON(message.lineData)
@@ -350,16 +332,6 @@ export const Figure = {
 
   fromPartial(object: DeepPartial<Figure>): Figure {
     const message = { ...baseFigure } as Figure;
-    if (object.type !== undefined && object.type !== null) {
-      message.type = object.type;
-    } else {
-      message.type = 0;
-    }
-    if (object.Coordinates !== undefined && object.Coordinates !== null) {
-      message.Coordinates = Coordinates.fromPartial(object.Coordinates);
-    } else {
-      message.Coordinates = undefined;
-    }
     if (object.lineData !== undefined && object.lineData !== null) {
       message.lineData = LineData.fromPartial(object.lineData);
     } else {
@@ -369,6 +341,323 @@ export const Figure = {
       message.noteData = NoteData.fromPartial(object.noteData);
     } else {
       message.noteData = undefined;
+    }
+    return message;
+  }
+};
+
+const baseCreateWhiteboardRequest: object = {};
+
+export const CreateWhiteboardRequest = {
+  encode(
+    _: CreateWhiteboardRequest,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): CreateWhiteboardRequest {
+    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseCreateWhiteboardRequest
+    } as CreateWhiteboardRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): CreateWhiteboardRequest {
+    const message = {
+      ...baseCreateWhiteboardRequest
+    } as CreateWhiteboardRequest;
+    return message;
+  },
+
+  toJSON(_: CreateWhiteboardRequest): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial(
+    _: DeepPartial<CreateWhiteboardRequest>
+  ): CreateWhiteboardRequest {
+    const message = {
+      ...baseCreateWhiteboardRequest
+    } as CreateWhiteboardRequest;
+    return message;
+  }
+};
+
+const baseGetAllFiguresRequest: object = {};
+
+export const GetAllFiguresRequest = {
+  encode(
+    _: GetAllFiguresRequest,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): GetAllFiguresRequest {
+    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseGetAllFiguresRequest } as GetAllFiguresRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): GetAllFiguresRequest {
+    const message = { ...baseGetAllFiguresRequest } as GetAllFiguresRequest;
+    return message;
+  },
+
+  toJSON(_: GetAllFiguresRequest): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial(_: DeepPartial<GetAllFiguresRequest>): GetAllFiguresRequest {
+    const message = { ...baseGetAllFiguresRequest } as GetAllFiguresRequest;
+    return message;
+  }
+};
+
+const baseGetAllFiguresResponse: object = {};
+
+export const GetAllFiguresResponse = {
+  encode(
+    message: GetAllFiguresResponse,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    for (const v of message.figures) {
+      Figure.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): GetAllFiguresResponse {
+    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseGetAllFiguresResponse } as GetAllFiguresResponse;
+    message.figures = [];
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.figures.push(Figure.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetAllFiguresResponse {
+    const message = { ...baseGetAllFiguresResponse } as GetAllFiguresResponse;
+    message.figures = [];
+    if (object.figures !== undefined && object.figures !== null) {
+      for (const e of object.figures) {
+        message.figures.push(Figure.fromJSON(e));
+      }
+    }
+    return message;
+  },
+
+  toJSON(message: GetAllFiguresResponse): unknown {
+    const obj: any = {};
+    if (message.figures) {
+      obj.figures = message.figures.map(e =>
+        e ? Figure.toJSON(e) : undefined
+      );
+    } else {
+      obj.figures = [];
+    }
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<GetAllFiguresResponse>
+  ): GetAllFiguresResponse {
+    const message = { ...baseGetAllFiguresResponse } as GetAllFiguresResponse;
+    message.figures = [];
+    if (object.figures !== undefined && object.figures !== null) {
+      for (const e of object.figures) {
+        message.figures.push(Figure.fromPartial(e));
+      }
+    }
+    return message;
+  }
+};
+
+const baseMessageWrapper: object = {};
+
+export const MessageWrapper = {
+  encode(
+    message: MessageWrapper,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.createWhiteboardRequest !== undefined) {
+      CreateWhiteboardRequest.encode(
+        message.createWhiteboardRequest,
+        writer.uint32(10).fork()
+      ).ldelim();
+    }
+    if (message.getAllFiguresRequest !== undefined) {
+      GetAllFiguresRequest.encode(
+        message.getAllFiguresRequest,
+        writer.uint32(18).fork()
+      ).ldelim();
+    }
+    if (message.getAllFiguresResponse !== undefined) {
+      GetAllFiguresResponse.encode(
+        message.getAllFiguresResponse,
+        writer.uint32(26).fork()
+      ).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MessageWrapper {
+    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseMessageWrapper } as MessageWrapper;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.createWhiteboardRequest = CreateWhiteboardRequest.decode(
+            reader,
+            reader.uint32()
+          );
+          break;
+        case 2:
+          message.getAllFiguresRequest = GetAllFiguresRequest.decode(
+            reader,
+            reader.uint32()
+          );
+          break;
+        case 3:
+          message.getAllFiguresResponse = GetAllFiguresResponse.decode(
+            reader,
+            reader.uint32()
+          );
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MessageWrapper {
+    const message = { ...baseMessageWrapper } as MessageWrapper;
+    if (
+      object.createWhiteboardRequest !== undefined &&
+      object.createWhiteboardRequest !== null
+    ) {
+      message.createWhiteboardRequest = CreateWhiteboardRequest.fromJSON(
+        object.createWhiteboardRequest
+      );
+    } else {
+      message.createWhiteboardRequest = undefined;
+    }
+    if (
+      object.getAllFiguresRequest !== undefined &&
+      object.getAllFiguresRequest !== null
+    ) {
+      message.getAllFiguresRequest = GetAllFiguresRequest.fromJSON(
+        object.getAllFiguresRequest
+      );
+    } else {
+      message.getAllFiguresRequest = undefined;
+    }
+    if (
+      object.getAllFiguresResponse !== undefined &&
+      object.getAllFiguresResponse !== null
+    ) {
+      message.getAllFiguresResponse = GetAllFiguresResponse.fromJSON(
+        object.getAllFiguresResponse
+      );
+    } else {
+      message.getAllFiguresResponse = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: MessageWrapper): unknown {
+    const obj: any = {};
+    message.createWhiteboardRequest !== undefined &&
+      (obj.createWhiteboardRequest = message.createWhiteboardRequest
+        ? CreateWhiteboardRequest.toJSON(message.createWhiteboardRequest)
+        : undefined);
+    message.getAllFiguresRequest !== undefined &&
+      (obj.getAllFiguresRequest = message.getAllFiguresRequest
+        ? GetAllFiguresRequest.toJSON(message.getAllFiguresRequest)
+        : undefined);
+    message.getAllFiguresResponse !== undefined &&
+      (obj.getAllFiguresResponse = message.getAllFiguresResponse
+        ? GetAllFiguresResponse.toJSON(message.getAllFiguresResponse)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<MessageWrapper>): MessageWrapper {
+    const message = { ...baseMessageWrapper } as MessageWrapper;
+    if (
+      object.createWhiteboardRequest !== undefined &&
+      object.createWhiteboardRequest !== null
+    ) {
+      message.createWhiteboardRequest = CreateWhiteboardRequest.fromPartial(
+        object.createWhiteboardRequest
+      );
+    } else {
+      message.createWhiteboardRequest = undefined;
+    }
+    if (
+      object.getAllFiguresRequest !== undefined &&
+      object.getAllFiguresRequest !== null
+    ) {
+      message.getAllFiguresRequest = GetAllFiguresRequest.fromPartial(
+        object.getAllFiguresRequest
+      );
+    } else {
+      message.getAllFiguresRequest = undefined;
+    }
+    if (
+      object.getAllFiguresResponse !== undefined &&
+      object.getAllFiguresResponse !== null
+    ) {
+      message.getAllFiguresResponse = GetAllFiguresResponse.fromPartial(
+        object.getAllFiguresResponse
+      );
+    } else {
+      message.getAllFiguresResponse = undefined;
     }
     return message;
   }

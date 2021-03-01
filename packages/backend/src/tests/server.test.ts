@@ -1,8 +1,8 @@
 import { SSL_OP_EPHEMERAL_RSA } from 'constants';
 import request from 'superwstest';
-import { CreateWhiteboardMsg, encode } from '../api';
 import { countWhiteboards } from '../models/whiteboard';
 import server from '../server';
+import { CreateWhiteboardRequest, MessageWrapper } from '../protocol/protocol';
 
 describe('WebSockeet server', () => {
   beforeEach(done => {
@@ -19,11 +19,13 @@ describe('WebSockeet server', () => {
   });
 
   it('creates a whiteboard', async () => {
-    await request(server)
-      .ws('/ws')
-      .sendText(encode(new CreateWhiteboardMsg()))
-      .close()
-      .expectClosed();
+    const msg = MessageWrapper.encode(
+      MessageWrapper.fromPartial({
+        createWhiteboardRequest: {},
+        getAllFiguresRequest: {}
+      })
+    ).finish();
+    await request(server).ws('/ws').sendBinary(msg).close().expectClosed();
     expect(countWhiteboards()).toBe(1);
   });
 });

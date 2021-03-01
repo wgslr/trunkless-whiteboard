@@ -1,6 +1,7 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
 import type * as WebSocket from 'ws';
 import {
+  CreateWhiteboardMsg,
   decodeMessage,
   encode,
   GetAllRespMsg,
@@ -9,6 +10,8 @@ import {
 } from '../api';
 import type { Whiteboard } from './whiteboard';
 import { addWhiteboard } from './whiteboard';
+import { MessageWrapper } from '../protocol/protocol';
+import { Reader } from 'protobufjs';
 
 let connections: ClientConnection[] = [];
 
@@ -32,8 +35,12 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
   private setupSocketListeners() {
     this.socket.on('message', message => {
       console.log(`Client connection received a message: '${message}''`);
-      const decoded = decodeMessage(message as string);
-      this.emit('message', decoded);
+      // const decoded = decodeMessage(message as string);
+      const decoded = MessageWrapper.decode(
+        Reader.create(message as Uint8Array)
+      );
+      console.log({ decoded });
+      this.emit('message', new CreateWhiteboardMsg());
     });
     this.socket.on('close', () => {
       console.log('Client connection closed');
