@@ -46,31 +46,40 @@ export interface Coordinates {
   y: number;
 }
 
-export interface NoteData {
+export interface Note {
+  id: Uint8Array;
+  coordinates: Coordinates | undefined;
   content: string;
-}
-
-export interface LineData {
-  bitmap: Uint8Array;
-}
-
-export interface Figure {
-  lineData: LineData | undefined;
-  noteData: NoteData | undefined;
 }
 
 export interface CreateWhiteboardRequest {}
 
+export interface WhiteboardCreated {
+  whiteboardId: string;
+}
+
+/**
+ * Requests that the server sends
+ * information about all figures present in a whiteboard.
+ */
 export interface GetAllFiguresRequest {}
 
+/** Provides */
 export interface GetAllFiguresResponse {
-  figures: Figure[];
+  notes: Note[];
+}
+
+export interface FigureMovedMsg {
+  figureId: Uint8Array;
+  newCoordinates: Coordinates | undefined;
 }
 
 export interface MessageWrapper {
   createWhiteboardRequest: CreateWhiteboardRequest | undefined;
+  whiteboardCreated: WhiteboardCreated | undefined;
   getAllFiguresRequest: GetAllFiguresRequest | undefined;
   getAllFiguresResponse: GetAllFiguresResponse | undefined;
+  figureMovedMsg: FigureMovedMsg | undefined;
 }
 
 const baseCoordinates: object = { x: 0, y: 0 };
@@ -148,27 +157,39 @@ export const Coordinates = {
   }
 };
 
-const baseNoteData: object = { content: '' };
+const baseNote: object = { content: '' };
 
-export const NoteData = {
-  encode(
-    message: NoteData,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+export const Note = {
+  encode(message: Note, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id.length !== 0) {
+      writer.uint32(10).bytes(message.id);
+    }
+    if (message.coordinates !== undefined) {
+      Coordinates.encode(
+        message.coordinates,
+        writer.uint32(18).fork()
+      ).ldelim();
+    }
     if (message.content !== '') {
-      writer.uint32(10).string(message.content);
+      writer.uint32(26).string(message.content);
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): NoteData {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Note {
     const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseNoteData } as NoteData;
+    const message = { ...baseNote } as Note;
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          message.id = reader.bytes();
+          break;
+        case 2:
+          message.coordinates = Coordinates.decode(reader, reader.uint32());
+          break;
+        case 3:
           message.content = reader.string();
           break;
         default:
@@ -179,8 +200,16 @@ export const NoteData = {
     return message;
   },
 
-  fromJSON(object: any): NoteData {
-    const message = { ...baseNoteData } as NoteData;
+  fromJSON(object: any): Note {
+    const message = { ...baseNote } as Note;
+    if (object.id !== undefined && object.id !== null) {
+      message.id = bytesFromBase64(object.id);
+    }
+    if (object.coordinates !== undefined && object.coordinates !== null) {
+      message.coordinates = Coordinates.fromJSON(object.coordinates);
+    } else {
+      message.coordinates = undefined;
+    }
     if (object.content !== undefined && object.content !== null) {
       message.content = String(object.content);
     } else {
@@ -189,158 +218,36 @@ export const NoteData = {
     return message;
   },
 
-  toJSON(message: NoteData): unknown {
+  toJSON(message: Note): unknown {
     const obj: any = {};
+    message.id !== undefined &&
+      (obj.id = base64FromBytes(
+        message.id !== undefined ? message.id : new Uint8Array()
+      ));
+    message.coordinates !== undefined &&
+      (obj.coordinates = message.coordinates
+        ? Coordinates.toJSON(message.coordinates)
+        : undefined);
     message.content !== undefined && (obj.content = message.content);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<NoteData>): NoteData {
-    const message = { ...baseNoteData } as NoteData;
+  fromPartial(object: DeepPartial<Note>): Note {
+    const message = { ...baseNote } as Note;
+    if (object.id !== undefined && object.id !== null) {
+      message.id = object.id;
+    } else {
+      message.id = new Uint8Array();
+    }
+    if (object.coordinates !== undefined && object.coordinates !== null) {
+      message.coordinates = Coordinates.fromPartial(object.coordinates);
+    } else {
+      message.coordinates = undefined;
+    }
     if (object.content !== undefined && object.content !== null) {
       message.content = object.content;
     } else {
       message.content = '';
-    }
-    return message;
-  }
-};
-
-const baseLineData: object = {};
-
-export const LineData = {
-  encode(
-    message: LineData,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.bitmap.length !== 0) {
-      writer.uint32(10).bytes(message.bitmap);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): LineData {
-    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseLineData } as LineData;
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.bitmap = reader.bytes();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): LineData {
-    const message = { ...baseLineData } as LineData;
-    if (object.bitmap !== undefined && object.bitmap !== null) {
-      message.bitmap = bytesFromBase64(object.bitmap);
-    }
-    return message;
-  },
-
-  toJSON(message: LineData): unknown {
-    const obj: any = {};
-    message.bitmap !== undefined &&
-      (obj.bitmap = base64FromBytes(
-        message.bitmap !== undefined ? message.bitmap : new Uint8Array()
-      ));
-    return obj;
-  },
-
-  fromPartial(object: DeepPartial<LineData>): LineData {
-    const message = { ...baseLineData } as LineData;
-    if (object.bitmap !== undefined && object.bitmap !== null) {
-      message.bitmap = object.bitmap;
-    } else {
-      message.bitmap = new Uint8Array();
-    }
-    return message;
-  }
-};
-
-const baseFigure: object = {};
-
-export const Figure = {
-  encode(
-    message: Figure,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.lineData !== undefined) {
-      LineData.encode(message.lineData, writer.uint32(26).fork()).ldelim();
-    }
-    if (message.noteData !== undefined) {
-      NoteData.encode(message.noteData, writer.uint32(34).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Figure {
-    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseFigure } as Figure;
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 3:
-          message.lineData = LineData.decode(reader, reader.uint32());
-          break;
-        case 4:
-          message.noteData = NoteData.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Figure {
-    const message = { ...baseFigure } as Figure;
-    if (object.lineData !== undefined && object.lineData !== null) {
-      message.lineData = LineData.fromJSON(object.lineData);
-    } else {
-      message.lineData = undefined;
-    }
-    if (object.noteData !== undefined && object.noteData !== null) {
-      message.noteData = NoteData.fromJSON(object.noteData);
-    } else {
-      message.noteData = undefined;
-    }
-    return message;
-  },
-
-  toJSON(message: Figure): unknown {
-    const obj: any = {};
-    message.lineData !== undefined &&
-      (obj.lineData = message.lineData
-        ? LineData.toJSON(message.lineData)
-        : undefined);
-    message.noteData !== undefined &&
-      (obj.noteData = message.noteData
-        ? NoteData.toJSON(message.noteData)
-        : undefined);
-    return obj;
-  },
-
-  fromPartial(object: DeepPartial<Figure>): Figure {
-    const message = { ...baseFigure } as Figure;
-    if (object.lineData !== undefined && object.lineData !== null) {
-      message.lineData = LineData.fromPartial(object.lineData);
-    } else {
-      message.lineData = undefined;
-    }
-    if (object.noteData !== undefined && object.noteData !== null) {
-      message.noteData = NoteData.fromPartial(object.noteData);
-    } else {
-      message.noteData = undefined;
     }
     return message;
   }
@@ -398,6 +305,65 @@ export const CreateWhiteboardRequest = {
   }
 };
 
+const baseWhiteboardCreated: object = { whiteboardId: '' };
+
+export const WhiteboardCreated = {
+  encode(
+    message: WhiteboardCreated,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.whiteboardId !== '') {
+      writer.uint32(10).string(message.whiteboardId);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): WhiteboardCreated {
+    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseWhiteboardCreated } as WhiteboardCreated;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.whiteboardId = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): WhiteboardCreated {
+    const message = { ...baseWhiteboardCreated } as WhiteboardCreated;
+    if (object.whiteboardId !== undefined && object.whiteboardId !== null) {
+      message.whiteboardId = String(object.whiteboardId);
+    } else {
+      message.whiteboardId = '';
+    }
+    return message;
+  },
+
+  toJSON(message: WhiteboardCreated): unknown {
+    const obj: any = {};
+    message.whiteboardId !== undefined &&
+      (obj.whiteboardId = message.whiteboardId);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<WhiteboardCreated>): WhiteboardCreated {
+    const message = { ...baseWhiteboardCreated } as WhiteboardCreated;
+    if (object.whiteboardId !== undefined && object.whiteboardId !== null) {
+      message.whiteboardId = object.whiteboardId;
+    } else {
+      message.whiteboardId = '';
+    }
+    return message;
+  }
+};
+
 const baseGetAllFiguresRequest: object = {};
 
 export const GetAllFiguresRequest = {
@@ -449,8 +415,8 @@ export const GetAllFiguresResponse = {
     message: GetAllFiguresResponse,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    for (const v of message.figures) {
-      Figure.encode(v!, writer.uint32(10).fork()).ldelim();
+    for (const v of message.notes) {
+      Note.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
@@ -462,12 +428,12 @@ export const GetAllFiguresResponse = {
     const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = { ...baseGetAllFiguresResponse } as GetAllFiguresResponse;
-    message.figures = [];
+    message.notes = [];
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.figures.push(Figure.decode(reader, reader.uint32()));
+          message.notes.push(Note.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -479,10 +445,10 @@ export const GetAllFiguresResponse = {
 
   fromJSON(object: any): GetAllFiguresResponse {
     const message = { ...baseGetAllFiguresResponse } as GetAllFiguresResponse;
-    message.figures = [];
-    if (object.figures !== undefined && object.figures !== null) {
-      for (const e of object.figures) {
-        message.figures.push(Figure.fromJSON(e));
+    message.notes = [];
+    if (object.notes !== undefined && object.notes !== null) {
+      for (const e of object.notes) {
+        message.notes.push(Note.fromJSON(e));
       }
     }
     return message;
@@ -490,12 +456,10 @@ export const GetAllFiguresResponse = {
 
   toJSON(message: GetAllFiguresResponse): unknown {
     const obj: any = {};
-    if (message.figures) {
-      obj.figures = message.figures.map(e =>
-        e ? Figure.toJSON(e) : undefined
-      );
+    if (message.notes) {
+      obj.notes = message.notes.map(e => (e ? Note.toJSON(e) : undefined));
     } else {
-      obj.figures = [];
+      obj.notes = [];
     }
     return obj;
   },
@@ -504,11 +468,93 @@ export const GetAllFiguresResponse = {
     object: DeepPartial<GetAllFiguresResponse>
   ): GetAllFiguresResponse {
     const message = { ...baseGetAllFiguresResponse } as GetAllFiguresResponse;
-    message.figures = [];
-    if (object.figures !== undefined && object.figures !== null) {
-      for (const e of object.figures) {
-        message.figures.push(Figure.fromPartial(e));
+    message.notes = [];
+    if (object.notes !== undefined && object.notes !== null) {
+      for (const e of object.notes) {
+        message.notes.push(Note.fromPartial(e));
       }
+    }
+    return message;
+  }
+};
+
+const baseFigureMovedMsg: object = {};
+
+export const FigureMovedMsg = {
+  encode(
+    message: FigureMovedMsg,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.figureId.length !== 0) {
+      writer.uint32(10).bytes(message.figureId);
+    }
+    if (message.newCoordinates !== undefined) {
+      Coordinates.encode(
+        message.newCoordinates,
+        writer.uint32(18).fork()
+      ).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): FigureMovedMsg {
+    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseFigureMovedMsg } as FigureMovedMsg;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.figureId = reader.bytes();
+          break;
+        case 2:
+          message.newCoordinates = Coordinates.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): FigureMovedMsg {
+    const message = { ...baseFigureMovedMsg } as FigureMovedMsg;
+    if (object.figureId !== undefined && object.figureId !== null) {
+      message.figureId = bytesFromBase64(object.figureId);
+    }
+    if (object.newCoordinates !== undefined && object.newCoordinates !== null) {
+      message.newCoordinates = Coordinates.fromJSON(object.newCoordinates);
+    } else {
+      message.newCoordinates = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: FigureMovedMsg): unknown {
+    const obj: any = {};
+    message.figureId !== undefined &&
+      (obj.figureId = base64FromBytes(
+        message.figureId !== undefined ? message.figureId : new Uint8Array()
+      ));
+    message.newCoordinates !== undefined &&
+      (obj.newCoordinates = message.newCoordinates
+        ? Coordinates.toJSON(message.newCoordinates)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<FigureMovedMsg>): FigureMovedMsg {
+    const message = { ...baseFigureMovedMsg } as FigureMovedMsg;
+    if (object.figureId !== undefined && object.figureId !== null) {
+      message.figureId = object.figureId;
+    } else {
+      message.figureId = new Uint8Array();
+    }
+    if (object.newCoordinates !== undefined && object.newCoordinates !== null) {
+      message.newCoordinates = Coordinates.fromPartial(object.newCoordinates);
+    } else {
+      message.newCoordinates = undefined;
     }
     return message;
   }
@@ -527,16 +573,28 @@ export const MessageWrapper = {
         writer.uint32(10).fork()
       ).ldelim();
     }
+    if (message.whiteboardCreated !== undefined) {
+      WhiteboardCreated.encode(
+        message.whiteboardCreated,
+        writer.uint32(18).fork()
+      ).ldelim();
+    }
     if (message.getAllFiguresRequest !== undefined) {
       GetAllFiguresRequest.encode(
         message.getAllFiguresRequest,
-        writer.uint32(18).fork()
+        writer.uint32(26).fork()
       ).ldelim();
     }
     if (message.getAllFiguresResponse !== undefined) {
       GetAllFiguresResponse.encode(
         message.getAllFiguresResponse,
-        writer.uint32(26).fork()
+        writer.uint32(34).fork()
+      ).ldelim();
+    }
+    if (message.figureMovedMsg !== undefined) {
+      FigureMovedMsg.encode(
+        message.figureMovedMsg,
+        writer.uint32(42).fork()
       ).ldelim();
     }
     return writer;
@@ -556,13 +614,25 @@ export const MessageWrapper = {
           );
           break;
         case 2:
-          message.getAllFiguresRequest = GetAllFiguresRequest.decode(
+          message.whiteboardCreated = WhiteboardCreated.decode(
             reader,
             reader.uint32()
           );
           break;
         case 3:
+          message.getAllFiguresRequest = GetAllFiguresRequest.decode(
+            reader,
+            reader.uint32()
+          );
+          break;
+        case 4:
           message.getAllFiguresResponse = GetAllFiguresResponse.decode(
+            reader,
+            reader.uint32()
+          );
+          break;
+        case 5:
+          message.figureMovedMsg = FigureMovedMsg.decode(
             reader,
             reader.uint32()
           );
@@ -588,6 +658,16 @@ export const MessageWrapper = {
       message.createWhiteboardRequest = undefined;
     }
     if (
+      object.whiteboardCreated !== undefined &&
+      object.whiteboardCreated !== null
+    ) {
+      message.whiteboardCreated = WhiteboardCreated.fromJSON(
+        object.whiteboardCreated
+      );
+    } else {
+      message.whiteboardCreated = undefined;
+    }
+    if (
       object.getAllFiguresRequest !== undefined &&
       object.getAllFiguresRequest !== null
     ) {
@@ -607,6 +687,11 @@ export const MessageWrapper = {
     } else {
       message.getAllFiguresResponse = undefined;
     }
+    if (object.figureMovedMsg !== undefined && object.figureMovedMsg !== null) {
+      message.figureMovedMsg = FigureMovedMsg.fromJSON(object.figureMovedMsg);
+    } else {
+      message.figureMovedMsg = undefined;
+    }
     return message;
   },
 
@@ -616,6 +701,10 @@ export const MessageWrapper = {
       (obj.createWhiteboardRequest = message.createWhiteboardRequest
         ? CreateWhiteboardRequest.toJSON(message.createWhiteboardRequest)
         : undefined);
+    message.whiteboardCreated !== undefined &&
+      (obj.whiteboardCreated = message.whiteboardCreated
+        ? WhiteboardCreated.toJSON(message.whiteboardCreated)
+        : undefined);
     message.getAllFiguresRequest !== undefined &&
       (obj.getAllFiguresRequest = message.getAllFiguresRequest
         ? GetAllFiguresRequest.toJSON(message.getAllFiguresRequest)
@@ -623,6 +712,10 @@ export const MessageWrapper = {
     message.getAllFiguresResponse !== undefined &&
       (obj.getAllFiguresResponse = message.getAllFiguresResponse
         ? GetAllFiguresResponse.toJSON(message.getAllFiguresResponse)
+        : undefined);
+    message.figureMovedMsg !== undefined &&
+      (obj.figureMovedMsg = message.figureMovedMsg
+        ? FigureMovedMsg.toJSON(message.figureMovedMsg)
         : undefined);
     return obj;
   },
@@ -638,6 +731,16 @@ export const MessageWrapper = {
       );
     } else {
       message.createWhiteboardRequest = undefined;
+    }
+    if (
+      object.whiteboardCreated !== undefined &&
+      object.whiteboardCreated !== null
+    ) {
+      message.whiteboardCreated = WhiteboardCreated.fromPartial(
+        object.whiteboardCreated
+      );
+    } else {
+      message.whiteboardCreated = undefined;
     }
     if (
       object.getAllFiguresRequest !== undefined &&
@@ -658,6 +761,13 @@ export const MessageWrapper = {
       );
     } else {
       message.getAllFiguresResponse = undefined;
+    }
+    if (object.figureMovedMsg !== undefined && object.figureMovedMsg !== null) {
+      message.figureMovedMsg = FigureMovedMsg.fromPartial(
+        object.figureMovedMsg
+      );
+    } else {
+      message.figureMovedMsg = undefined;
     }
     return message;
   }

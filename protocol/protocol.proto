@@ -11,24 +11,38 @@ message Coordinates {
   int32 y = 2;
 }
 
-message NoteData { string content = 1; }
-message LineData { bytes bitmap = 1; }
-
-message Figure {
-  oneof data {
-    LineData line_data = 3;
-    NoteData note_data = 4;
-  }
+message Note {
+  bytes id = 1;
+  Coordinates coordinates = 2;
+  string content = 3;
 }
 
+// TODO
+// message Line {
+//   bytes id = 1;
+// }
+
 message CreateWhiteboardRequest {}
+message WhiteboardCreated { string whiteboard_id = 1; }
+
+// Requests that the server sends
+// information about all figures present in a whiteboard.
 message GetAllFiguresRequest {}
-message GetAllFiguresResponse { repeated Figure figures = 1; }
+
+// Provides
+message GetAllFiguresResponse { repeated Note notes = 1; }
+
+message FigureMovedMsg {
+  bytes figure_id = 1;
+  Coordinates new_coordinates = 2;
+}
 
 message MessageWrapper {
   oneof body {
     CreateWhiteboardRequest create_whiteboard_request = 1;
-    GetAllFiguresRequest get_all_figures_request = 2;
-    GetAllFiguresResponse get_all_figures_response = 3;
+    WhiteboardCreated whiteboard_created = 2;
+    GetAllFiguresRequest get_all_figures_request = 3;
+    GetAllFiguresResponse get_all_figures_response = 4;
+    FigureMovedMsg figure_moved_msg = 5;
   }
 }
