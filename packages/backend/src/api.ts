@@ -1,19 +1,31 @@
 import type * as WebSocket from 'ws';
+import { Whiteboard, Figure as FigureModel } from './models/whiteboard';
+import { UUID } from './types';
 
 export enum MessageCode {
   CREATE_WHITEBOARD = 'createWhiteboard',
   OPERATION_RESULT = 'operationResult',
   GET_ALL_REQ = 'getAllReq',
-  GET_ALL_RESP = 'getAllResp'
+  GET_ALL_RESP = 'getAllResp',
+  FIGURE_MOVED = 'figureMoved'
 }
 
 type WireFormat = string;
 
-export type Coord = [number, number];
+export type Coordinates = { x: number; y: number };
+
+// TODO probably deduplicate with typedefs from Models
+
+export enum FigureType {
+  NOTE = 'Note',
+  LINE = 'Line',
+  IMAGE = 'Image'
+}
 
 export type Figure = {
-  type: 'Note';
-  location: Coord;
+  id: UUID;
+  type: FigureType.NOTE;
+  location: Coordinates;
 };
 
 export class CreateWhiteboardMsg {
@@ -31,14 +43,23 @@ export class GetAllReqMsg {
 
 export class GetAllRespMsg {
   readonly code = MessageCode.GET_ALL_RESP;
-  figures: Figure[];
+  public figures: Figure[];
+  constructor(figures: FigureModel[]) {
+    this.figures = figures.map(f => ({ ...f, type: FigureType.NOTE }));
+  }
+}
+
+export class FigureMovedMsg {
+  readonly code = MessageCode.FIGURE_MOVED;
+  constructor(public figureId: Figure['id'], public newCoords: Coordinates) {}
 }
 
 export type Message =
   | CreateWhiteboardMsg
   | OperationResultMsg
   | GetAllReqMsg
-  | GetAllRespMsg;
+  | GetAllRespMsg
+  | FigureMovedMsg;
 
 export const decodeMessage = (messageData: WireFormat): Message => {
   // TODO change to protobuf

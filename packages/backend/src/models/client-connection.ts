@@ -1,6 +1,13 @@
-import type * as WebSocket from 'ws';
 import { TypedEmitter } from 'tiny-typed-emitter';
-import { decodeMessage, Message, MessageCode } from '../api';
+import type * as WebSocket from 'ws';
+import {
+  decodeMessage,
+  encode,
+  GetAllRespMsg,
+  Message,
+  MessageCode
+} from '../api';
+import type { Whiteboard } from './whiteboard';
 import { addWhiteboard } from './whiteboard';
 
 let connections: ClientConnection[] = [];
@@ -12,6 +19,8 @@ declare interface ClientConnectionEvents {
 
 export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
   socket: WebSocket;
+  whiteboard?: Whiteboard;
+
   constructor(socket: WebSocket) {
     super();
     this.socket = socket;
@@ -32,10 +41,18 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     });
   }
 
+  public send(message: Message) {
+    this.socket.send(encode(message));
+  }
+
   // TODO extract a 'controller' to limti responsibility of this class, which should be concrened more about marshalling data
   private dispatch(message: Message) {
     if (message.code === MessageCode.CREATE_WHITEBOARD) {
       addWhiteboard(this);
+    } else if (message.code === MessageCode.GET_ALL_REQ) {
+      if (this.whiteboard) {
+        this.send(new GetAllRespMsg([...this.whiteboard.figures.values()]));
+      }
     }
   }
 }
