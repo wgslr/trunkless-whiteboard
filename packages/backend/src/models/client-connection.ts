@@ -48,7 +48,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
   // TODO extract a 'controller' to limti responsibility of this class, which should be concrened more about marshalling data
   private dispatch(message: Message) {
     if (message.code === MessageCode.CREATE_WHITEBOARD) {
-      addWhiteboard(this);
+      this.whiteboard = addWhiteboard(this);
     } else if (message.code === MessageCode.GET_ALL_REQ) {
       if (this.whiteboard) {
         this.send(new GetAllRespMsg([...this.whiteboard.figures.values()]));

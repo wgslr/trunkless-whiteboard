@@ -1,5 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Coordinates, FigureMovedMsg, FigureType, Message } from '../api';
+import {
+  Coordinates,
+  FigureMovedMsg,
+  FigureType,
+  GetAllReqMsg,
+  GetAllRespMsg,
+  Message
+} from '../api';
 import { UUID } from '../types';
 import { ClientConnection } from './client-connection';
 
@@ -7,16 +14,36 @@ export abstract class Figure {
   id: UUID;
   type: FigureType;
   location: Coordinates;
+
+  constructor(id?: UUID) {
+    this.id = id || uuidv4();
+  }
+}
+
+class Note extends Figure {
+  type = FigureType.NOTE;
+  id = uuidv4();
+  content: string;
+  constructor(coords: Coordinates, content?: string, id?: UUID) {
+    super(id);
+    this.location = coords;
+    this.content = content ?? '';
+  }
 }
 
 enum OperationType {
-  FIGURE_MOVE
+  FIGURE_MOVE,
+  RETURN_ALL_FIGURES
 }
 
-type Operation = {
-  type: OperationType.FIGURE_MOVE;
-  data: { figureId: UUID; newCoords: Coordinates };
-};
+type Operation =
+  | {
+      type: OperationType.FIGURE_MOVE;
+      data: { figureId: UUID; newCoords: Coordinates };
+    }
+  | {
+      type: OperationType.RETURN_ALL_FIGURES;
+    };
 
 class OperationError extends Error {
   constructor(message?: string) {
@@ -36,6 +63,9 @@ export class Whiteboard {
     this.id = uuidv4();
     this.host = host;
     this.clients = [host];
+
+    // FIXME remove
+    this.addNote({ x: 10, y: 20 });
   }
 
   handleOperation(op: Operation) {
@@ -58,6 +88,12 @@ export class Whiteboard {
         this.sendToClients(new FigureMovedMsg(figure.id, newCoords));
         break;
       }
+      // case OperationType.RETURN_ALL_FIGURES: {
+      //   // FIXME send only to requester
+      //   this.sendToClients(
+      //     new GetAllRespMsg(Array.from(this.figures.values()))
+      //   );
+      // }
     }
   }
 
@@ -65,6 +101,14 @@ export class Whiteboard {
     this.clients.forEach(client => {
       client.send(message);
     });
+  }
+
+  protected addNote(coords: Coordinates) {
+    const figure = new Note(
+      coords,
+      `Note created at ${new Date().toISOString()}`
+    );
+    this.figures.set(figure.id, figure);
   }
 }
 
