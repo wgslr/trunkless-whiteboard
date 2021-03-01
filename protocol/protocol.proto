@@ -12,7 +12,8 @@ message Coordinates {
 }
 
 message Note {
-  bytes id = 1;
+  bytes id = 1; // UUID in byte representation. Saves bandwidth, but more
+                // problematic in code
   Coordinates coordinates = 2;
   string content = 3;
 }

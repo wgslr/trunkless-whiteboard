@@ -21,8 +21,7 @@ describe('WebSockeet server', () => {
   it('creates a whiteboard', async () => {
     const msg = MessageWrapper.encode(
       MessageWrapper.fromPartial({
-        createWhiteboardRequest: {},
-        getAllFiguresRequest: {}
+        createWhiteboardRequest: {}
       })
     ).finish();
     await request(server).ws('/ws').sendBinary(msg).close().expectClosed();

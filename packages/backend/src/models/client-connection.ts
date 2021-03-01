@@ -1,17 +1,15 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
 import type * as WebSocket from 'ws';
-import {
-  CreateWhiteboardMsg,
-  decodeMessage,
-  encode,
-  GetAllRespMsg,
-  Message,
-  MessageCode
-} from '../api';
-import type { Whiteboard } from './whiteboard';
+import { Message } from '../api';
+import type { Note, Whiteboard } from './whiteboard';
 import { addWhiteboard } from './whiteboard';
-import { MessageWrapper } from '../protocol/protocol';
+import {
+  GetAllFiguresResponse,
+  MessageWrapper,
+  Note as NoteMsg
+} from '../protocol/protocol';
 import { Reader } from 'protobufjs';
+import * as uuid from 'uuid';
 
 let connections: ClientConnection[] = [];
 
@@ -19,6 +17,15 @@ declare interface ClientConnectionEvents {
   disconnect: () => void;
   message: (decoded: Message) => void;
 }
+
+// TODO move to other module
+const encodeNote = (note: Note): NoteMsg => {
+  return {
+    id: Uint8Array.from(uuid.parse(note.id)),
+    content: note.content,
+    coordinates: note.location
+  };
+};
 
 export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
   socket: WebSocket;
@@ -33,14 +40,12 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
   }
 
   private setupSocketListeners() {
-    this.socket.on('message', message => {
+    this.socket.on('message', (message: Uint8Array) => {
       console.log(`Client connection received a message: '${message}''`);
       // const decoded = decodeMessage(message as string);
-      const decoded = MessageWrapper.decode(
-        Reader.create(message as Uint8Array)
-      );
-      console.log({ decoded });
-      this.emit('message', new CreateWhiteboardMsg());
+      const decoded = MessageWrapper.decode(Reader.create(message));
+      console.debug({ decoded });
+      this.emit('message', decoded);
     });
     this.socket.on('close', () => {
       console.log('Client connection closed');
@@ -48,18 +53,30 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     });
   }
 
-  public send(message: Message) {
-    this.socket.send(encode(message));
+  public send(message: MessageWrapper) {
+    this.socket.send(MessageWrapper.encode(message));
   }
 
   // TODO extract a 'controller' to limti responsibility of this class, which should be concrened more about marshalling data
   private dispatch(message: Message) {
-    if (message.code === MessageCode.CREATE_WHITEBOARD) {
+    if (message.createWhiteboardRequest !== undefined) {
       this.whiteboard = addWhiteboard(this);
-    } else if (message.code === MessageCode.GET_ALL_REQ) {
+    } else if (message.getAllFiguresRequest !== undefined) {
       if (this.whiteboard) {
-        this.send(new GetAllRespMsg([...this.whiteboard.figures.values()]));
+        this.send(
+          MessageWrapper.fromPartial({
+            getAllFiguresResponse: {
+              notes: [...this.whiteboard.figures.values()].map(encodeNote)
+            }
+          })
+        );
+      } else {
+        // TODO
       }
+    } else if (message.figureMovedMsg !== undefined) {
+      // TODO
+    } else {
+      // TODO send error about unrecognized message
     }
   }
 }

@@ -1,12 +1,8 @@
+import * as uuid from 'uuid';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  Coordinates,
-  FigureMovedMsg,
-  FigureType,
-  GetAllReqMsg,
-  GetAllRespMsg,
-  Message
-} from '../api';
+import { Message } from '../api';
+import { encodeUUID as uuidStringToBytes } from '../protocol/encoding';
+import { Coordinates, FigureType, MessageWrapper } from '../protocol/protocol';
 import { UUID } from '../types';
 import { ClientConnection } from './client-connection';
 
@@ -20,7 +16,7 @@ export abstract class Figure {
   }
 }
 
-class Note extends Figure {
+export class Note extends Figure {
   type = FigureType.NOTE;
   id = uuidv4();
   content: string;
@@ -85,7 +81,14 @@ export class Whiteboard {
           throw new OperationError('New coords not allowed');
         }
         figure.location = newCoords;
-        this.sendToClients(new FigureMovedMsg(figure.id, newCoords));
+        this.sendToClients(
+          MessageWrapper.fromPartial({
+            figureMovedMsg: {
+              figureId: uuidStringToBytes(figure.id),
+              newCoordinates: newCoords
+            }
+          })
+        );
         break;
       }
       // case OperationType.RETURN_ALL_FIGURES: {
