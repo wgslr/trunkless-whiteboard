@@ -56,7 +56,8 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
   }
 
   public send(message: ServerToClientMessage) {
-    this.socket.send(ServerToClientMessage.encode(message));
+    const encoded = ServerToClientMessage.encode(message).finish();
+    this.socket.send(encoded);
   }
 
   // TODO extract a 'controller' to limti responsibility of this class, which should be concrened more about marshalling data
@@ -83,6 +84,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
         const whiteboardId = decodeUUID(
           message.body.joinWhiteboard.whiteboardId
         );
+        console.log(`Client wants to join whiteboard ${whiteboardId}`);
         const result = connectClient(this, whiteboardId);
         const response = resultToMessage(result);
         this.send(response);

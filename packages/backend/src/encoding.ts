@@ -11,6 +11,6 @@ export const resultToMessage = (result: Result): ServerToClientMessage => {
   if (result.result === 'success') {
     return { body: { $case: 'success', success: {} } };
   } else {
-    return { body: { $case: 'error', error: result } };
+    return { body: { $case: 'error', error: { reason: result.reason } } };
   }
 };
