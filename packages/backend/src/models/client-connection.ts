@@ -70,6 +70,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
             body: {
               $case: 'getAllFiguresResponse',
               getAllFiguresResponse: {
+                // @ts-ignore: FIXME Figure and Note are not overlapping
                 notes: [...this.whiteboard.figures.values()].map(encodeNote)
               }
             }
