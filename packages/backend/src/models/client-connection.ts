@@ -59,23 +59,29 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
 
   // TODO extract a 'controller' to limti responsibility of this class, which should be concrened more about marshalling data
   private dispatch(message: Message) {
-    if (message.createWhiteboardRequest !== undefined) {
-      this.whiteboard = addWhiteboard(this);
-    } else if (message.getAllFiguresRequest !== undefined) {
-      if (this.whiteboard) {
-        this.send(
-          MessageWrapper.fromPartial({
-            getAllFiguresResponse: {
-              notes: [...this.whiteboard.figures.values()].map(encodeNote)
-            }
-          })
-        );
-      } else {
-        // TODO
+    switch (message.body?.$case) {
+      case 'createWhiteboardRequest': {
+        this.whiteboard = addWhiteboard(this);
+        break;
       }
-    } else if (message.figureMovedMsg !== undefined) {
-      // TODO
-    } else {
+      case 'getAllFiguresRequest': {
+        if (this.whiteboard) {
+          this.send({
+            body: {
+              $case: 'getAllFiguresResponse',
+              getAllFiguresResponse: {
+                notes: [...this.whiteboard.figures.values()].map(encodeNote)
+              }
+            }
+          });
+        }
+        break;
+      }
+      case 'figureMovedMsg': {
+        // TODO
+        break;
+      }
+      default:
       // TODO send error about unrecognized message
     }
   }

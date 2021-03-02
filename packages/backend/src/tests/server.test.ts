@@ -19,11 +19,12 @@ describe('WebSockeet server', () => {
   });
 
   it('creates a whiteboard', async () => {
-    const msg = MessageWrapper.encode(
-      MessageWrapper.fromPartial({
+    const msg = MessageWrapper.encode({
+      body: {
+        $case: 'createWhiteboardRequest',
         createWhiteboardRequest: {}
-      })
-    ).finish();
+      }
+    }).finish();
     await request(server).ws('/ws').sendBinary(msg).close().expectClosed();
     expect(countWhiteboards()).toBe(1);
   });

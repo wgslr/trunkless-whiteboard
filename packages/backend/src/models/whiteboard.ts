@@ -81,14 +81,15 @@ export class Whiteboard {
           throw new OperationError('New coords not allowed');
         }
         figure.location = newCoords;
-        this.sendToClients(
-          MessageWrapper.fromPartial({
+        this.sendToClients({
+          body: {
+            $case: 'figureMovedMsg',
             figureMovedMsg: {
               figureId: uuidStringToBytes(figure.id),
               newCoordinates: newCoords
             }
-          })
-        );
+          }
+        });
         break;
       }
       // case OperationType.RETURN_ALL_FIGURES: {

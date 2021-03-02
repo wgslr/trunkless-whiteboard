@@ -46,7 +46,9 @@ export interface Coordinates {
 }
 
 export interface Note {
+  /** UUID in byte representation. Saves bandwidth, but more */
   id: Uint8Array;
+  /** problematic in code */
   coordinates: Coordinates | undefined;
   content: string;
 }
@@ -74,11 +76,21 @@ export interface FigureMovedMsg {
 }
 
 export interface MessageWrapper {
-  createWhiteboardRequest: CreateWhiteboardRequest | undefined;
-  whiteboardCreated: WhiteboardCreated | undefined;
-  getAllFiguresRequest: GetAllFiguresRequest | undefined;
-  getAllFiguresResponse: GetAllFiguresResponse | undefined;
-  figureMovedMsg: FigureMovedMsg | undefined;
+  body?:
+    | {
+        $case: 'createWhiteboardRequest';
+        createWhiteboardRequest: CreateWhiteboardRequest;
+      }
+    | { $case: 'whiteboardCreated'; whiteboardCreated: WhiteboardCreated }
+    | {
+        $case: 'getAllFiguresRequest';
+        getAllFiguresRequest: GetAllFiguresRequest;
+      }
+    | {
+        $case: 'getAllFiguresResponse';
+        getAllFiguresResponse: GetAllFiguresResponse;
+      }
+    | { $case: 'figureMovedMsg'; figureMovedMsg: FigureMovedMsg };
 }
 
 const baseCoordinates: object = { x: 0, y: 0 };
@@ -122,13 +134,9 @@ export const Coordinates = {
     const message = { ...baseCoordinates } as Coordinates;
     if (object.x !== undefined && object.x !== null) {
       message.x = Number(object.x);
-    } else {
-      message.x = 0;
     }
     if (object.y !== undefined && object.y !== null) {
       message.y = Number(object.y);
-    } else {
-      message.y = 0;
     }
     return message;
   },
@@ -144,13 +152,9 @@ export const Coordinates = {
     const message = { ...baseCoordinates } as Coordinates;
     if (object.x !== undefined && object.x !== null) {
       message.x = object.x;
-    } else {
-      message.x = 0;
     }
     if (object.y !== undefined && object.y !== null) {
       message.y = object.y;
-    } else {
-      message.y = 0;
     }
     return message;
   }
@@ -206,13 +210,9 @@ export const Note = {
     }
     if (object.coordinates !== undefined && object.coordinates !== null) {
       message.coordinates = Coordinates.fromJSON(object.coordinates);
-    } else {
-      message.coordinates = undefined;
     }
     if (object.content !== undefined && object.content !== null) {
       message.content = String(object.content);
-    } else {
-      message.content = '';
     }
     return message;
   },
@@ -235,18 +235,12 @@ export const Note = {
     const message = { ...baseNote } as Note;
     if (object.id !== undefined && object.id !== null) {
       message.id = object.id;
-    } else {
-      message.id = new Uint8Array();
     }
     if (object.coordinates !== undefined && object.coordinates !== null) {
       message.coordinates = Coordinates.fromPartial(object.coordinates);
-    } else {
-      message.coordinates = undefined;
     }
     if (object.content !== undefined && object.content !== null) {
       message.content = object.content;
-    } else {
-      message.content = '';
     }
     return message;
   }
@@ -339,8 +333,6 @@ export const WhiteboardCreated = {
     const message = { ...baseWhiteboardCreated } as WhiteboardCreated;
     if (object.whiteboardId !== undefined && object.whiteboardId !== null) {
       message.whiteboardId = String(object.whiteboardId);
-    } else {
-      message.whiteboardId = '';
     }
     return message;
   },
@@ -356,8 +348,6 @@ export const WhiteboardCreated = {
     const message = { ...baseWhiteboardCreated } as WhiteboardCreated;
     if (object.whiteboardId !== undefined && object.whiteboardId !== null) {
       message.whiteboardId = object.whiteboardId;
-    } else {
-      message.whiteboardId = '';
     }
     return message;
   }
@@ -524,8 +514,6 @@ export const FigureMovedMsg = {
     }
     if (object.newCoordinates !== undefined && object.newCoordinates !== null) {
       message.newCoordinates = Coordinates.fromJSON(object.newCoordinates);
-    } else {
-      message.newCoordinates = undefined;
     }
     return message;
   },
@@ -547,13 +535,9 @@ export const FigureMovedMsg = {
     const message = { ...baseFigureMovedMsg } as FigureMovedMsg;
     if (object.figureId !== undefined && object.figureId !== null) {
       message.figureId = object.figureId;
-    } else {
-      message.figureId = new Uint8Array();
     }
     if (object.newCoordinates !== undefined && object.newCoordinates !== null) {
       message.newCoordinates = Coordinates.fromPartial(object.newCoordinates);
-    } else {
-      message.newCoordinates = undefined;
     }
     return message;
   }
@@ -566,33 +550,33 @@ export const MessageWrapper = {
     message: MessageWrapper,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.createWhiteboardRequest !== undefined) {
+    if (message.body?.$case === 'createWhiteboardRequest') {
       CreateWhiteboardRequest.encode(
-        message.createWhiteboardRequest,
+        message.body.createWhiteboardRequest,
         writer.uint32(10).fork()
       ).ldelim();
     }
-    if (message.whiteboardCreated !== undefined) {
+    if (message.body?.$case === 'whiteboardCreated') {
       WhiteboardCreated.encode(
-        message.whiteboardCreated,
+        message.body.whiteboardCreated,
         writer.uint32(18).fork()
       ).ldelim();
     }
-    if (message.getAllFiguresRequest !== undefined) {
+    if (message.body?.$case === 'getAllFiguresRequest') {
       GetAllFiguresRequest.encode(
-        message.getAllFiguresRequest,
+        message.body.getAllFiguresRequest,
         writer.uint32(26).fork()
       ).ldelim();
     }
-    if (message.getAllFiguresResponse !== undefined) {
+    if (message.body?.$case === 'getAllFiguresResponse') {
       GetAllFiguresResponse.encode(
-        message.getAllFiguresResponse,
+        message.body.getAllFiguresResponse,
         writer.uint32(34).fork()
       ).ldelim();
     }
-    if (message.figureMovedMsg !== undefined) {
+    if (message.body?.$case === 'figureMovedMsg') {
       FigureMovedMsg.encode(
-        message.figureMovedMsg,
+        message.body.figureMovedMsg,
         writer.uint32(42).fork()
       ).ldelim();
     }
@@ -607,34 +591,43 @@ export const MessageWrapper = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.createWhiteboardRequest = CreateWhiteboardRequest.decode(
-            reader,
-            reader.uint32()
-          );
+          message.body = {
+            $case: 'createWhiteboardRequest',
+            createWhiteboardRequest: CreateWhiteboardRequest.decode(
+              reader,
+              reader.uint32()
+            )
+          };
           break;
         case 2:
-          message.whiteboardCreated = WhiteboardCreated.decode(
-            reader,
-            reader.uint32()
-          );
+          message.body = {
+            $case: 'whiteboardCreated',
+            whiteboardCreated: WhiteboardCreated.decode(reader, reader.uint32())
+          };
           break;
         case 3:
-          message.getAllFiguresRequest = GetAllFiguresRequest.decode(
-            reader,
-            reader.uint32()
-          );
+          message.body = {
+            $case: 'getAllFiguresRequest',
+            getAllFiguresRequest: GetAllFiguresRequest.decode(
+              reader,
+              reader.uint32()
+            )
+          };
           break;
         case 4:
-          message.getAllFiguresResponse = GetAllFiguresResponse.decode(
-            reader,
-            reader.uint32()
-          );
+          message.body = {
+            $case: 'getAllFiguresResponse',
+            getAllFiguresResponse: GetAllFiguresResponse.decode(
+              reader,
+              reader.uint32()
+            )
+          };
           break;
         case 5:
-          message.figureMovedMsg = FigureMovedMsg.decode(
-            reader,
-            reader.uint32()
-          );
+          message.body = {
+            $case: 'figureMovedMsg',
+            figureMovedMsg: FigureMovedMsg.decode(reader, reader.uint32())
+          };
           break;
         default:
           reader.skipType(tag & 7);
@@ -650,71 +643,74 @@ export const MessageWrapper = {
       object.createWhiteboardRequest !== undefined &&
       object.createWhiteboardRequest !== null
     ) {
-      message.createWhiteboardRequest = CreateWhiteboardRequest.fromJSON(
-        object.createWhiteboardRequest
-      );
-    } else {
-      message.createWhiteboardRequest = undefined;
+      message.body = {
+        $case: 'createWhiteboardRequest',
+        createWhiteboardRequest: CreateWhiteboardRequest.fromJSON(
+          object.createWhiteboardRequest
+        )
+      };
     }
     if (
       object.whiteboardCreated !== undefined &&
       object.whiteboardCreated !== null
     ) {
-      message.whiteboardCreated = WhiteboardCreated.fromJSON(
-        object.whiteboardCreated
-      );
-    } else {
-      message.whiteboardCreated = undefined;
+      message.body = {
+        $case: 'whiteboardCreated',
+        whiteboardCreated: WhiteboardCreated.fromJSON(object.whiteboardCreated)
+      };
     }
     if (
       object.getAllFiguresRequest !== undefined &&
       object.getAllFiguresRequest !== null
     ) {
-      message.getAllFiguresRequest = GetAllFiguresRequest.fromJSON(
-        object.getAllFiguresRequest
-      );
-    } else {
-      message.getAllFiguresRequest = undefined;
+      message.body = {
+        $case: 'getAllFiguresRequest',
+        getAllFiguresRequest: GetAllFiguresRequest.fromJSON(
+          object.getAllFiguresRequest
+        )
+      };
     }
     if (
       object.getAllFiguresResponse !== undefined &&
       object.getAllFiguresResponse !== null
     ) {
-      message.getAllFiguresResponse = GetAllFiguresResponse.fromJSON(
-        object.getAllFiguresResponse
-      );
-    } else {
-      message.getAllFiguresResponse = undefined;
+      message.body = {
+        $case: 'getAllFiguresResponse',
+        getAllFiguresResponse: GetAllFiguresResponse.fromJSON(
+          object.getAllFiguresResponse
+        )
+      };
     }
     if (object.figureMovedMsg !== undefined && object.figureMovedMsg !== null) {
-      message.figureMovedMsg = FigureMovedMsg.fromJSON(object.figureMovedMsg);
-    } else {
-      message.figureMovedMsg = undefined;
+      message.body = {
+        $case: 'figureMovedMsg',
+        figureMovedMsg: FigureMovedMsg.fromJSON(object.figureMovedMsg)
+      };
     }
     return message;
   },
 
   toJSON(message: MessageWrapper): unknown {
     const obj: any = {};
-    message.createWhiteboardRequest !== undefined &&
-      (obj.createWhiteboardRequest = message.createWhiteboardRequest
-        ? CreateWhiteboardRequest.toJSON(message.createWhiteboardRequest)
+    message.body?.$case === 'createWhiteboardRequest' &&
+      (obj.createWhiteboardRequest = message.body?.createWhiteboardRequest
+        ? CreateWhiteboardRequest.toJSON(message.body?.createWhiteboardRequest)
         : undefined);
-    message.whiteboardCreated !== undefined &&
-      (obj.whiteboardCreated = message.whiteboardCreated
-        ? WhiteboardCreated.toJSON(message.whiteboardCreated)
+    message.body?.$case === 'whiteboardCreated' &&
+      (obj.whiteboardCreated = message.body?.whiteboardCreated
+        ? WhiteboardCreated.toJSON(message.body?.whiteboardCreated)
         : undefined);
-    message.getAllFiguresRequest !== undefined &&
-      (obj.getAllFiguresRequest = message.getAllFiguresRequest
-        ? GetAllFiguresRequest.toJSON(message.getAllFiguresRequest)
+    message.body?.$case === 'getAllFiguresRequest' &&
+      (obj.getAllFiguresRequest = message.body?.getAllFiguresRequest
+        ? GetAllFiguresRequest.toJSON(message.body?.getAllFiguresRequest)
         : undefined);
-    message.getAllFiguresResponse !== undefined &&
-      (obj.getAllFiguresResponse = message.getAllFiguresResponse
-        ? GetAllFiguresResponse.toJSON(message.getAllFiguresResponse)
+    message.body?.$case === 'getAllFiguresResponse' &&
+      (obj.getAllFiguresResponse = message.body?.getAllFiguresResponse
+        ? GetAllFiguresResponse.toJSON(message.body?.getAllFiguresResponse)
         : undefined);
-    message.figureMovedMsg !== undefined &&
-      (obj.figureMovedMsg = message.figureMovedMsg
-        ? FigureMovedMsg.toJSON(message.figureMovedMsg)
+    message.body?.$case === 'figureMovedMsg' &&
+      (obj.figureMovedMsg = message.body?.figureMovedMsg
+        ? FigureMovedMsg.toJSON(message.body?.figureMovedMsg)
         : undefined);
     return obj;
   },
@@ -722,51 +718,62 @@ export const MessageWrapper = {
   fromPartial(object: DeepPartial<MessageWrapper>): MessageWrapper {
     const message = { ...baseMessageWrapper } as MessageWrapper;
     if (
-      object.createWhiteboardRequest !== undefined &&
-      object.createWhiteboardRequest !== null
+      object.body?.$case === 'createWhiteboardRequest' &&
+      object.body?.createWhiteboardRequest !== undefined &&
+      object.body?.createWhiteboardRequest !== null
     ) {
-      message.createWhiteboardRequest = CreateWhiteboardRequest.fromPartial(
-        object.createWhiteboardRequest
-      );
-    } else {
-      message.createWhiteboardRequest = undefined;
+      message.body = {
+        $case: 'createWhiteboardRequest',
+        createWhiteboardRequest: CreateWhiteboardRequest.fromPartial(
+          object.body.createWhiteboardRequest
+        )
+      };
     }
     if (
-      object.whiteboardCreated !== undefined &&
-      object.whiteboardCreated !== null
+      object.body?.$case === 'whiteboardCreated' &&
+      object.body?.whiteboardCreated !== undefined &&
+      object.body?.whiteboardCreated !== null
     ) {
-      message.whiteboardCreated = WhiteboardCreated.fromPartial(
-        object.whiteboardCreated
-      );
-    } else {
-      message.whiteboardCreated = undefined;
+      message.body = {
+        $case: 'whiteboardCreated',
+        whiteboardCreated: WhiteboardCreated.fromPartial(
+          object.body.whiteboardCreated
+        )
+      };
     }
     if (
-      object.getAllFiguresRequest !== undefined &&
-      object.getAllFiguresRequest !== null
+      object.body?.$case === 'getAllFiguresRequest' &&
+      object.body?.getAllFiguresRequest !== undefined &&
+      object.body?.getAllFiguresRequest !== null
     ) {
-      message.getAllFiguresRequest = GetAllFiguresRequest.fromPartial(
-        object.getAllFiguresRequest
-      );
-    } else {
-      message.getAllFiguresRequest = undefined;
+      message.body = {
+        $case: 'getAllFiguresRequest',
+        getAllFiguresRequest: GetAllFiguresRequest.fromPartial(
+          object.body.getAllFiguresRequest
+        )
+      };
     }
     if (
-      object.getAllFiguresResponse !== undefined &&
-      object.getAllFiguresResponse !== null
+      object.body?.$case === 'getAllFiguresResponse' &&
+      object.body?.getAllFiguresResponse !== undefined &&
+      object.body?.getAllFiguresResponse !== null
     ) {
-      message.getAllFiguresResponse = GetAllFiguresResponse.fromPartial(
-        object.getAllFiguresResponse
-      );
-    } else {
-      message.getAllFiguresResponse = undefined;
+      message.body = {
+        $case: 'getAllFiguresResponse',
+        getAllFiguresResponse: GetAllFiguresResponse.fromPartial(
+          object.body.getAllFiguresResponse
+        )
+      };
     }
-    if (object.figureMovedMsg !== undefined && object.figureMovedMsg !== null) {
-      message.figureMovedMsg = FigureMovedMsg.fromPartial(
-        object.figureMovedMsg
-      );
-    } else {
-      message.figureMovedMsg = undefined;
+    if (
+      object.body?.$case === 'figureMovedMsg' &&
+      object.body?.figureMovedMsg !== undefined &&
+      object.body?.figureMovedMsg !== null
+    ) {
+      message.body = {
+        $case: 'figureMovedMsg',
+        figureMovedMsg: FigureMovedMsg.fromPartial(object.body.figureMovedMsg)
+      };
     }
     return message;
   }
@@ -812,6 +819,10 @@ export type DeepPartial<T> = T extends Builtin
   ? Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U>
   ? ReadonlyArray<DeepPartial<U>>
+  : T extends { $case: string }
+  ? { [K in keyof Omit<T, '$case'>]?: DeepPartial<T[K]> } & {
+      $case: T['$case'];
+    }
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
