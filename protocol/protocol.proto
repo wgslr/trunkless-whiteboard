@@ -31,32 +31,44 @@ message WhiteboardCreated { string whiteboard_id = 1; }
 // information about all figures present in a whiteboard.
 message GetAllFiguresRequest {}
 
-// Provides
+//
 message GetAllFiguresResponse { repeated Note notes = 1; }
 
-message FigureMovedMsg {
+message MoveFigure {
   bytes figure_id = 1;
   Coordinates new_coordinates = 2;
 }
 
-enum Error { OPERATION_NOT_ALLOWED = 0; }
+message FigureMoved {
+  bytes figure_id = 1;
+  Coordinates new_coordinates = 2;
+}
+// Client sends this message to request joining a whiteboard
+message JoinWhiteboard { bytes whiteboard_id = 1; }
 
-message ResultError { Error reason = 1; }
+enum ErrorReason {
+  OPERATION_NOT_ALLOWED = 0;
+  WHITEBOARD_DOES_NOT_EXIST = 1;
+}
+
+message ResultError { ErrorReason reason = 1; }
 message ResultSuccess {}
 
 message ClientToServerMessage {
   oneof body {
     CreateWhiteboardRequest create_whiteboard_request = 1;
     GetAllFiguresRequest get_all_figures_request = 2;
+    JoinWhiteboard join_whiteboard = 3;
+    MoveFigure move_figure = 5;
   }
 }
 
 message ServerToClientMessage {
   oneof body {
     ResultError error = 1;
-    // ResultSuccess success = 2;
+    ResultSuccess success = 2;
     WhiteboardCreated whiteboard_created = 3;
     GetAllFiguresResponse get_all_figures_response = 4;
-    FigureMovedMsg figure_moved_msg = 5;
+    FigureMoved figure_moved = 5;
   }
 }

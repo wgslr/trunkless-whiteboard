@@ -1,6 +1,6 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
 import type * as WebSocket from 'ws';
-import type { Note, Whiteboard } from './whiteboard';
+import { connectClient, Note, Whiteboard } from './whiteboard';
 import { addWhiteboard } from './whiteboard';
 import {
   ClientToServerMessage,
@@ -10,6 +10,8 @@ import {
 } from '../protocol/protocol';
 import { Reader } from 'protobufjs';
 import * as uuid from 'uuid';
+import { decodeUUID, resultToMessage } from '../encoding';
+import reportWebVitals from '../../../client/src/reportWebVitals';
 
 let connections: ClientConnection[] = [];
 
@@ -75,6 +77,15 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
             }
           });
         }
+        break;
+      }
+      case 'joinWhiteboard': {
+        const whiteboardId = decodeUUID(
+          message.body.joinWhiteboard.whiteboardId
+        );
+        const result = connectClient(this, whiteboardId);
+        const response = resultToMessage(result);
+        this.send(response);
         break;
       }
       case 'moveFigure': {

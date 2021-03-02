@@ -40,26 +40,32 @@ export function figureTypeToJSON(object: FigureType): string {
   }
 }
 
-export enum Error {
-  OPERATION_NOT_ALLOWED = 0
+export enum ErrorReason {
+  OPERATION_NOT_ALLOWED = 0,
+  WHITEBOARD_DOES_NOT_EXIST = 1
 }
 
-export function errorFromJSON(object: any): Error {
+export function errorReasonFromJSON(object: any): ErrorReason {
   switch (object) {
     case 0:
     case 'OPERATION_NOT_ALLOWED':
-      return Error.OPERATION_NOT_ALLOWED;
+      return ErrorReason.OPERATION_NOT_ALLOWED;
+    case 1:
+    case 'WHITEBOARD_DOES_NOT_EXIST':
+      return ErrorReason.WHITEBOARD_DOES_NOT_EXIST;
     default:
       throw new globalThis.Error(
-        'Unrecognized enum value ' + object + ' for enum Error'
+        'Unrecognized enum value ' + object + ' for enum ErrorReason'
       );
   }
 }
 
-export function errorToJSON(object: Error): string {
+export function errorReasonToJSON(object: ErrorReason): string {
   switch (object) {
-    case Error.OPERATION_NOT_ALLOWED:
+    case ErrorReason.OPERATION_NOT_ALLOWED:
       return 'OPERATION_NOT_ALLOWED';
+    case ErrorReason.WHITEBOARD_DOES_NOT_EXIST:
+      return 'WHITEBOARD_DOES_NOT_EXIST';
     default:
       return 'UNKNOWN';
   }
@@ -113,7 +119,7 @@ export interface JoinWhiteboard {
 }
 
 export interface ResultError {
-  reason: Error;
+  reason: ErrorReason;
 }
 
 export interface ResultSuccess {}
@@ -135,6 +141,7 @@ export interface ClientToServerMessage {
 export interface ServerToClientMessage {
   body?:
     | { $case: 'error'; error: ResultError }
+    | { $case: 'success'; success: ResultSuccess }
     | { $case: 'whiteboardCreated'; whiteboardCreated: WhiteboardCreated }
     | {
         $case: 'getAllFiguresResponse';
@@ -762,14 +769,15 @@ export const ResultError = {
   fromJSON(object: any): ResultError {
     const message = { ...baseResultError } as ResultError;
     if (object.reason !== undefined && object.reason !== null) {
-      message.reason = errorFromJSON(object.reason);
+      message.reason = errorReasonFromJSON(object.reason);
     }
     return message;
   },
 
   toJSON(message: ResultError): unknown {
     const obj: any = {};
-    message.reason !== undefined && (obj.reason = errorToJSON(message.reason));
+    message.reason !== undefined &&
+      (obj.reason = errorReasonToJSON(message.reason));
     return obj;
   },
 
@@ -1027,6 +1035,12 @@ export const ServerToClientMessage = {
     if (message.body?.$case === 'error') {
       ResultError.encode(message.body.error, writer.uint32(10).fork()).ldelim();
     }
+    if (message.body?.$case === 'success') {
+      ResultSuccess.encode(
+        message.body.success,
+        writer.uint32(18).fork()
+      ).ldelim();
+    }
     if (message.body?.$case === 'whiteboardCreated') {
       WhiteboardCreated.encode(
         message.body.whiteboardCreated,
@@ -1062,6 +1076,12 @@ export const ServerToClientMessage = {
           message.body = {
             $case: 'error',
             error: ResultError.decode(reader, reader.uint32())
+          };
+          break;
+        case 2:
+          message.body = {
+            $case: 'success',
+            success: ResultSuccess.decode(reader, reader.uint32())
           };
           break;
         case 3:
@@ -1101,6 +1121,12 @@ export const ServerToClientMessage = {
         error: ResultError.fromJSON(object.error)
       };
     }
+    if (object.success !== undefined && object.success !== null) {
+      message.body = {
+        $case: 'success',
+        success: ResultSuccess.fromJSON(object.success)
+      };
+    }
     if (
       object.whiteboardCreated !== undefined &&
       object.whiteboardCreated !== null
@@ -1136,6 +1162,10 @@ export const ServerToClientMessage = {
       (obj.error = message.body?.error
         ? ResultError.toJSON(message.body?.error)
         : undefined);
+    message.body?.$case === 'success' &&
+      (obj.success = message.body?.success
+        ? ResultSuccess.toJSON(message.body?.success)
+        : undefined);
     message.body?.$case === 'whiteboardCreated' &&
       (obj.whiteboardCreated = message.body?.whiteboardCreated
         ? WhiteboardCreated.toJSON(message.body?.whiteboardCreated)
@@ -1163,6 +1193,16 @@ export const ServerToClientMessage = {
       message.body = {
         $case: 'error',
         error: ResultError.fromPartial(object.body.error)
+      };
+    }
+    if (
+      object.body?.$case === 'success' &&
+      object.body?.success !== undefined &&
+      object.body?.success !== null
+    ) {
+      message.body = {
+        $case: 'success',
+        success: ResultSuccess.fromPartial(object.body.success)
       };
     }
     if (

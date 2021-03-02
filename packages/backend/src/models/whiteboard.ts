@@ -1,12 +1,12 @@
-import * as uuid from 'uuid';
 import { v4 as uuidv4 } from 'uuid';
 import { encodeUUID as uuidStringToBytes } from '../encoding';
 import {
   Coordinates,
+  ErrorReason,
   FigureType,
   ServerToClientMessage
 } from '../protocol/protocol';
-import { UUID } from '../types';
+import { Result, UUID } from '../types';
 import { ClientConnection } from './client-connection';
 
 export abstract class Figure {
@@ -117,6 +117,10 @@ export class Whiteboard {
     );
     this.figures.set(figure.id, figure);
   }
+
+  public addClientConnection(client: ClientConnection) {
+    this.clients.push(client);
+  }
 }
 
 const whiteboards: Map<Whiteboard['id'], Whiteboard> = new Map();
@@ -128,6 +132,23 @@ export const addWhiteboard = (host: ClientConnection) => {
 };
 
 export const countWhiteboards = () => whiteboards.size;
+
+export const connectClient = (
+  client: ClientConnection,
+  whiteboardId: UUID
+): Result => {
+  const board = whiteboards.get(whiteboardId);
+  if (board === undefined) {
+    // TODO decouple from the protobuf error format, define internal Result interface
+    return {
+      result: 'error',
+      reason: ErrorReason.WHITEBOARD_DOES_NOT_EXIST
+    };
+  } else {
+    board.addClientConnection(client);
+    return { result: 'success' };
+  }
+};
 
 // setInterval(() => {
 //   console.log(`There are ${countWhiteboards()} whiteboards`, whiteboards);
