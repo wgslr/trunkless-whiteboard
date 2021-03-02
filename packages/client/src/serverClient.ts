@@ -1,4 +1,3 @@
-import type * as WebSocket from 'ws';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { Message, MessageCode, decodeMessage } from '../src/types';
 
@@ -12,21 +11,23 @@ export class ServerConnection extends TypedEmitter<ServerConnectionEvents> {
     constructor(socket: WebSocket) {
         super();
         this.socket = socket;
-        this.setupSocketListener();
+        //this.setupSocketListener();
         this.on('message', msg => this.dispatch(msg));
     }
 
+  /*
     private setupSocketListener() {
-        this.socket.on('message', message => {
+        this.socket.onmessage('message', message => {
             console.log(`Server connection receieved a message: '${message}'`);
             const decoded = decodeMessage(message as string);
-            this.emit;
+            //this.emit;
         });
-        this.socket.on('close', () => {
+        this.socket.onmessage('close', () => {
             console.log('Server connection closed');
             this.emit('disconnect');
         });
     }
+    */
 
     private dispatch(message: Message) {
         if (message.code === MessageCode.CREATE_WHITEBOARD) {
