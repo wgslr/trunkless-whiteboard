@@ -1,6 +1,5 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
 import type * as WebSocket from 'ws';
-import { Message } from '../api';
 import type { Note, Whiteboard } from './whiteboard';
 import { addWhiteboard } from './whiteboard';
 import {
@@ -16,7 +15,7 @@ let connections: ClientConnection[] = [];
 
 declare interface ClientConnectionEvents {
   disconnect: () => void;
-  message: (decoded: Message) => void;
+  message: (decoded: ClientToServerMessage) => void;
 }
 
 // TODO move to other module
@@ -59,7 +58,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
   }
 
   // TODO extract a 'controller' to limti responsibility of this class, which should be concrened more about marshalling data
-  private dispatch(message: Message) {
+  private dispatch(message: ClientToServerMessage) {
     switch (message.body?.$case) {
       case 'createWhiteboardRequest': {
         this.whiteboard = addWhiteboard(this);
@@ -78,11 +77,11 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
         }
         break;
       }
-      case 'figureMovedMsg': {
+      case 'moveFigure': {
         // TODO
         break;
       }
-      default:
+      // default:
       // TODO send error about unrecognized message
     }
   }

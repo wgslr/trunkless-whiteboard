@@ -92,14 +92,24 @@ export interface WhiteboardCreated {
  */
 export interface GetAllFiguresRequest {}
 
-/** Provides */
+/**  */
 export interface GetAllFiguresResponse {
   notes: Note[];
 }
 
-export interface FigureMovedMsg {
+export interface MoveFigure {
   figureId: Uint8Array;
   newCoordinates: Coordinates | undefined;
+}
+
+export interface FigureMoved {
+  figureId: Uint8Array;
+  newCoordinates: Coordinates | undefined;
+}
+
+/** Client sends this message to request joining a whiteboard */
+export interface JoinWhiteboard {
+  whiteboardId: Uint8Array;
 }
 
 export interface ResultError {
@@ -117,7 +127,9 @@ export interface ClientToServerMessage {
     | {
         $case: 'getAllFiguresRequest';
         getAllFiguresRequest: GetAllFiguresRequest;
-      };
+      }
+    | { $case: 'joinWhiteboard'; joinWhiteboard: JoinWhiteboard }
+    | { $case: 'moveFigure'; moveFigure: MoveFigure };
 }
 
 export interface ServerToClientMessage {
@@ -128,7 +140,7 @@ export interface ServerToClientMessage {
         $case: 'getAllFiguresResponse';
         getAllFiguresResponse: GetAllFiguresResponse;
       }
-    | { $case: 'figureMovedMsg'; figureMovedMsg: FigureMovedMsg };
+    | { $case: 'figureMoved'; figureMoved: FigureMoved };
 }
 
 const baseCoordinates: object = { x: 0, y: 0 };
@@ -505,11 +517,11 @@ export const GetAllFiguresResponse = {
   }
 };
 
-const baseFigureMovedMsg: object = {};
+const baseMoveFigure: object = {};
 
-export const FigureMovedMsg = {
+export const MoveFigure = {
   encode(
-    message: FigureMovedMsg,
+    message: MoveFigure,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.figureId.length !== 0) {
@@ -524,10 +536,10 @@ export const FigureMovedMsg = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): FigureMovedMsg {
+  decode(input: _m0.Reader | Uint8Array, length?: number): MoveFigure {
     const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseFigureMovedMsg } as FigureMovedMsg;
+    const message = { ...baseMoveFigure } as MoveFigure;
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -545,8 +557,8 @@ export const FigureMovedMsg = {
     return message;
   },
 
-  fromJSON(object: any): FigureMovedMsg {
-    const message = { ...baseFigureMovedMsg } as FigureMovedMsg;
+  fromJSON(object: any): MoveFigure {
+    const message = { ...baseMoveFigure } as MoveFigure;
     if (object.figureId !== undefined && object.figureId !== null) {
       message.figureId = bytesFromBase64(object.figureId);
     }
@@ -556,7 +568,7 @@ export const FigureMovedMsg = {
     return message;
   },
 
-  toJSON(message: FigureMovedMsg): unknown {
+  toJSON(message: MoveFigure): unknown {
     const obj: any = {};
     message.figureId !== undefined &&
       (obj.figureId = base64FromBytes(
@@ -569,13 +581,148 @@ export const FigureMovedMsg = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<FigureMovedMsg>): FigureMovedMsg {
-    const message = { ...baseFigureMovedMsg } as FigureMovedMsg;
+  fromPartial(object: DeepPartial<MoveFigure>): MoveFigure {
+    const message = { ...baseMoveFigure } as MoveFigure;
     if (object.figureId !== undefined && object.figureId !== null) {
       message.figureId = object.figureId;
     }
     if (object.newCoordinates !== undefined && object.newCoordinates !== null) {
       message.newCoordinates = Coordinates.fromPartial(object.newCoordinates);
+    }
+    return message;
+  }
+};
+
+const baseFigureMoved: object = {};
+
+export const FigureMoved = {
+  encode(
+    message: FigureMoved,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.figureId.length !== 0) {
+      writer.uint32(10).bytes(message.figureId);
+    }
+    if (message.newCoordinates !== undefined) {
+      Coordinates.encode(
+        message.newCoordinates,
+        writer.uint32(18).fork()
+      ).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): FigureMoved {
+    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseFigureMoved } as FigureMoved;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.figureId = reader.bytes();
+          break;
+        case 2:
+          message.newCoordinates = Coordinates.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): FigureMoved {
+    const message = { ...baseFigureMoved } as FigureMoved;
+    if (object.figureId !== undefined && object.figureId !== null) {
+      message.figureId = bytesFromBase64(object.figureId);
+    }
+    if (object.newCoordinates !== undefined && object.newCoordinates !== null) {
+      message.newCoordinates = Coordinates.fromJSON(object.newCoordinates);
+    }
+    return message;
+  },
+
+  toJSON(message: FigureMoved): unknown {
+    const obj: any = {};
+    message.figureId !== undefined &&
+      (obj.figureId = base64FromBytes(
+        message.figureId !== undefined ? message.figureId : new Uint8Array()
+      ));
+    message.newCoordinates !== undefined &&
+      (obj.newCoordinates = message.newCoordinates
+        ? Coordinates.toJSON(message.newCoordinates)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<FigureMoved>): FigureMoved {
+    const message = { ...baseFigureMoved } as FigureMoved;
+    if (object.figureId !== undefined && object.figureId !== null) {
+      message.figureId = object.figureId;
+    }
+    if (object.newCoordinates !== undefined && object.newCoordinates !== null) {
+      message.newCoordinates = Coordinates.fromPartial(object.newCoordinates);
+    }
+    return message;
+  }
+};
+
+const baseJoinWhiteboard: object = {};
+
+export const JoinWhiteboard = {
+  encode(
+    message: JoinWhiteboard,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.whiteboardId.length !== 0) {
+      writer.uint32(10).bytes(message.whiteboardId);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): JoinWhiteboard {
+    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseJoinWhiteboard } as JoinWhiteboard;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.whiteboardId = reader.bytes();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): JoinWhiteboard {
+    const message = { ...baseJoinWhiteboard } as JoinWhiteboard;
+    if (object.whiteboardId !== undefined && object.whiteboardId !== null) {
+      message.whiteboardId = bytesFromBase64(object.whiteboardId);
+    }
+    return message;
+  },
+
+  toJSON(message: JoinWhiteboard): unknown {
+    const obj: any = {};
+    message.whiteboardId !== undefined &&
+      (obj.whiteboardId = base64FromBytes(
+        message.whiteboardId !== undefined
+          ? message.whiteboardId
+          : new Uint8Array()
+      ));
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<JoinWhiteboard>): JoinWhiteboard {
+    const message = { ...baseJoinWhiteboard } as JoinWhiteboard;
+    if (object.whiteboardId !== undefined && object.whiteboardId !== null) {
+      message.whiteboardId = object.whiteboardId;
     }
     return message;
   }
@@ -695,6 +842,18 @@ export const ClientToServerMessage = {
         writer.uint32(18).fork()
       ).ldelim();
     }
+    if (message.body?.$case === 'joinWhiteboard') {
+      JoinWhiteboard.encode(
+        message.body.joinWhiteboard,
+        writer.uint32(26).fork()
+      ).ldelim();
+    }
+    if (message.body?.$case === 'moveFigure') {
+      MoveFigure.encode(
+        message.body.moveFigure,
+        writer.uint32(42).fork()
+      ).ldelim();
+    }
     return writer;
   },
 
@@ -724,6 +883,18 @@ export const ClientToServerMessage = {
               reader,
               reader.uint32()
             )
+          };
+          break;
+        case 3:
+          message.body = {
+            $case: 'joinWhiteboard',
+            joinWhiteboard: JoinWhiteboard.decode(reader, reader.uint32())
+          };
+          break;
+        case 5:
+          message.body = {
+            $case: 'moveFigure',
+            moveFigure: MoveFigure.decode(reader, reader.uint32())
           };
           break;
         default:
@@ -758,6 +929,18 @@ export const ClientToServerMessage = {
         )
       };
     }
+    if (object.joinWhiteboard !== undefined && object.joinWhiteboard !== null) {
+      message.body = {
+        $case: 'joinWhiteboard',
+        joinWhiteboard: JoinWhiteboard.fromJSON(object.joinWhiteboard)
+      };
+    }
+    if (object.moveFigure !== undefined && object.moveFigure !== null) {
+      message.body = {
+        $case: 'moveFigure',
+        moveFigure: MoveFigure.fromJSON(object.moveFigure)
+      };
+    }
     return message;
   },
 
@@ -770,6 +953,14 @@ export const ClientToServerMessage = {
     message.body?.$case === 'getAllFiguresRequest' &&
       (obj.getAllFiguresRequest = message.body?.getAllFiguresRequest
         ? GetAllFiguresRequest.toJSON(message.body?.getAllFiguresRequest)
+        : undefined);
+    message.body?.$case === 'joinWhiteboard' &&
+      (obj.joinWhiteboard = message.body?.joinWhiteboard
+        ? JoinWhiteboard.toJSON(message.body?.joinWhiteboard)
+        : undefined);
+    message.body?.$case === 'moveFigure' &&
+      (obj.moveFigure = message.body?.moveFigure
+        ? MoveFigure.toJSON(message.body?.moveFigure)
         : undefined);
     return obj;
   },
@@ -802,6 +993,26 @@ export const ClientToServerMessage = {
         )
       };
     }
+    if (
+      object.body?.$case === 'joinWhiteboard' &&
+      object.body?.joinWhiteboard !== undefined &&
+      object.body?.joinWhiteboard !== null
+    ) {
+      message.body = {
+        $case: 'joinWhiteboard',
+        joinWhiteboard: JoinWhiteboard.fromPartial(object.body.joinWhiteboard)
+      };
+    }
+    if (
+      object.body?.$case === 'moveFigure' &&
+      object.body?.moveFigure !== undefined &&
+      object.body?.moveFigure !== null
+    ) {
+      message.body = {
+        $case: 'moveFigure',
+        moveFigure: MoveFigure.fromPartial(object.body.moveFigure)
+      };
+    }
     return message;
   }
 };
@@ -828,9 +1039,9 @@ export const ServerToClientMessage = {
         writer.uint32(34).fork()
       ).ldelim();
     }
-    if (message.body?.$case === 'figureMovedMsg') {
-      FigureMovedMsg.encode(
-        message.body.figureMovedMsg,
+    if (message.body?.$case === 'figureMoved') {
+      FigureMoved.encode(
+        message.body.figureMoved,
         writer.uint32(42).fork()
       ).ldelim();
     }
@@ -870,8 +1081,8 @@ export const ServerToClientMessage = {
           break;
         case 5:
           message.body = {
-            $case: 'figureMovedMsg',
-            figureMovedMsg: FigureMovedMsg.decode(reader, reader.uint32())
+            $case: 'figureMoved',
+            figureMoved: FigureMoved.decode(reader, reader.uint32())
           };
           break;
         default:
@@ -910,10 +1121,10 @@ export const ServerToClientMessage = {
         )
       };
     }
-    if (object.figureMovedMsg !== undefined && object.figureMovedMsg !== null) {
+    if (object.figureMoved !== undefined && object.figureMoved !== null) {
       message.body = {
-        $case: 'figureMovedMsg',
-        figureMovedMsg: FigureMovedMsg.fromJSON(object.figureMovedMsg)
+        $case: 'figureMoved',
+        figureMoved: FigureMoved.fromJSON(object.figureMoved)
       };
     }
     return message;
@@ -933,9 +1144,9 @@ export const ServerToClientMessage = {
       (obj.getAllFiguresResponse = message.body?.getAllFiguresResponse
         ? GetAllFiguresResponse.toJSON(message.body?.getAllFiguresResponse)
         : undefined);
-    message.body?.$case === 'figureMovedMsg' &&
-      (obj.figureMovedMsg = message.body?.figureMovedMsg
-        ? FigureMovedMsg.toJSON(message.body?.figureMovedMsg)
+    message.body?.$case === 'figureMoved' &&
+      (obj.figureMoved = message.body?.figureMoved
+        ? FigureMoved.toJSON(message.body?.figureMoved)
         : undefined);
     return obj;
   },
@@ -979,13 +1190,13 @@ export const ServerToClientMessage = {
       };
     }
     if (
-      object.body?.$case === 'figureMovedMsg' &&
-      object.body?.figureMovedMsg !== undefined &&
-      object.body?.figureMovedMsg !== null
+      object.body?.$case === 'figureMoved' &&
+      object.body?.figureMoved !== undefined &&
+      object.body?.figureMoved !== null
     ) {
       message.body = {
-        $case: 'figureMovedMsg',
-        figureMovedMsg: FigureMovedMsg.fromPartial(object.body.figureMovedMsg)
+        $case: 'figureMoved',
+        figureMoved: FigureMoved.fromPartial(object.body.figureMoved)
       };
     }
     return message;

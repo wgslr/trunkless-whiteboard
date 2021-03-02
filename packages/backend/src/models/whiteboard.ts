@@ -1,8 +1,11 @@
 import * as uuid from 'uuid';
 import { v4 as uuidv4 } from 'uuid';
-import { Message } from '../api';
 import { encodeUUID as uuidStringToBytes } from '../encoding';
-import { Coordinates, FigureType } from '../protocol/protocol';
+import {
+  Coordinates,
+  FigureType,
+  ServerToClientMessage
+} from '../protocol/protocol';
 import { UUID } from '../types';
 import { ClientConnection } from './client-connection';
 
@@ -83,8 +86,8 @@ export class Whiteboard {
         figure.location = newCoords;
         this.sendToClients({
           body: {
-            $case: 'figureMovedMsg',
-            figureMovedMsg: {
+            $case: 'figureMoved',
+            figureMoved: {
               figureId: uuidStringToBytes(figure.id),
               newCoordinates: newCoords
             }
@@ -101,7 +104,7 @@ export class Whiteboard {
     }
   }
 
-  protected sendToClients(message: Message) {
+  protected sendToClients(message: ServerToClientMessage) {
     this.clients.forEach(client => {
       client.send(message);
     });
