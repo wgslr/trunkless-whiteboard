@@ -12,8 +12,9 @@ message Coordinates {
 }
 
 message Note {
-  bytes id = 1; // UUID in byte representation. Saves bandwidth, but more
-                // problematic in code
+  /* UUID in byte representation. Saves bandwidth, but more
+     problematic in code */
+  bytes id = 1;
   Coordinates coordinates = 2;
   string content = 3;
 }
@@ -38,11 +39,23 @@ message FigureMovedMsg {
   Coordinates new_coordinates = 2;
 }
 
-message MessageWrapper {
+enum Error { OPERATION_NOT_ALLOWED = 0; }
+
+message ResultError { Error reason = 1; }
+message ResultSuccess {}
+
+message ClientToServerMessage {
   oneof body {
     CreateWhiteboardRequest create_whiteboard_request = 1;
-    WhiteboardCreated whiteboard_created = 2;
-    GetAllFiguresRequest get_all_figures_request = 3;
+    GetAllFiguresRequest get_all_figures_request = 2;
+  }
+}
+
+message ServerToClientMessage {
+  oneof body {
+    ResultError error = 1;
+    // ResultSuccess success = 2;
+    WhiteboardCreated whiteboard_created = 3;
     GetAllFiguresResponse get_all_figures_response = 4;
     FigureMovedMsg figure_moved_msg = 5;
   }

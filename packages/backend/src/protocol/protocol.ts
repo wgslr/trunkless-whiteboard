@@ -40,15 +40,42 @@ export function figureTypeToJSON(object: FigureType): string {
   }
 }
 
+export enum Error {
+  OPERATION_NOT_ALLOWED = 0
+}
+
+export function errorFromJSON(object: any): Error {
+  switch (object) {
+    case 0:
+    case 'OPERATION_NOT_ALLOWED':
+      return Error.OPERATION_NOT_ALLOWED;
+    default:
+      throw new globalThis.Error(
+        'Unrecognized enum value ' + object + ' for enum Error'
+      );
+  }
+}
+
+export function errorToJSON(object: Error): string {
+  switch (object) {
+    case Error.OPERATION_NOT_ALLOWED:
+      return 'OPERATION_NOT_ALLOWED';
+    default:
+      return 'UNKNOWN';
+  }
+}
+
 export interface Coordinates {
   x: number;
   y: number;
 }
 
 export interface Note {
-  /** UUID in byte representation. Saves bandwidth, but more */
+  /**
+   * UUID in byte representation. Saves bandwidth, but more
+   * problematic in code
+   */
   id: Uint8Array;
-  /** problematic in code */
   coordinates: Coordinates | undefined;
   content: string;
 }
@@ -75,17 +102,28 @@ export interface FigureMovedMsg {
   newCoordinates: Coordinates | undefined;
 }
 
-export interface MessageWrapper {
+export interface ResultError {
+  reason: Error;
+}
+
+export interface ResultSuccess {}
+
+export interface ClientToServerMessage {
   body?:
     | {
         $case: 'createWhiteboardRequest';
         createWhiteboardRequest: CreateWhiteboardRequest;
       }
-    | { $case: 'whiteboardCreated'; whiteboardCreated: WhiteboardCreated }
     | {
         $case: 'getAllFiguresRequest';
         getAllFiguresRequest: GetAllFiguresRequest;
-      }
+      };
+}
+
+export interface ServerToClientMessage {
+  body?:
+    | { $case: 'error'; error: ResultError }
+    | { $case: 'whiteboardCreated'; whiteboardCreated: WhiteboardCreated }
     | {
         $case: 'getAllFiguresResponse';
         getAllFiguresResponse: GetAllFiguresResponse;
@@ -543,11 +581,106 @@ export const FigureMovedMsg = {
   }
 };
 
-const baseMessageWrapper: object = {};
+const baseResultError: object = { reason: 0 };
 
-export const MessageWrapper = {
+export const ResultError = {
   encode(
-    message: MessageWrapper,
+    message: ResultError,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.reason !== 0) {
+      writer.uint32(8).int32(message.reason);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ResultError {
+    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseResultError } as ResultError;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.reason = reader.int32() as any;
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ResultError {
+    const message = { ...baseResultError } as ResultError;
+    if (object.reason !== undefined && object.reason !== null) {
+      message.reason = errorFromJSON(object.reason);
+    }
+    return message;
+  },
+
+  toJSON(message: ResultError): unknown {
+    const obj: any = {};
+    message.reason !== undefined && (obj.reason = errorToJSON(message.reason));
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<ResultError>): ResultError {
+    const message = { ...baseResultError } as ResultError;
+    if (object.reason !== undefined && object.reason !== null) {
+      message.reason = object.reason;
+    }
+    return message;
+  }
+};
+
+const baseResultSuccess: object = {};
+
+export const ResultSuccess = {
+  encode(
+    _: ResultSuccess,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ResultSuccess {
+    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseResultSuccess } as ResultSuccess;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): ResultSuccess {
+    const message = { ...baseResultSuccess } as ResultSuccess;
+    return message;
+  },
+
+  toJSON(_: ResultSuccess): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial(_: DeepPartial<ResultSuccess>): ResultSuccess {
+    const message = { ...baseResultSuccess } as ResultSuccess;
+    return message;
+  }
+};
+
+const baseClientToServerMessage: object = {};
+
+export const ClientToServerMessage = {
+  encode(
+    message: ClientToServerMessage,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.body?.$case === 'createWhiteboardRequest') {
@@ -556,15 +689,136 @@ export const MessageWrapper = {
         writer.uint32(10).fork()
       ).ldelim();
     }
-    if (message.body?.$case === 'whiteboardCreated') {
-      WhiteboardCreated.encode(
-        message.body.whiteboardCreated,
-        writer.uint32(18).fork()
-      ).ldelim();
-    }
     if (message.body?.$case === 'getAllFiguresRequest') {
       GetAllFiguresRequest.encode(
         message.body.getAllFiguresRequest,
+        writer.uint32(18).fork()
+      ).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): ClientToServerMessage {
+    const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseClientToServerMessage } as ClientToServerMessage;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.body = {
+            $case: 'createWhiteboardRequest',
+            createWhiteboardRequest: CreateWhiteboardRequest.decode(
+              reader,
+              reader.uint32()
+            )
+          };
+          break;
+        case 2:
+          message.body = {
+            $case: 'getAllFiguresRequest',
+            getAllFiguresRequest: GetAllFiguresRequest.decode(
+              reader,
+              reader.uint32()
+            )
+          };
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ClientToServerMessage {
+    const message = { ...baseClientToServerMessage } as ClientToServerMessage;
+    if (
+      object.createWhiteboardRequest !== undefined &&
+      object.createWhiteboardRequest !== null
+    ) {
+      message.body = {
+        $case: 'createWhiteboardRequest',
+        createWhiteboardRequest: CreateWhiteboardRequest.fromJSON(
+          object.createWhiteboardRequest
+        )
+      };
+    }
+    if (
+      object.getAllFiguresRequest !== undefined &&
+      object.getAllFiguresRequest !== null
+    ) {
+      message.body = {
+        $case: 'getAllFiguresRequest',
+        getAllFiguresRequest: GetAllFiguresRequest.fromJSON(
+          object.getAllFiguresRequest
+        )
+      };
+    }
+    return message;
+  },
+
+  toJSON(message: ClientToServerMessage): unknown {
+    const obj: any = {};
+    message.body?.$case === 'createWhiteboardRequest' &&
+      (obj.createWhiteboardRequest = message.body?.createWhiteboardRequest
+        ? CreateWhiteboardRequest.toJSON(message.body?.createWhiteboardRequest)
+        : undefined);
+    message.body?.$case === 'getAllFiguresRequest' &&
+      (obj.getAllFiguresRequest = message.body?.getAllFiguresRequest
+        ? GetAllFiguresRequest.toJSON(message.body?.getAllFiguresRequest)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<ClientToServerMessage>
+  ): ClientToServerMessage {
+    const message = { ...baseClientToServerMessage } as ClientToServerMessage;
+    if (
+      object.body?.$case === 'createWhiteboardRequest' &&
+      object.body?.createWhiteboardRequest !== undefined &&
+      object.body?.createWhiteboardRequest !== null
+    ) {
+      message.body = {
+        $case: 'createWhiteboardRequest',
+        createWhiteboardRequest: CreateWhiteboardRequest.fromPartial(
+          object.body.createWhiteboardRequest
+        )
+      };
+    }
+    if (
+      object.body?.$case === 'getAllFiguresRequest' &&
+      object.body?.getAllFiguresRequest !== undefined &&
+      object.body?.getAllFiguresRequest !== null
+    ) {
+      message.body = {
+        $case: 'getAllFiguresRequest',
+        getAllFiguresRequest: GetAllFiguresRequest.fromPartial(
+          object.body.getAllFiguresRequest
+        )
+      };
+    }
+    return message;
+  }
+};
+
+const baseServerToClientMessage: object = {};
+
+export const ServerToClientMessage = {
+  encode(
+    message: ServerToClientMessage,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.body?.$case === 'error') {
+      ResultError.encode(message.body.error, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.body?.$case === 'whiteboardCreated') {
+      WhiteboardCreated.encode(
+        message.body.whiteboardCreated,
         writer.uint32(26).fork()
       ).ldelim();
     }
@@ -583,35 +837,26 @@ export const MessageWrapper = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): MessageWrapper {
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): ServerToClientMessage {
     const reader = input instanceof Uint8Array ? new _m0.Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMessageWrapper } as MessageWrapper;
+    const message = { ...baseServerToClientMessage } as ServerToClientMessage;
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
           message.body = {
-            $case: 'createWhiteboardRequest',
-            createWhiteboardRequest: CreateWhiteboardRequest.decode(
-              reader,
-              reader.uint32()
-            )
-          };
-          break;
-        case 2:
-          message.body = {
-            $case: 'whiteboardCreated',
-            whiteboardCreated: WhiteboardCreated.decode(reader, reader.uint32())
+            $case: 'error',
+            error: ResultError.decode(reader, reader.uint32())
           };
           break;
         case 3:
           message.body = {
-            $case: 'getAllFiguresRequest',
-            getAllFiguresRequest: GetAllFiguresRequest.decode(
-              reader,
-              reader.uint32()
-            )
+            $case: 'whiteboardCreated',
+            whiteboardCreated: WhiteboardCreated.decode(reader, reader.uint32())
           };
           break;
         case 4:
@@ -637,17 +882,12 @@ export const MessageWrapper = {
     return message;
   },
 
-  fromJSON(object: any): MessageWrapper {
-    const message = { ...baseMessageWrapper } as MessageWrapper;
-    if (
-      object.createWhiteboardRequest !== undefined &&
-      object.createWhiteboardRequest !== null
-    ) {
+  fromJSON(object: any): ServerToClientMessage {
+    const message = { ...baseServerToClientMessage } as ServerToClientMessage;
+    if (object.error !== undefined && object.error !== null) {
       message.body = {
-        $case: 'createWhiteboardRequest',
-        createWhiteboardRequest: CreateWhiteboardRequest.fromJSON(
-          object.createWhiteboardRequest
-        )
+        $case: 'error',
+        error: ResultError.fromJSON(object.error)
       };
     }
     if (
@@ -657,17 +897,6 @@ export const MessageWrapper = {
       message.body = {
         $case: 'whiteboardCreated',
         whiteboardCreated: WhiteboardCreated.fromJSON(object.whiteboardCreated)
-      };
-    }
-    if (
-      object.getAllFiguresRequest !== undefined &&
-      object.getAllFiguresRequest !== null
-    ) {
-      message.body = {
-        $case: 'getAllFiguresRequest',
-        getAllFiguresRequest: GetAllFiguresRequest.fromJSON(
-          object.getAllFiguresRequest
-        )
       };
     }
     if (
@@ -690,19 +919,15 @@ export const MessageWrapper = {
     return message;
   },
 
-  toJSON(message: MessageWrapper): unknown {
+  toJSON(message: ServerToClientMessage): unknown {
     const obj: any = {};
-    message.body?.$case === 'createWhiteboardRequest' &&
-      (obj.createWhiteboardRequest = message.body?.createWhiteboardRequest
-        ? CreateWhiteboardRequest.toJSON(message.body?.createWhiteboardRequest)
+    message.body?.$case === 'error' &&
+      (obj.error = message.body?.error
+        ? ResultError.toJSON(message.body?.error)
         : undefined);
     message.body?.$case === 'whiteboardCreated' &&
       (obj.whiteboardCreated = message.body?.whiteboardCreated
         ? WhiteboardCreated.toJSON(message.body?.whiteboardCreated)
-        : undefined);
-    message.body?.$case === 'getAllFiguresRequest' &&
-      (obj.getAllFiguresRequest = message.body?.getAllFiguresRequest
-        ? GetAllFiguresRequest.toJSON(message.body?.getAllFiguresRequest)
         : undefined);
     message.body?.$case === 'getAllFiguresResponse' &&
       (obj.getAllFiguresResponse = message.body?.getAllFiguresResponse
@@ -715,18 +940,18 @@ export const MessageWrapper = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<MessageWrapper>): MessageWrapper {
-    const message = { ...baseMessageWrapper } as MessageWrapper;
+  fromPartial(
+    object: DeepPartial<ServerToClientMessage>
+  ): ServerToClientMessage {
+    const message = { ...baseServerToClientMessage } as ServerToClientMessage;
     if (
-      object.body?.$case === 'createWhiteboardRequest' &&
-      object.body?.createWhiteboardRequest !== undefined &&
-      object.body?.createWhiteboardRequest !== null
+      object.body?.$case === 'error' &&
+      object.body?.error !== undefined &&
+      object.body?.error !== null
     ) {
       message.body = {
-        $case: 'createWhiteboardRequest',
-        createWhiteboardRequest: CreateWhiteboardRequest.fromPartial(
-          object.body.createWhiteboardRequest
-        )
+        $case: 'error',
+        error: ResultError.fromPartial(object.body.error)
       };
     }
     if (
@@ -738,18 +963,6 @@ export const MessageWrapper = {
         $case: 'whiteboardCreated',
         whiteboardCreated: WhiteboardCreated.fromPartial(
           object.body.whiteboardCreated
-        )
-      };
-    }
-    if (
-      object.body?.$case === 'getAllFiguresRequest' &&
-      object.body?.getAllFiguresRequest !== undefined &&
-      object.body?.getAllFiguresRequest !== null
-    ) {
-      message.body = {
-        $case: 'getAllFiguresRequest',
-        getAllFiguresRequest: GetAllFiguresRequest.fromPartial(
-          object.body.getAllFiguresRequest
         )
       };
     }

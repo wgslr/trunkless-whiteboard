@@ -2,7 +2,10 @@ import { SSL_OP_EPHEMERAL_RSA } from 'constants';
 import request from 'superwstest';
 import { countWhiteboards } from '../models/whiteboard';
 import server from '../server';
-import { CreateWhiteboardRequest, MessageWrapper } from '../protocol/protocol';
+import {
+  CreateWhiteboardRequest,
+  ClientToServerMessage
+} from '../protocol/protocol';
 
 describe('WebSockeet server', () => {
   beforeEach(done => {
@@ -19,7 +22,7 @@ describe('WebSockeet server', () => {
   });
 
   it('creates a whiteboard', async () => {
-    const msg = MessageWrapper.encode({
+    const msg = ClientToServerMessage.encode({
       body: {
         $case: 'createWhiteboardRequest',
         createWhiteboardRequest: {}

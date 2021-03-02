@@ -4,9 +4,10 @@ import { Message } from '../api';
 import type { Note, Whiteboard } from './whiteboard';
 import { addWhiteboard } from './whiteboard';
 import {
+  ClientToServerMessage,
   GetAllFiguresResponse,
-  MessageWrapper,
-  Note as NoteMsg
+  Note as NoteMsg,
+  ServerToClientMessage
 } from '../protocol/protocol';
 import { Reader } from 'protobufjs';
 import * as uuid from 'uuid';
@@ -43,7 +44,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     this.socket.on('message', (message: Uint8Array) => {
       console.log(`Client connection received a message: '${message}''`);
       // const decoded = decodeMessage(message as string);
-      const decoded = MessageWrapper.decode(Reader.create(message));
+      const decoded = ClientToServerMessage.decode(Reader.create(message));
       console.debug({ decoded });
       this.emit('message', decoded);
     });
@@ -53,8 +54,8 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     });
   }
 
-  public send(message: MessageWrapper) {
-    this.socket.send(MessageWrapper.encode(message));
+  public send(message: ServerToClientMessage) {
+    this.socket.send(ServerToClientMessage.encode(message));
   }
 
   // TODO extract a 'controller' to limti responsibility of this class, which should be concrened more about marshalling data
