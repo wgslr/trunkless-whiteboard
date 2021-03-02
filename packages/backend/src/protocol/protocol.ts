@@ -6,8 +6,7 @@ export const protobufPackage = '';
 export enum FigureType {
   NOTE = 0,
   LINE = 1,
-  IMAGE = 2,
-  UNRECOGNIZED = -1
+  IMAGE = 2
 }
 
 export function figureTypeFromJSON(object: any): FigureType {
@@ -21,10 +20,10 @@ export function figureTypeFromJSON(object: any): FigureType {
     case 2:
     case 'IMAGE':
       return FigureType.IMAGE;
-    case -1:
-    case 'UNRECOGNIZED':
     default:
-      return FigureType.UNRECOGNIZED;
+      throw new globalThis.Error(
+        'Unrecognized enum value ' + object + ' for enum FigureType'
+      );
   }
 }
 
