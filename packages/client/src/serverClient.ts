@@ -1,40 +1,27 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
-import { Message, MessageCode, decodeMessage } from '../src/types';
+import { Message, Coordinate } from './types';
+import { Line } from './protocol/protocol';
 
 declare interface ServerConnectionEvents {
-    disconnect: () => void;
-    message: (decoded: Message) => void;
+  disconnect: () => void;
+  message: (decoded: Message) => void;
 }
 
 export class ServerConnection extends TypedEmitter<ServerConnectionEvents> {
-    socket: WebSocket;
-    constructor(socket: WebSocket) {
-        super();
-        this.socket = socket;
-        //this.setupSocketListener();
-        this.on('message', msg => this.dispatch(msg));
-    }
+  socket: WebSocket;
+  constructor(socket: WebSocket) {
+    super();
+    this.socket = socket;
+    this.on('message', msg => this.dispatch(msg));
+  }
 
-  /*
-    private setupSocketListener() {
-        this.socket.onmessage('message', message => {
-            console.log(`Server connection receieved a message: '${message}'`);
-            const decoded = decodeMessage(message as string);
-            //this.emit;
-        });
-        this.socket.onmessage('close', () => {
-            console.log('Server connection closed');
-            this.emit('disconnect');
-        });
-    }
-    */
+  private dispatch(message: Message) {
+    console.log('MESSAGE RECEIVED:', message);
+  }
 
-    private dispatch(message: Message) {
-        if (message.code === MessageCode.CREATE_WHITEBOARD) {
-            // addWhiteboard(this);
-            return;
-        }
-    }
+  public publishLine([start, end]: [Coordinate, Coordinate]) {
+    const id = Uint8Array.from([1]);
+    const line = Line.encode({ id , start, end })
+    console.log('RECEIVED:', line);
+  }
 }
-
-
