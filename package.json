@@ -7,7 +7,9 @@
   "repository": "git@github.com:wgslr/trunkless-whiteboard.git",
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "protoc": "protoc --plugin=node_modules/ts-proto/protoc-gen-ts_proto ./protocol/protocol.proto --ts_proto_opt=esModuleInterop=true,unrecognizedEnum=false --ts_proto_out=packages/backend/src",
+    "protoc:client": "protoc --plugin=node_modules/ts-proto/protoc-gen-ts_proto ./protocol/protocol.proto --ts_proto_opt=esModuleInterop=true,unrecognizedEnum=false --ts_proto_out=packages/client/src",
+    "protoc:server": "protoc --plugin=node_modules/ts-proto/protoc-gen-ts_proto ./protocol/protocol.proto --ts_proto_opt=esModuleInterop=true,unrecognizedEnum=false --ts_proto_out=packages/backend/src",
+    "protoc": "concurrently \"yarn protoc:client\" \"yarn protoc:server\"",
     "start:client": "cd packages/client && yarn start",
     "start:server": "cd packages/backend && yarn dev",
     "start:dev": "concurrently \"yarn start:client\" \"yarn start:server\""

@@ -18,10 +18,11 @@ message Note {
   string content = 3;
 }
 
-// TODO
-// message Line {
-//   bytes id = 1;
-// }
+message Line {
+  bytes id = 1;
+  Coordinates start = 2;
+  Coordinates end = 3;
+}
 
 message CreateWhiteboardRequest {}
 message WhiteboardCreated { string whiteboard_id = 1; }
@@ -45,5 +46,6 @@ message MessageWrapper {
     GetAllFiguresRequest get_all_figures_request = 3;
     GetAllFiguresResponse get_all_figures_response = 4;
     FigureMovedMsg figure_moved_msg = 5;
+    Line line_drawn = 6;
   }
 }
