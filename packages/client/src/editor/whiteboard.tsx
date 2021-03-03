@@ -4,43 +4,50 @@
 // https://github.com/AnkurSheel/react-drawing-interaction/blob/master/src/canvas.tsx
 // --------------
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Coordinate } from '../types'
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useContext
+} from 'react';
+import { Coordinate } from '../types';
+import ServerContext from '../connection-context/server-connection';
 
 export const bitmap: Map<Coordinate, number>[] = [];
 export let lineIndex = -1;
 
-function linePoints (a: Coordinate, b: Coordinate) {
+function linePoints(a: Coordinate, b: Coordinate) {
   let xDiff = b.x - a.x;
   let yDiff = b.y - a.y;
-  
-  let resolution = 1.5;
-  let noOfPoints = Math.sqrt(xDiff*xDiff+yDiff*yDiff) / resolution; // distance between points is equal to number of pixels between points
 
-  let xInterval = xDiff / (noOfPoints);
-  let yInterval = yDiff / (noOfPoints);
+  let resolution = 1.5;
+  let noOfPoints = Math.sqrt(xDiff * xDiff + yDiff * yDiff) / resolution; // distance between points is equal to number of pixels between points
+
+  let xInterval = xDiff / noOfPoints;
+  let yInterval = yDiff / noOfPoints;
   let coordList = [];
   for (let i = 0; i <= noOfPoints; i++) {
-    coordList.push( {x: (a.x + xInterval*i), y: (a.y + yInterval*i)} )
+    coordList.push({ x: a.x + xInterval * i, y: a.y + yInterval * i });
   }
   return coordList; // coordList includes original Coords a & b
 }
 
-function Canvas(props: {x: number, y:number}) {
+function Canvas(props: { x: number; y: number }) {
+  const { connection: serverConnection } = useContext(ServerContext);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [mousePos, setMousePos] = useState<Coordinate | undefined>(undefined);
 
-  const startDraw = useCallback(
-    (event: MouseEvent) => {
-      const xy = getCoordinates(event);
-      if (xy) {
-        bitmap.push(new Map<Coordinate, number>());
-        lineIndex++;
-        setMousePos(xy);
-        setIsDrawing(true);
-      }
-    }, []);
+  const startDraw = useCallback((event: MouseEvent) => {
+    const xy = getCoordinates(event);
+    if (xy) {
+      bitmap.push(new Map<Coordinate, number>());
+      lineIndex++;
+      setMousePos(xy);
+      setIsDrawing(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!canvasRef.current) {
@@ -54,6 +61,12 @@ function Canvas(props: {x: number, y:number}) {
     };
   }, [startDraw]);
 
+  const publishLineToServer = useCallback(
+    (mousePos: Coordinate, newMousePos: Coordinate) =>
+      serverConnection.publishLine([mousePos, newMousePos]),
+    [serverConnection]
+  );
+
   const draw = useCallback(
     (event: MouseEvent) => {
       if (isDrawing) {
@@ -61,10 +74,11 @@ function Canvas(props: {x: number, y:number}) {
         if (mousePos && newMousePos) {
           drawLine(mousePos, newMousePos);
           setMousePos(newMousePos);
+          publishLineToServer(mousePos, newMousePos);
         }
       }
     },
-    [isDrawing, mousePos]
+    [isDrawing, mousePos, publishLineToServer]
   );
 
   useEffect(() => {
@@ -102,7 +116,10 @@ function Canvas(props: {x: number, y:number}) {
     }
     const canvas: HTMLCanvasElement = canvasRef.current;
 
-    return { x: event.pageX - canvas.offsetLeft, y: event.pageY - canvas.offsetTop };
+    return {
+      x: event.pageX - canvas.offsetLeft,
+      y: event.pageY - canvas.offsetTop
+    };
   }
 
   function drawLine(originalMousePos: Coordinate, newMousePos: Coordinate) {
@@ -116,7 +133,7 @@ function Canvas(props: {x: number, y:number}) {
 
       for (let i = 0; i < list.length; i++) {
         let pixel = list[i];
-        context.fillRect(pixel.x, pixel.y, 1, 1)
+        context.fillRect(pixel.x, pixel.y, 1, 1);
         bitmap[lineIndex].set(pixel, 1);
       }
     }
@@ -124,9 +141,14 @@ function Canvas(props: {x: number, y:number}) {
 
   return (
     <div>
-      <canvas ref={canvasRef} height={props.y} width={props.x} style={{border: '1px solid black', backgroundColor: 'white'}} />
+      <canvas
+        ref={canvasRef}
+        height={props.y}
+        width={props.x}
+        style={{ border: '1px solid black', backgroundColor: 'white' }}
+      />
     </div>
   );
 }
 
-export default Canvas
+export default Canvas;
