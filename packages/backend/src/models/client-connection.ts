@@ -3,11 +3,7 @@ import type * as WebSocket from 'ws';
 import { Message } from '../api';
 import type { Note, Whiteboard } from './whiteboard';
 import { addWhiteboard } from './whiteboard';
-import {
-  GetAllFiguresResponse,
-  MessageWrapper,
-  Note as NoteMsg
-} from '../protocol/protocol';
+import { MessageWrapper, Note as NoteMsg } from '../protocol/protocol';
 import { Reader } from 'protobufjs';
 import * as uuid from 'uuid';
 
@@ -15,17 +11,15 @@ let connections: ClientConnection[] = [];
 
 declare interface ClientConnectionEvents {
   disconnect: () => void;
-  message: (decoded: Message) => void;
+  message: () => void;
 }
 
 // TODO move to other module
-const encodeNote = (note: Note): NoteMsg => {
-  return {
-    id: Uint8Array.from(uuid.parse(note.id)),
-    content: note.content,
-    coordinates: note.location
-  };
-};
+const encodeNote = (note: Note): NoteMsg => ({
+  id: Uint8Array.from(uuid.parse(note.id)),
+  content: note.content,
+  coordinates: note.location
+});
 
 export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
   socket: WebSocket;
@@ -36,15 +30,17 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     this.socket = socket;
     this.setupSocketListeners();
 
+    // @ts-ignore
     this.on('message', msg => this.dispatch(msg));
   }
 
   private setupSocketListeners() {
     this.socket.on('message', (message: Uint8Array) => {
-      console.log(`Client connection received a message: '${message}''`);
-      // const decoded = decodeMessage(message as string);
-      const decoded = MessageWrapper.decode(Reader.create(message));
+      console.log(`Client connection received a message.`);
+      const reader = Reader.create(message);
+      const decoded = MessageWrapper.decode(reader);
       console.debug({ decoded });
+      // @ts-ignore
       this.emit('message', decoded);
     });
     this.socket.on('close', () => {
@@ -59,7 +55,9 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
 
   // TODO extract a 'controller' to limti responsibility of this class, which should be concrened more about marshalling data
   private dispatch(message: Message) {
-    switch (message.body?.$case) {
+    // @ts-ignore
+    const messageType = message.body?.$case;
+    switch (messageType) {
       case 'createWhiteboardRequest': {
         this.whiteboard = addWhiteboard(this);
         break;
@@ -67,6 +65,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
       case 'getAllFiguresRequest': {
         if (this.whiteboard) {
           this.send({
+            // @ts-ignore
             body: {
               $case: 'getAllFiguresResponse',
               getAllFiguresResponse: {
@@ -83,6 +82,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
         break;
       }
       default:
+        console.log(`ERROR: unknown message appeared "${messageType}"`);
       // TODO send error about unrecognized message
     }
   }

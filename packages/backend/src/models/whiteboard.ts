@@ -1,8 +1,7 @@
-import * as uuid from 'uuid';
 import { v4 as uuidv4 } from 'uuid';
 import { Message } from '../api';
 import { encodeUUID as uuidStringToBytes } from '../encoding';
-import { Coordinates, FigureType, MessageWrapper } from '../protocol/protocol';
+import { Coordinates, FigureType } from '../protocol/protocol';
 import { UUID } from '../types';
 import { ClientConnection } from './client-connection';
 
@@ -82,6 +81,7 @@ export class Whiteboard {
         }
         figure.location = newCoords;
         this.sendToClients({
+          // @ts-ignore
           body: {
             $case: 'figureMovedMsg',
             figureMovedMsg: {

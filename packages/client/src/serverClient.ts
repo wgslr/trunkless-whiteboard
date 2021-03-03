@@ -21,7 +21,7 @@ export class ServerConnection extends TypedEmitter<ServerConnectionEvents> {
 
   public publishLine([start, end]: [Coordinate, Coordinate]) {
     const id = Uint8Array.from([1]);
-    const line = Line.encode({ id , start, end })
-    console.log('RECEIVED:', line);
+    const line = Line.encode({ id , start, end }).finish();
+    this.socket.send(line);
   }
 }
