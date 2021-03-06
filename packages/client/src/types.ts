@@ -7,7 +7,7 @@ export type Action =
     }
   | {
       type: "erase";
-      lineIndices: number[];
+      lineIndices: Coordinate[];
     };
 
 export type Coordinate = {

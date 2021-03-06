@@ -4,7 +4,6 @@
 // https://github.com/AnkurSheel/react-drawing-interaction/blob/master/src/canvas.tsx
 // --------------
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Coordinate, Action } from '../types'
 import { ServerConnection } from '../serverClient';
 
@@ -16,9 +15,11 @@ let historyIndex = -1;
 
 let drawing = false;
 let erasing = false;
+let didErasePixels = false;
 
 let lastPos: Coordinate | null = null;
-let eraseBuffer: Coordinate[][] = [];
+let eraseBuffer: Coordinate[] = [];
+let erasedPixels: Map<Coordinate, number>[] = [];
 let eraseSuccess: boolean[] = [];
 let eraseIndex = -1;
 
@@ -26,16 +27,39 @@ function linePoints (a: Coordinate, b: Coordinate) {
   let xDiff = b.x - a.x;
   let yDiff = b.y - a.y;
   
-  let resolution = 1.5;
-  let noOfPoints = Math.sqrt(xDiff*xDiff+yDiff*yDiff) / resolution; // distance between points is equal to number of pixels between points
+  let noOfPoints = Math.sqrt(xDiff*xDiff+yDiff*yDiff); // distance between points is equal to number of pixels between points
 
   let xInterval = xDiff / (noOfPoints);
   let yInterval = yDiff / (noOfPoints);
   let coordList = [];
   for (let i = 0; i <= noOfPoints; i++) {
-    coordList.push( {x: (a.x + xInterval*i), y: (a.y + yInterval*i)} )
+    coordList.push( {x: Math.floor(a.x + xInterval*i), y: Math.floor(a.y + yInterval*i)} )
   }
   return coordList; // coordList includes original Coords a & b
+};
+
+
+// This function returns the pixels to be erased between two sampled around a specified radius of a square of pixels
+function erasePoints (a: Coordinate, b: Coordinate) {
+  let radius = 3; //px
+
+  let xDiff = b.x - a.x;
+  let yDiff = b.y - a.y;  
+  let noOfPoints = Math.sqrt(xDiff*xDiff+yDiff*yDiff); // distance between points is equal to number of pixels between points
+
+  let xInterval = xDiff / (noOfPoints);
+  let yInterval = yDiff / (noOfPoints);
+  let coordList = [];
+  for (let i = 0; i <= noOfPoints; i++) {
+    let x = Math.floor(a.x + xInterval*i);
+    let y = Math.floor(a.y + yInterval*i);
+    for (let i = -radius; i < radius; i++) {   // Some better algorithm should be used here to avoid redundancy
+      for (let j = -radius; j < radius; j++) {
+        coordList.push( {x: (x+i), y: (y+j)} )
+      }
+    }
+  }
+  return coordList; // coordList includes a bunch of redundant pixels as the "radius window" traverses the canvas
 };
 
 export const startLine = (point: Coordinate) => {
@@ -67,34 +91,55 @@ export const finishLine = () => {
 };
 
 export const startErase = (point: Coordinate) => {
+  didErasePixels = false
   erasing = true;
-  eraseBuffer.push([]);
+  eraseBuffer = [];
   eraseIndex++;
-  eraseBuffer[eraseIndex].push(point);
+  eraseBuffer.push(point);
+  lastPos = point;
 };
 
 export const appendErase = (point: Coordinate) => {
   if (!erasing) {
     return;
   }
-  eraseBuffer[eraseIndex].push(point);
+  eraseBuffer = []
+  let list = erasePoints(lastPos!, point);
+  for (let i = 0; i < list.length; i++) {
+    eraseBuffer.push(list[i]);
+  }
+  updateErase();
+  lastPos = point;
 };
+
+const updateErase = () => {
+  eraseBuffer.map((C, j) => {
+    bitmap.map( (M, i) => {
+      M.forEach( (value,key) => {
+        if (C.x == key.x && C.y == key.y) {
+          M.set(key, 0);
+          if (!didErasePixels) {
+            didErasePixels = true;
+            erasedPixels.push(new Map<Coordinate, number>());
+            erasedPixels[eraseIndex].set({x: C.x, y: C.y}, value); // TODO set 'value' to line UUID
+          } else {
+            erasedPixels[eraseIndex].set({x: C.x, y: C.y}, value); // TODO set 'value' to line UUID
+          }
+        }
+      })
+    })
+  })
+}
 
 export const finishErase = () => {
   if (!erasing) {
     return;
   }
-  let erasedPixels = false;
-
-  eraseBuffer[eraseIndex].map((C, j) => {
-    bitmap.map( (M, i) => {
-      M.forEach( (value,key) => {
-        if (C.x == key.x && C.y == key.y) {
-          M.set(key, 0);
-          erasedPixels = true;
-        }
-      })
-    })
-  })
-  eraseSuccess.push(erasedPixels)
+  history.push({
+    type: 'erase',
+    lineIndices: eraseBuffer
+  });
+  historyIndex++;
+  eraseSuccess.push(didErasePixels);
+  erasing = false;
 };
