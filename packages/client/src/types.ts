@@ -1,8 +1,42 @@
 export type Mode = "draw" | "erase";
 
+export type Action =
+  | {
+      type: "draw";
+      lineIndex: number;
+    }
+  | {
+      type: "erase";
+      lineIndices: number[];
+    };
+
 export type Coordinate = {
   x: number;
   y: number;
+}
+
+export type Line = {
+  id: number;
+  UUID: number;
+  points: Coordinate[];
+};
+
+export type Note = {
+  id: number;
+  position: Coordinate;
+  text: string;
+}
+
+export type Img = {
+  id: number;
+  position: Coordinate;
+  data: string; // ts img object?
+}
+
+export type Object = {
+  UUID: number;
+  author: string;
+  type: Line | Note | Img;
 }
 
 type WireFormat = string;

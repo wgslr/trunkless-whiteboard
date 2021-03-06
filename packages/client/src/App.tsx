@@ -1,8 +1,11 @@
 import React from 'react';
 import './App.css';
 import Topbar from './Topbar'
+import { RecoilRoot } from "recoil";
+
 //import Canvas from './editor/whiteboard'
-import Canvas from './editor/whiteboard'
+//import Canvas from './editor/whiteboard'
+import Editor from './editor/components/Editor'
 
 const topBarHeight = 60
 
@@ -16,7 +19,9 @@ function App() {
   return (
     <div className="App">
       <Topbar h={topBarHeight} />
-      <Canvas x={canvasX} y={canvasY} />
+      <RecoilRoot>
+        <Editor x={canvasX} y={canvasY} />
+      </RecoilRoot>
     </div>
   );
 }
