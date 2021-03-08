@@ -49,14 +49,19 @@ function erasePoints (a: Coordinate, b: Coordinate) {
 
   let xInterval = xDiff / (noOfPoints);
   let yInterval = yDiff / (noOfPoints);
+
+  let norm1 = {x: -yInterval, y: xInterval};
+  let norm2 = {x: yInterval, y: -xInterval};
+
   let coordList = [];
   for (let i = 0; i <= noOfPoints; i++) {
     let x = Math.floor(a.x + xInterval*i);
     let y = Math.floor(a.y + yInterval*i);
-    for (let i = -radius; i < radius; i++) {   // Some better algorithm should be used here to avoid redundancy
-      for (let j = -radius; j < radius; j++) {
-        coordList.push( {x: (x+i), y: (y+j)} )
-      }
+    let nextPoint = {x,y};
+    coordList.push( { x: x, y: y } );
+    for (let j = 1; j < radius; j++) {   // Some better algorithm should be used here to avoid redundancy
+      coordList.push( {x: Math.floor(nextPoint.x + j*norm1.x), y: Math.floor(nextPoint.y + j*norm1.y) } );
+      coordList.push( {x: Math.floor(nextPoint.x + j*norm2.x), y: Math.floor(nextPoint.y + j*norm2.y) } );
     }
   }
   return coordList; // coordList includes a bunch of redundant pixels as the "radius window" traverses the canvas
