@@ -16,8 +16,8 @@ const render = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
     reset(ctx, canvas);
 
     ctx.fillStyle = "#000000"
-    bitmap.forEach(x => {
-        x.forEach( (value,key) => {
+    bitmap.forEach(line => {
+        line.points.forEach( (value,key) => {
             if (value != 0) {
                 ctx.fillRect(key.x-canvas.offsetLeft, key.y-canvas.offsetTop, 1 , 1);
             }
