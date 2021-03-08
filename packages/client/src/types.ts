@@ -1,19 +1,23 @@
-export type Mode = "draw" | "erase";
+import type { v4 } from 'uuid';
+
+export type Mode = 'draw' | 'erase';
+
+export type UUID = ReturnType<typeof v4>;
 
 export type Action =
   | {
-      type: "draw";
+      type: 'draw';
       lineIndex: number;
     }
   | {
-      type: "erase";
+      type: 'erase';
       lineIndices: Coordinate[];
     };
 
 export type Coordinate = {
   x: number;
   y: number;
-}
+};
 
 export type Line = {
   id: number;
@@ -25,19 +29,19 @@ export type Note = {
   id: number;
   position: Coordinate;
   text: string;
-}
+};
 
 export type Img = {
   id: number;
   position: Coordinate;
   data: string; // ts img object?
-}
+};
 
 export type Object = {
   UUID: number;
   author: string;
   type: Line | Note | Img;
-}
+};
 
 type WireFormat = string;
 
