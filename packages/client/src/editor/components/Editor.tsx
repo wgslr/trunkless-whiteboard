@@ -1,11 +1,13 @@
 // TODO
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import render from '../render';
-import {startLine, appendLine, finishLine, startErase, finishErase, appendErase} from '../whiteboard';
+import {startLine, appendLine, finishLine, startErase, finishErase, appendErase, undo} from '../whiteboard';
 import Cursor from './Cursor';
 import Tools from './Tools';
+import UndoTool from './UndoTool'
 import { useRecoilState } from 'recoil';
 import { modeState } from '../state';
+
 
 const Editor = (props: {x: number, y:number}) => {
     const canvas = useRef<HTMLCanvasElement>(null);
@@ -52,6 +54,11 @@ const Editor = (props: {x: number, y:number}) => {
         render(getCtx()!, canvas.current!)
     }, [mode, pointerDown]);
 
+    const renderUndo = () => {
+        undo();
+        render(getCtx()!, canvas.current!)
+    }
+
     useEffect(() => {
         if (canvas.current === null) {
             return;
@@ -84,6 +91,7 @@ const Editor = (props: {x: number, y:number}) => {
     return (
         <div>
             <Tools/>
+            <UndoTool onClick={renderUndo} />
             <canvas ref={canvas} height={props.y} width={props.x} style={{border: '1px solid black', backgroundColor: 'white'}}></canvas>
         </div>
     )

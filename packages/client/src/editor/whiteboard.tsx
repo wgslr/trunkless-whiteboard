@@ -88,7 +88,7 @@ const updateErase = () => {
       })
     })
   })
-}
+};
 
 export const finishErase = () => {
   if (!erasing) {
@@ -103,3 +103,22 @@ export const finishErase = () => {
 
   // TODO send update request to server
 };
+
+export const undo = () => {
+  if (history.length == 0) {
+    return;
+  }
+
+  let lastAction = history[historyIndex];
+
+  if (lastAction.type == 'draw') {
+    bitmap.splice(lineIndex, 1);
+    historyIndex--;
+    lineIndex--;
+    history.pop();
+  } else if (lastAction.type == 'erase') {
+    lastAction.lines.forEach( (array, key) => {
+      // TODO
+    })
+  }
+}
