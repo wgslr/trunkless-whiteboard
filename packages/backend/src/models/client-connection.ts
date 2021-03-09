@@ -5,10 +5,17 @@ import type * as WebSocket from 'ws';
 import { decodeUUID, resultToMessage } from '../encoding';
 import {
   ClientToServerMessage,
+  Line,
   Note as NoteMsg,
   ServerToClientMessage
 } from '../protocol/protocol';
-import { addWhiteboard, connectClient, Note, Whiteboard } from './whiteboard';
+import {
+  addWhiteboard,
+  connectClient,
+  Note,
+  Whiteboard,
+  OperationType
+} from './whiteboard';
 
 let connections: ClientConnection[] = [];
 
@@ -101,12 +108,19 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
       }
       case 'lineDrawn': {
         const data = message.body.lineDrawn;
-        const decodedData = {
-          ...data,
-          id: decodeUUID(data.id)
-        };
-        // TODO handle
+        const decodedData = decodeLineData(data);
         console.log(`Line drawn`, decodedData);
+
+        if (this.whiteboard) {
+          this.whiteboard.handleOperation({
+            type: OperationType.LINE_ADD,
+            data: { line: decodedData }
+          });
+        } else {
+          console.warn(
+            'Received LineDrawn message from client not connected to a whiteboard'
+          );
+        }
 
         break;
       }
@@ -116,6 +130,18 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
       }
     }
   }
+}
+
+function decodeLineData(data: Line) {
+  const bitmap = new Map();
+  for (let point of data.bitmap) {
+    bitmap.set(point.coordinates, point.value);
+  }
+
+  return {
+    id: decodeUUID(data.id),
+    bitmap
+  };
 }
 
 export const registerClient = (socket: WebSocket) => {

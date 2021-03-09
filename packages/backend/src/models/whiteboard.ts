@@ -30,15 +30,24 @@ export class Note extends Figure {
   }
 }
 
-enum OperationType {
+export class Line {
+  constructor(public id: UUID, public bitmap: Map<Coordinates, number>) {}
+}
+
+export enum OperationType {
   FIGURE_MOVE,
+  LINE_ADD,
   RETURN_ALL_FIGURES
 }
 
-type Operation =
+export type Operation =
   | {
       type: OperationType.FIGURE_MOVE;
       data: { figureId: UUID; newCoords: Coordinates };
+    }
+  | {
+      type: OperationType.LINE_ADD;
+      data: { line: Line };
     }
   | {
       type: OperationType.RETURN_ALL_FIGURES;
@@ -57,6 +66,7 @@ export class Whiteboard {
   host: ClientConnection;
   clients: ClientConnection[];
   figures: Map<Figure['id'], Figure> = new Map();
+  lines: Map<Line['id'], Line>;
 
   constructor(host: ClientConnection) {
     this.id = uuidv4();
@@ -94,6 +104,14 @@ export class Whiteboard {
             }
           }
         });
+        break;
+      }
+      case OperationType.LINE_ADD: {
+        const line = op.data.line;
+        this.lines.set(line.id, line);
+
+        console.log(`There are ${this.lines.size} map on the whiteboard`);
+
         break;
       }
       // case OperationType.RETURN_ALL_FIGURES: {
