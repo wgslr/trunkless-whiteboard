@@ -99,6 +99,13 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
         // TODO
         break;
       }
+      case 'lineDrawn': {
+        const data = message.body.lineDrawn;
+        // TODO handle
+        console.log(`Line drawn`, data);
+
+        break;
+      }
       default: {
         // TODO send error about unrecognized message
         break;
