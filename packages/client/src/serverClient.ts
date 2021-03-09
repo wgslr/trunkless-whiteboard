@@ -1,10 +1,12 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
+import type { UUID } from './types';
 import * as uuid from 'uuid';
 import { Message, Coordinate, Line } from './types';
 import {
   ClientToServerMessage,
   ServerToClientMessage
 } from './protocol/protocol';
+import * as whiteboard from './editor/whiteboard';
 
 declare interface ServerConnectionEvents {
   disconnect: () => void;
@@ -25,6 +27,15 @@ export class ServerConnection extends TypedEmitter<ServerConnectionEvents> {
     let array = new Uint8Array(event.data);
     const decoded = ServerToClientMessage.decode(array);
     console.log('decoded', decoded.body);
+
+    switch (decoded.body?.$case) {
+      case 'lineDrawn': {
+        const lineData = decodeLineData(decoded.body.lineDrawn);
+        // TODO encapsulate it in the whiteboard module
+        // TODO ignore on the client that created the line
+        whiteboard.bitmap.push({ UUID: lineData.id, points: lineData.bitmap });
+      }
+    }
   }
 
   public publishLine(line: Line) {
@@ -45,4 +56,19 @@ export class ServerConnection extends TypedEmitter<ServerConnectionEvents> {
   }
 }
 
-const encodeUUID = (id: string): Uint8Array => Uint8Array.from(uuid.parse(id));
+// TODO deduplciate with backend code
+const encodeUUID = (id: UUID): Uint8Array => Uint8Array.from(uuid.parse(id));
+
+const decodeUUID = (id: Uint8Array): UUID => uuid.stringify(id);
+
+function decodeLineData(data: any) {
+  const bitmap = new Map();
+  for (let point of data.bitmap) {
+    bitmap.set(point.coordinates, point.value);
+  }
+
+  return {
+    id: decodeUUID(data.id),
+    bitmap
+  };
+}
