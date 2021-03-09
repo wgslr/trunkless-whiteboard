@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { encodeUUID as uuidStringToBytes } from '../encoding';
+import { encodeUUID, encodeUUID as uuidStringToBytes } from '../encoding';
 import {
   Coordinates,
   ErrorReason,
@@ -66,10 +66,10 @@ export class Whiteboard {
   host: ClientConnection;
   clients: ClientConnection[];
   figures: Map<Figure['id'], Figure> = new Map();
-  lines: Map<Line['id'], Line>;
+  lines: Map<Line['id'], Line> = new Map();
 
-  constructor(host: ClientConnection) {
-    this.id = uuidv4();
+  constructor(host: ClientConnection, id?: UUID) {
+    this.id = id ?? uuidv4();
     this.host = host;
     this.clients = [host];
 
@@ -110,8 +110,20 @@ export class Whiteboard {
         const line = op.data.line;
         this.lines.set(line.id, line);
 
-        console.log(`There are ${this.lines.size} map on the whiteboard`);
+        console.log(`There are ${this.lines.size} lines on the whiteboard`);
 
+        this.sendToClients({
+          body: {
+            $case: 'lineDrawn',
+            lineDrawn: {
+              id: encodeUUID(line.id),
+              bitmap: Array.from(line.bitmap.entries()).map(entry => ({
+                coordinates: entry[0],
+                value: entry[1]
+              }))
+            }
+          }
+        });
         break;
       }
       // case OperationType.RETURN_ALL_FIGURES: {
@@ -124,6 +136,7 @@ export class Whiteboard {
   }
 
   protected sendToClients(message: ServerToClientMessage) {
+    console.log(`Sending message to ${this.clients.length} clients:`, message);
     this.clients.forEach(client => {
       client.send(message);
     });

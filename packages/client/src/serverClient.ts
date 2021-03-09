@@ -1,7 +1,10 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
 import * as uuid from 'uuid';
 import { Message, Coordinate, Line } from './types';
-import { ClientToServerMessage } from './protocol/protocol';
+import {
+  ClientToServerMessage,
+  ServerToClientMessage
+} from './protocol/protocol';
 
 declare interface ServerConnectionEvents {
   disconnect: () => void;
@@ -13,11 +16,15 @@ export class ServerConnection extends TypedEmitter<ServerConnectionEvents> {
   constructor(socket: WebSocket) {
     super();
     this.socket = socket;
-    this.on('message', msg => this.dispatch(msg));
+    this.socket.binaryType = 'arraybuffer';
+    this.socket.onmessage = event => this.dispatch(event);
   }
 
-  private dispatch(message: Message) {
-    console.log('MESSAGE RECEIVED:', message);
+  private dispatch(event: MessageEvent) {
+    console.log('MESSAGE RECEIVED:', event);
+    let array = new Uint8Array(event.data);
+    const decoded = ServerToClientMessage.decode(array);
+    console.log('decoded', decoded.body);
   }
 
   public publishLine(line: Line) {

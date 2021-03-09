@@ -76,5 +76,6 @@ message ServerToClientMessage {
     WhiteboardCreated whiteboard_created = 3;
     GetAllFiguresResponse get_all_figures_response = 4;
     FigureMoved figure_moved = 5;
+    Line line_drawn = 6;
   }
 }
