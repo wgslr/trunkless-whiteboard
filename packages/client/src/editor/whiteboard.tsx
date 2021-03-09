@@ -51,7 +51,7 @@ export const finishLine = () => {
   drawing = false;
 
   // TODO send update request to server
-  // serverConnection.connection.publishLine(bitmap[lineIndex]);
+  serverConnection.connection.publishLine(bitmap[lineIndex]);
 };
 
 export const startErase = (point: Coordinate) => {

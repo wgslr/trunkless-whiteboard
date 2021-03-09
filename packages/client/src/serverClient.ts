@@ -1,4 +1,5 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
+import * as uuid from 'uuid';
 import { Message, Coordinate, Line } from './types';
 import { ClientToServerMessage } from './protocol/protocol';
 
@@ -19,14 +20,22 @@ export class ServerConnection extends TypedEmitter<ServerConnectionEvents> {
     console.log('MESSAGE RECEIVED:', message);
   }
 
-  // public publishLine(line: Line) {
-  //   const id = Uint8Array.from([1]);
-  //   const lineDrawn = { id, start, end };
+  public publishLine(line: Line) {
+    const id = encodeUUID(line.UUID);
+    const lineDrawn = {
+      id,
+      bitmap: Array.from(line.points.entries()).map(entry => ({
+        coordinates: entry[0],
+        value: entry[1]
+      }))
+    };
 
-  //   const encoded = ClientToServerMessage.encode({
-  //     body: { $case: 'lineDrawn', lineDrawn }
-  //   }).finish();
+    const encoded = ClientToServerMessage.encode({
+      body: { $case: 'lineDrawn', lineDrawn }
+    }).finish();
 
-  //   this.socket.send(encoded);
-  // }
+    this.socket.send(encoded);
+  }
 }
+
+const encodeUUID = (id: string): Uint8Array => Uint8Array.from(uuid.parse(id));

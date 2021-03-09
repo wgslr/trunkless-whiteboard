@@ -101,8 +101,12 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
       }
       case 'lineDrawn': {
         const data = message.body.lineDrawn;
+        const decodedData = {
+          ...data,
+          id: decodeUUID(data.id)
+        };
         // TODO handle
-        console.log(`Line drawn`, data);
+        console.log(`Line drawn`, decodedData);
 
         break;
       }
