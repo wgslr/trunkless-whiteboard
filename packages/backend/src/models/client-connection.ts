@@ -14,7 +14,8 @@ import {
   connectClient,
   Note,
   Whiteboard,
-  OperationType
+  OperationType,
+  countWhiteboards
 } from './whiteboard';
 
 let connections: ClientConnection[] = [];
@@ -42,6 +43,13 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
 
     // @ts-ignore
     this.on('message', msg => this.dispatch(msg));
+
+    // TODO do proper handshake and select whiteboard
+    if (countWhiteboards() == 0) {
+      this.whiteboard = addWhiteboard(this, uuid.NIL);
+    } else {
+      connectClient(this, uuid.NIL);
+    }
   }
 
   private setupSocketListeners() {

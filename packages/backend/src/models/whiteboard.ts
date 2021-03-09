@@ -139,14 +139,17 @@ export class Whiteboard {
 
   public addClientConnection(client: ClientConnection) {
     this.clients.push(client);
+    client.whiteboard = this;
+    console.log('Client joined whiteboard', this.id);
   }
 }
 
 const whiteboards: Map<Whiteboard['id'], Whiteboard> = new Map();
 
-export const addWhiteboard = (host: ClientConnection) => {
-  const board = new Whiteboard(host);
+export const addWhiteboard = (host: ClientConnection, uuid?: UUID) => {
+  const board = new Whiteboard(host, uuid);
   whiteboards.set(board.id, board);
+  console.log('Whiteboard created', board);
   return board;
 };
 
