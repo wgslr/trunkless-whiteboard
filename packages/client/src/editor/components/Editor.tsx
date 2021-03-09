@@ -105,8 +105,9 @@ const Editor = (props: { x: number; y: number }) => {
 
   // Main render function
   useEffect(() => {
-    render(getCtx()!, canvas.current!);
-  });
+    const timer = setInterval(() => render(getCtx()!, canvas.current!), 500);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div>

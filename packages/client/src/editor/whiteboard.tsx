@@ -40,6 +40,7 @@ export const appendLine = (point: Coordinate) => {
     bitmap[lineIndex].points.set(list[i], 1);
   }
   lastPos = point;
+  serverConnection.connection.publishLine(bitmap[lineIndex]);
 };
 
 export const finishLine = () => {
