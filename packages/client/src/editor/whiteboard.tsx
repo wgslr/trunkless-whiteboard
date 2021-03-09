@@ -1,7 +1,7 @@
 import { Coordinate, Line, UUID, Action } from '../types';
 import { linePoints, erasePoints } from './math';
-import { encodeUUID } from './encoding';
 import { serverConnection } from '../connection-context/server-connection';
+import { v5 } from 'uuid';
 
 export const bitmap: Line[] = [];
 let lineIndex = -1;
@@ -17,13 +17,16 @@ let eraseBuffer: Coordinate[] = [];
 let erasedPixels: Map<UUID, Coordinate[]> = new Map<UUID, Coordinate[]>();
 let eraseIndex = -1;
 
+// TODO using v5 is temporary; generate random v4 UUIDs
+const UUID_NAMESPACE = '940beed9-f057-4088-a714-a9f5f2fc6052';
+
 export const startLine = (point: Coordinate) => {
   drawing = true;
+  lineIndex++;
   bitmap.push({
-    UUID: 'line' + lineIndex.toString,
+    UUID: v5('line' + lineIndex.toString(), UUID_NAMESPACE),
     points: new Map<Coordinate, number>()
   }); // placeholder UUID
-  lineIndex++;
   bitmap[lineIndex].points.set(point, 1);
   lastPos = point;
 };
