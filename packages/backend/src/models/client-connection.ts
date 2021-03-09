@@ -41,9 +41,15 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     this.socket.on('message', (message: Uint8Array) => {
       console.log(`Client connection received a message: '${message}''`);
       // const decoded = decodeMessage(message as string);
-      const decoded = ClientToServerMessage.decode(Reader.create(message));
-      console.debug({ decoded });
-      // @ts-ignore
+      let decoded;
+      try {
+        decoded = ClientToServerMessage.decode(Reader.create(message));
+        console.debug({ decoded });
+        // @ts-ignore
+      } catch (error) {
+        console.error('Error decoding message', error);
+        return;
+      }
       this.emit('message', decoded);
     });
     this.socket.on('close', () => {
