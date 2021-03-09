@@ -1,10 +1,13 @@
 import React from 'react';
+import { RecoilRoot } from 'recoil';
 import './App.css';
-import Topbar from './Topbar';
-import Canvas from './editor/whiteboard';
 import ServerContext, {
   serverConnection
 } from './connection-context/server-connection';
+//import Canvas from './editor/whiteboard'
+//import Canvas from './editor/whiteboard'
+import Editor from './editor/components/Editor';
+import Topbar from './Topbar';
 
 const topBarHeight = 60;
 const canvasX = 800;
@@ -14,9 +17,11 @@ function App() {
   return (
     <div className="App">
       <Topbar h={topBarHeight} />
-      <ServerContext.Provider value={serverConnection}>
-        <Canvas x={canvasX} y={canvasY} />
-      </ServerContext.Provider>
+      <RecoilRoot>
+        <ServerContext.Provider value={serverConnection}>
+          <Editor x={canvasX} y={canvasY} />
+        </ServerContext.Provider>
+      </RecoilRoot>
     </div>
   );
 }

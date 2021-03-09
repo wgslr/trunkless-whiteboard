@@ -1,154 +1,126 @@
-// --------------
-// Some parts copied from:
-// https://www.ankursheel.com/blog/react-component-draw-page-hooks-typescript
-// https://github.com/AnkurSheel/react-drawing-interaction/blob/master/src/canvas.tsx
-// --------------
+import { Coordinate, Line, UUID, Action } from '../types';
+import { linePoints, erasePoints } from './math';
+import { encodeUUID } from './encoding';
+import { serverConnection } from '../connection-context/server-connection';
 
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useContext
-} from 'react';
-import { Coordinate } from '../types';
-import ServerContext from '../connection-context/server-connection';
+export const bitmap: Line[] = [];
+let lineIndex = -1;
 
-export const bitmap: Map<Coordinate, number>[] = [];
-export let lineIndex = -1;
+export const history: Action[] = [];
+let historyIndex = -1;
 
-function linePoints(a: Coordinate, b: Coordinate) {
-  let xDiff = b.x - a.x;
-  let yDiff = b.y - a.y;
+let drawing = false;
+let erasing = false;
 
-  let resolution = 1.5;
-  let noOfPoints = Math.sqrt(xDiff * xDiff + yDiff * yDiff) / resolution; // distance between points is equal to number of pixels between points
+let lastPos: Coordinate | null = null;
+let eraseBuffer: Coordinate[] = [];
+let erasedPixels: Map<UUID, Coordinate[]> = new Map<UUID, Coordinate[]>();
+let eraseIndex = -1;
 
-  let xInterval = xDiff / noOfPoints;
-  let yInterval = yDiff / noOfPoints;
-  let coordList = [];
-  for (let i = 0; i <= noOfPoints; i++) {
-    coordList.push({ x: a.x + xInterval * i, y: a.y + yInterval * i });
+export const startLine = (point: Coordinate) => {
+  drawing = true;
+  bitmap.push({
+    UUID: 'line' + lineIndex.toString,
+    points: new Map<Coordinate, number>()
+  }); // placeholder UUID
+  lineIndex++;
+  bitmap[lineIndex].points.set(point, 1);
+  lastPos = point;
+};
+
+export const appendLine = (point: Coordinate) => {
+  if (!drawing) {
+    return;
   }
-  return coordList; // coordList includes original Coords a & b
-}
+  let list = linePoints(lastPos!, point);
+  for (let i = 0; i < list.length; i++) {
+    bitmap[lineIndex].points.set(list[i], 1);
+  }
+  lastPos = point;
+};
 
-function Canvas(props: { x: number; y: number }) {
-  const { connection: serverConnection } = useContext(ServerContext);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [mousePos, setMousePos] = useState<Coordinate | undefined>(undefined);
+export const finishLine = () => {
+  history.push({
+    type: 'draw',
+    UUID: bitmap[lineIndex].UUID
+  });
+  historyIndex++;
+  drawing = false;
 
-  const startDraw = useCallback((event: MouseEvent) => {
-    const xy = getCoordinates(event);
-    if (xy) {
-      bitmap.push(new Map<Coordinate, number>());
-      lineIndex++;
-      setMousePos(xy);
-      setIsDrawing(true);
-    }
-  }, []);
+  // TODO send update request to server
+  // serverConnection.connection.publishLine(bitmap[lineIndex]);
+};
 
-  useEffect(() => {
-    if (!canvasRef.current) {
-      return;
-    }
-    console.log(bitmap);
-    const canvas: HTMLCanvasElement = canvasRef.current;
-    canvas.addEventListener('mousedown', startDraw);
-    return () => {
-      canvas.removeEventListener('mousedown', startDraw);
-    };
-  }, [startDraw]);
+export const startErase = (point: Coordinate) => {
+  erasing = true;
+  eraseBuffer = [];
+  erasedPixels = new Map<UUID, Coordinate[]>();
+  eraseIndex++;
+  eraseBuffer.push(point);
+  lastPos = point;
+};
 
-  const publishLineToServer = useCallback(
-    (mousePos: Coordinate, newMousePos: Coordinate) =>
-      serverConnection.publishLine([mousePos, newMousePos]),
-    [serverConnection]
-  );
+export const appendErase = (point: Coordinate) => {
+  if (!erasing) {
+    return;
+  }
+  eraseBuffer = [];
+  let list = erasePoints(lastPos!, point);
+  for (let i = 0; i < list.length; i++) {
+    eraseBuffer.push(list[i]);
+  }
+  updateErase();
+  lastPos = point;
+};
 
-  const draw = useCallback(
-    (event: MouseEvent) => {
-      if (isDrawing) {
-        const newMousePos = getCoordinates(event);
-        if (mousePos && newMousePos) {
-          drawLine(mousePos, newMousePos);
-          setMousePos(newMousePos);
-          publishLineToServer(mousePos, newMousePos);
+const updateErase = () => {
+  eraseBuffer.map((coord, j) => {
+    bitmap.map((line, i) => {
+      line.points.forEach((value, key) => {
+        if (coord.x == key.x && coord.y == key.y) {
+          line.points.set(key, 0); // This pixel will not be rendered anymore
+          if (!erasedPixels.has(line.UUID)) {
+            erasedPixels.set(line.UUID, [coord]); // and the erased pixel is added by UUID to erasedPixels...
+          } else {
+            let erasedCoords = erasedPixels.get(line.UUID);
+            erasedCoords!.push(coord);
+            erasedPixels.set(line.UUID, erasedCoords!);
+          }
         }
-      }
-    },
-    [isDrawing, mousePos, publishLineToServer]
-  );
+      });
+    });
+  });
+};
 
-  useEffect(() => {
-    if (!canvasRef.current) {
-      return;
-    }
-    const canvas: HTMLCanvasElement = canvasRef.current;
-    canvas.addEventListener('mousemove', draw);
-    return () => {
-      canvas.removeEventListener('mousemove', draw);
-    };
-  }, [draw]);
+export const finishErase = () => {
+  if (!erasing) {
+    return;
+  }
+  history.push({
+    type: 'erase',
+    lines: erasedPixels
+  });
+  historyIndex++;
+  erasing = false;
 
-  const exitDraw = useCallback(() => {
-    setIsDrawing(false);
-    setMousePos(undefined);
-  }, []);
+  // TODO send update request to server
+};
 
-  useEffect(() => {
-    if (!canvasRef.current) {
-      return;
-    }
-    const canvas: HTMLCanvasElement = canvasRef.current;
-    canvas.addEventListener('mouseup', exitDraw);
-    canvas.addEventListener('mouseleave', exitDraw);
-    return () => {
-      canvas.addEventListener('mouseup', exitDraw);
-      canvas.addEventListener('mouseleave', exitDraw);
-    };
-  }, [exitDraw]);
-
-  function getCoordinates(event: MouseEvent): Coordinate | undefined {
-    if (!canvasRef.current) {
-      return;
-    }
-    const canvas: HTMLCanvasElement = canvasRef.current;
-
-    return {
-      x: event.pageX - canvas.offsetLeft,
-      y: event.pageY - canvas.offsetTop
-    };
+export const undo = () => {
+  if (history.length == 0) {
+    return;
   }
 
-  function drawLine(originalMousePos: Coordinate, newMousePos: Coordinate) {
-    if (!canvasRef.current) {
-      return;
-    }
-    const canvas: HTMLCanvasElement = canvasRef.current;
-    const context = canvas.getContext('2d');
-    if (context) {
-      let list = linePoints(originalMousePos, newMousePos);
+  let lastAction = history[historyIndex];
 
-      for (let i = 0; i < list.length; i++) {
-        let pixel = list[i];
-        context.fillRect(pixel.x, pixel.y, 1, 1);
-        bitmap[lineIndex].set(pixel, 1);
-      }
-    }
+  if (lastAction.type == 'draw') {
+    bitmap.splice(lineIndex, 1);
+    historyIndex--;
+    lineIndex--;
+    history.pop();
+  } else if (lastAction.type == 'erase') {
+    lastAction.lines.forEach((array, key) => {
+      // TODO
+    });
   }
-
-  return (
-    <div>
-      <canvas
-        ref={canvasRef}
-        height={props.y}
-        width={props.x}
-        style={{ border: '1px solid black', backgroundColor: 'white' }}
-      />
-    </div>
-  );
-}
-
-export default Canvas;
+};

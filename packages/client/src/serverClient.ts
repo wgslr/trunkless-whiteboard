@@ -1,6 +1,6 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
-import { Message, Coordinate } from './types';
-import { ClientToServerMessage, Line } from './protocol/protocol';
+import { Message, Coordinate, Line } from './types';
+import { ClientToServerMessage } from './protocol/protocol';
 
 declare interface ServerConnectionEvents {
   disconnect: () => void;
@@ -19,14 +19,14 @@ export class ServerConnection extends TypedEmitter<ServerConnectionEvents> {
     console.log('MESSAGE RECEIVED:', message);
   }
 
-  public publishLine([start, end]: [Coordinate, Coordinate]) {
-    const id = Uint8Array.from([1]);
-    const lineDrawn = { id, start, end };
+  // public publishLine(line: Line) {
+  //   const id = Uint8Array.from([1]);
+  //   const lineDrawn = { id, start, end };
 
-    const encoded = ClientToServerMessage.encode({
-      body: { $case: 'lineDrawn', lineDrawn }
-    }).finish();
+  //   const encoded = ClientToServerMessage.encode({
+  //     body: { $case: 'lineDrawn', lineDrawn }
+  //   }).finish();
 
-    this.socket.send(encoded);
-  }
+  //   this.socket.send(encoded);
+  // }
 }
