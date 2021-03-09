@@ -1,17 +1,20 @@
-import { TypedEmitter } from 'tiny-typed-emitter';
-import type * as WebSocket from 'ws';
-import { Message } from '../api';
-import type { Note, Whiteboard } from './whiteboard';
-import { addWhiteboard } from './whiteboard';
-import { MessageWrapper, Note as NoteMsg } from '../protocol/protocol';
 import { Reader } from 'protobufjs';
+import { TypedEmitter } from 'tiny-typed-emitter';
 import * as uuid from 'uuid';
+import type * as WebSocket from 'ws';
+import { decodeUUID, resultToMessage } from '../encoding';
+import {
+  ClientToServerMessage,
+  Note as NoteMsg,
+  ServerToClientMessage
+} from '../protocol/protocol';
+import { addWhiteboard, connectClient, Note, Whiteboard } from './whiteboard';
 
 let connections: ClientConnection[] = [];
 
 declare interface ClientConnectionEvents {
   disconnect: () => void;
-  message: () => void;
+  message: (decoded: ClientToServerMessage) => void;
 }
 
 // TODO move to other module
@@ -36,9 +39,9 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
 
   private setupSocketListeners() {
     this.socket.on('message', (message: Uint8Array) => {
-      console.log(`Client connection received a message.`);
-      const reader = Reader.create(message);
-      const decoded = MessageWrapper.decode(reader);
+      console.log(`Client connection received a message: '${message}''`);
+      // const decoded = decodeMessage(message as string);
+      const decoded = ClientToServerMessage.decode(Reader.create(message));
       console.debug({ decoded });
       // @ts-ignore
       this.emit('message', decoded);
@@ -49,15 +52,14 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     });
   }
 
-  public send(message: MessageWrapper) {
-    this.socket.send(MessageWrapper.encode(message));
+  public send(message: ServerToClientMessage) {
+    const encoded = ServerToClientMessage.encode(message).finish();
+    this.socket.send(encoded);
   }
 
   // TODO extract a 'controller' to limti responsibility of this class, which should be concrened more about marshalling data
-  private dispatch(message: Message) {
-    // @ts-ignore
-    const messageType = message.body?.$case;
-    switch (messageType) {
+  private dispatch(message: ClientToServerMessage) {
+    switch (message.body?.$case) {
       case 'createWhiteboardRequest': {
         this.whiteboard = addWhiteboard(this);
         break;
@@ -77,13 +79,24 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
         }
         break;
       }
-      case 'figureMovedMsg': {
+      case 'joinWhiteboard': {
+        const whiteboardId = decodeUUID(
+          message.body.joinWhiteboard.whiteboardId
+        );
+        console.log(`Client wants to join whiteboard ${whiteboardId}`);
+        const result = connectClient(this, whiteboardId);
+        const response = resultToMessage(result);
+        this.send(response);
+        break;
+      }
+      case 'moveFigure': {
         // TODO
         break;
       }
-      default:
-        console.log(`ERROR: unknown message appeared "${messageType}"`);
-      // TODO send error about unrecognized message
+      default: {
+        // TODO send error about unrecognized message
+        break;
+      }
     }
   }
 }

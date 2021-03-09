@@ -12,8 +12,9 @@ message Coordinates {
 }
 
 message Note {
-  bytes id = 1; // UUID in byte representation. Saves bandwidth, but more
-                // problematic in code
+  /* UUID in byte representation. Saves bandwidth, but more
+     problematic in code */
+  bytes id = 1;
   Coordinates coordinates = 2;
   string content = 3;
 }
@@ -31,21 +32,45 @@ message WhiteboardCreated { string whiteboard_id = 1; }
 // information about all figures present in a whiteboard.
 message GetAllFiguresRequest {}
 
-// Provides
+//
 message GetAllFiguresResponse { repeated Note notes = 1; }
 
-message FigureMovedMsg {
+message MoveFigure {
   bytes figure_id = 1;
   Coordinates new_coordinates = 2;
 }
 
-message MessageWrapper {
+message FigureMoved {
+  bytes figure_id = 1;
+  Coordinates new_coordinates = 2;
+}
+// Client sends this message to request joining a whiteboard
+message JoinWhiteboard { bytes whiteboard_id = 1; }
+
+enum ErrorReason {
+  OPERATION_NOT_ALLOWED = 0;
+  WHITEBOARD_DOES_NOT_EXIST = 1;
+}
+
+message ResultError { ErrorReason reason = 1; }
+message ResultSuccess {}
+
+message ClientToServerMessage {
   oneof body {
     CreateWhiteboardRequest create_whiteboard_request = 1;
-    WhiteboardCreated whiteboard_created = 2;
-    GetAllFiguresRequest get_all_figures_request = 3;
-    GetAllFiguresResponse get_all_figures_response = 4;
-    FigureMovedMsg figure_moved_msg = 5;
+    GetAllFiguresRequest get_all_figures_request = 2;
+    JoinWhiteboard join_whiteboard = 3;
+    MoveFigure move_figure = 5;
     Line line_drawn = 6;
+  }
+}
+
+message ServerToClientMessage {
+  oneof body {
+    ResultError error = 1;
+    ResultSuccess success = 2;
+    WhiteboardCreated whiteboard_created = 3;
+    GetAllFiguresResponse get_all_figures_response = 4;
+    FigureMoved figure_moved = 5;
   }
 }
