@@ -122,9 +122,18 @@ export const undo = () => {
     historyIndex--;
     lineIndex--;
     history.pop();
+
   } else if (lastAction.type == 'erase') {
-    lastAction.lines.forEach((array, key) => {
-      // TODO
-    });
+    lastAction.lines.forEach( (modifiedPixels, uuid) => { 
+      const findFunction = (a:string, b:string) => a == b;
+      let index = bitmap.findIndex( x => findFunction(uuid,x.UUID));
+      if (index != -1) {
+        modifiedPixels.forEach( (coord) => {
+          bitmap[index].points.set(coord,1)  ;
+        });
+      }
+    })
+    historyIndex--;
+    history.pop();
   }
 };
