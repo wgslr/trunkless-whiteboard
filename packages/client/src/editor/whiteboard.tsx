@@ -4,10 +4,9 @@ import { serverConnection } from '../connection-context/server-connection';
 import { v5 } from 'uuid';
 
 export const bitmap: Line[] = [];
-let lineIndex = -1;
+//let (bitmap.length-1) = -1;
 
 export const history: Action[] = [];
-let historyIndex = -1;
 
 let drawing = false;
 let erasing = false;
@@ -15,19 +14,18 @@ let erasing = false;
 let lastPos: Coordinate | null = null;
 let eraseBuffer: Coordinate[] = [];
 let erasedPixels: Map<UUID, Coordinate[]> = new Map<UUID, Coordinate[]>();
-let eraseIndex = -1;
 
 // TODO using v5 is temporary; generate random v4 UUIDs
 const UUID_NAMESPACE = '940beed9-f057-4088-a714-a9f5f2fc6052';
 
 export const startLine = (point: Coordinate) => {
   drawing = true;
-  lineIndex++;
+  //(bitmap.length-1)++;
   bitmap.push({
-    UUID: v5('line' + lineIndex.toString(), UUID_NAMESPACE),
+    UUID: v5('line' + (bitmap.length-1).toString(), UUID_NAMESPACE),
     points: new Map<Coordinate, number>()
   }); // placeholder UUID
-  bitmap[lineIndex].points.set(point, 1);
+  bitmap[(bitmap.length-1)].points.set(point, 1);
   lastPos = point;
 };
 
@@ -37,29 +35,28 @@ export const appendLine = (point: Coordinate) => {
   }
   let list = linePoints(lastPos!, point);
   for (let i = 0; i < list.length; i++) {
-    bitmap[lineIndex].points.set(list[i], 1);
+    bitmap[(bitmap.length-1)].points.set(list[i], 1);
   }
   lastPos = point;
-  serverConnection.connection.publishLine(bitmap[lineIndex]);
+  serverConnection.connection.publishLine(bitmap[(bitmap.length-1)]);
 };
 
 export const finishLine = () => {
   history.push({
     type: 'draw',
-    UUID: bitmap[lineIndex].UUID
+    UUID: bitmap[(bitmap.length-1)].UUID
   });
-  historyIndex++;
   drawing = false;
 
   // TODO send update request to server
-  serverConnection.connection.publishLine(bitmap[lineIndex]);
+  serverConnection.connection.publishLine(bitmap[(bitmap.length-1)]);
 };
 
 export const startErase = (point: Coordinate) => {
   erasing = true;
   eraseBuffer = [];
   erasedPixels = new Map<UUID, Coordinate[]>();
-  eraseIndex++;
+  //eraseIndex++;
   eraseBuffer.push(point);
   lastPos = point;
 };
@@ -104,7 +101,6 @@ export const finishErase = () => {
     type: 'erase',
     lines: erasedPixels
   });
-  historyIndex++;
   erasing = false;
 
   // TODO send update request to server
@@ -114,18 +110,22 @@ export const undo = () => {
   if (history.length == 0) {
     return;
   }
-
-  let lastAction = history[historyIndex];
+  const findFunction = (a:string, b:string) => a == b;
+  let lastAction = history[(history.length-1)];
 
   if (lastAction.type == 'draw') {
-    bitmap.splice(lineIndex, 1);
-    historyIndex--;
-    lineIndex--;
+    let id = lastAction.UUID;
+    let index = bitmap.findIndex( x => findFunction(x.UUID, id));
+    if (index != -1) {
+      bitmap.splice(index, 1);
+    }
+
     history.pop();
 
+    // TODO send update to server
+
   } else if (lastAction.type == 'erase') {
-    lastAction.lines.forEach( (modifiedPixels, uuid) => { 
-      const findFunction = (a:string, b:string) => a == b;
+    lastAction.lines.forEach( (modifiedPixels, uuid) => {    
       let index = bitmap.findIndex( x => findFunction(uuid,x.UUID));
       if (index != -1) {
         modifiedPixels.forEach( (coord) => {
@@ -133,7 +133,6 @@ export const undo = () => {
         });
       }
     })
-    historyIndex--;
     history.pop();
   }
 };
