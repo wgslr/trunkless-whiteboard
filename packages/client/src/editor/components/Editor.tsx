@@ -111,8 +111,10 @@ const Editor = (props: { x: number; y: number }) => {
 
   return (
     <div>
-      <Tools />
-      <UndoTool onClick={renderUndo} />
+      <div>
+        <Tools />
+        <UndoTool onClick={renderUndo} />
+      </div>  
       <canvas
         ref={canvas}
         height={props.y}
