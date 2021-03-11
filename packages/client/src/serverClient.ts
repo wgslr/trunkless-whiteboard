@@ -23,10 +23,10 @@ export class ServerConnection extends TypedEmitter<ServerConnectionEvents> {
   }
 
   private dispatch(event: MessageEvent) {
-    console.log('MESSAGE RECEIVED:', event);
+    // console.log('MESSAGE RECEIVED:', event);
     let array = new Uint8Array(event.data);
     const decoded = ServerToClientMessage.decode(array);
-    console.log('decoded', decoded.body);
+    // console.log('decoded', decoded.body);
 
     switch (decoded.body?.$case) {
       case 'lineDrawn': {
@@ -39,6 +39,7 @@ export class ServerConnection extends TypedEmitter<ServerConnectionEvents> {
   }
 
   public publishLine(line: Line) {
+    console.log('Publish line');
     const id = encodeUUID(line.UUID);
     const lineDrawn = {
       id,

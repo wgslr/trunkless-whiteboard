@@ -2,6 +2,7 @@ import { Reader } from 'protobufjs';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import * as uuid from 'uuid';
 import type * as WebSocket from 'ws';
+import { dispatch } from '../controllers/router';
 import { decodeUUID, resultToMessage } from '../encoding';
 import {
   ClientToServerMessage,
@@ -42,7 +43,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     this.setupSocketListeners();
 
     // @ts-ignore
-    this.on('message', msg => this.dispatch(msg));
+    this.on('message', msg => dispatch(msg, this));
 
     // TODO do proper handshake and select whiteboard
     if (countWhiteboards() == 0) {
@@ -77,81 +78,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     const encoded = ServerToClientMessage.encode(message).finish();
     this.socket.send(encoded);
   }
-
-  // TODO extract a 'controller' to limti responsibility of this class, which should be concrened more about marshalling data
-  private dispatch(message: ClientToServerMessage) {
-    switch (message.body?.$case) {
-      case 'createWhiteboardRequest': {
-        this.whiteboard = addWhiteboard(this);
-        break;
-      }
-      case 'getAllFiguresRequest': {
-        if (this.whiteboard) {
-          this.send({
-            // @ts-ignore
-            body: {
-              $case: 'getAllFiguresResponse',
-              getAllFiguresResponse: {
-                // @ts-ignore: FIXME Figure and Note are not overlapping
-                notes: [...this.whiteboard.figures.values()].map(encodeNote)
-              }
-            }
-          });
-        }
-        break;
-      }
-      case 'joinWhiteboard': {
-        const whiteboardId = decodeUUID(
-          message.body.joinWhiteboard.whiteboardId
-        );
-        console.log(`Client wants to join whiteboard ${whiteboardId}`);
-        const result = connectClient(this, whiteboardId);
-        const response = resultToMessage(result);
-        this.send(response);
-        break;
-      }
-      case 'moveFigure': {
-        // TODO
-        break;
-      }
-      case 'lineDrawn': {
-        const data = message.body.lineDrawn;
-        const decodedData = decodeLineData(data);
-        console.log(`Line drawn`, decodedData);
-
-        if (this.whiteboard) {
-          this.whiteboard.handleOperation({
-            type: OperationType.LINE_ADD,
-            data: { line: decodedData }
-          });
-        } else {
-          console.warn(
-            'Received LineDrawn message from client not connected to a whiteboard'
-          );
-        }
-
-        break;
-      }
-      default: {
-        // TODO send error about unrecognized message
-        break;
-      }
-    }
-  }
 }
-
-function decodeLineData(data: Line) {
-  const bitmap = new Map();
-  for (let point of data.bitmap) {
-    bitmap.set(point.coordinates, point.value);
-  }
-
-  return {
-    id: decodeUUID(data.id),
-    bitmap
-  };
-}
-
 export const registerClient = (socket: WebSocket) => {
   const conn = new ClientConnection(socket);
   connections.push(conn);
@@ -159,8 +86,3 @@ export const registerClient = (socket: WebSocket) => {
     connections = connections.filter(c => c !== conn);
   });
 };
-// define possible listeners
-
-// setInterval(() => {
-//   console.log(`There are ${connections.length} connections`);
-// }, 2000);
