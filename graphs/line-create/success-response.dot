@@ -1,0 +1,17 @@
+# deeppink = message from server
+# blue = message to server
+
+Digraph G {
+  subgraph cluster_u1 {
+      label="client u1"
+      "LINE_DRAFT_STORED_LOCALLY (local_id)" -> "SENT_TO_SERVER" [label="<u1: line_create(local_id)" color=blue ]
+      "SENT_TO_SERVER" -> "u1: LINE_EXISTS (server_id)" [label=">u1: line_create_success(local_id, server_id)", color=deeppink]
+  }
+  
+  
+  subgraph cluster_u2 {
+      label="client u2"
+      "EMPTY" -> "u2: LINE_EXISTS (server_id)"
+      [label = ">all: line_created(server_id)" color=deeppink]
+  }
+}

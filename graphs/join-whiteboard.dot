@@ -1,0 +1,33 @@
+# deeppink = message from server
+# blue = message to server
+
+Digraph G2 {
+    label = "wrapper"
+
+    subgraph cluster_new_client {
+        label="client u1"
+
+  "needs whiteboard id" -> "requested join"  [label = "<u1 join_whiteboard_request" color = "blue"]
+  "requested join" -> "accepted" [label = ">u1 join_whiteboard_success" color="deeppink"]
+  "requested join" ->  "needs whiteboard id"  [label = ">u1 join_whiteboard_error" color="deeppink"]
+
+    }
+
+    subgraph cluster_server {
+        label="server"
+
+        "users: [h1], candidates: []"  ->   "users: [h1], candidates: [u1]" [label ="<u1 join_whiteboard_request" color="blue"]
+        "users: [h1], candidates: [u1]"  ->   "users: [h1], candidates: [u1]" [label =">h1 new_user_info" color="deeppink"]
+        "users: [h1], candidates: [u1]"  ->   "users: [h1, u1], candidates: []" [label ="<h1 approve_user" color="deeppink"]
+        "users: [h1, u1], candidates: []"  ->   "users: [h1, u1], candidates: []" [label =">u1 join_whiteboard_success" color="deeppink"]
+
+    }
+
+    subgraph cluster_host {
+        label="host h1"
+        "users: [h1]" -> "displays join request" [label = ">h1 new_user_info" color="deeppink"]
+        "displays join request" -> "users: [h1]" [label = "<h1 reject_user(id)" color="blue"]
+        "displays join request" -> "users: [h1, u1]" [label = "<h1 approve_user(id)" color="blue"]
+    }
+}
+

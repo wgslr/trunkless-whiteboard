@@ -1,0 +1,68 @@
+# deeppink = message from server
+# blue = message to server
+
+Digraph G {
+  labelloc="t";
+  label="Line create";
+
+  subgraph cluster_u1 {
+    label="client u1"
+    
+    empty
+    -> "LOCAL_ONLY:rev1:local_id"
+    [label = "user draws line up to rev1"]
+    
+    "LOCAL_ONLY:rev1:local_id"
+    -> "WAITING_FOR_ACK:rev1:local_id"
+    [label = "<u1: line_create(local_id, rev1)" color=blue]
+
+    "WAITING_FOR_ACK:rev1:local_id"
+    -> "WAITING_FOR_ACK:rev1:local_id 
+        LOCAL_ONLY:rev2:local_id"
+    [label="user continues the same line"]
+
+    "WAITING_FOR_ACK:rev1:local_id 
+        LOCAL_ONLY:rev2:local_id"
+    -> "ACKED_BY_SERVER:rev1:server_id 
+        LOCAL_ONLY:rev2:server_id"
+          [label=">u1: line_create_success(local_id, server_id)" color=deeppink]
+
+
+    "ACKED_BY_SERVER:rev1:server_id 
+        LOCAL_ONLY:rev2:server_id"
+    -> "ACKED_BY_SERVER:rev1:server_id
+        WAITING_FOR_ACK:rev2:server_id"
+    [label="<u1: line_update(server_id, rev2)
+    note: this is sent after server_id is known, not immediately upon edit" color=blue]
+
+    "ACKED_BY_SERVER:rev1:server_id
+        WAITING_FOR_ACK:rev2:server_id"
+    -> "ACKED_BY_SERVER:rev2:server_id"
+    [label=">u1: line_update_success(server_id, rev2)" color=deeppink]  // here either rev2 bitmap or some revision / message id
+
+
+    // error cases
+    "WAITING_FOR_ACK:rev1:local_id" -> empty [label = "<u1: line_create_error(local_id)", color=deeppink]
+
+    "WAITING_FOR_ACK:rev1:local_id 
+        LOCAL_ONLY:rev2:local_id" -> empty [label = "<u1: line_create_error(local_id)", color=deeppink]
+
+    "ACKED_BY_SERVER:rev1:server_id
+        WAITING_FOR_ACK:rev2:server_id"
+    -> "ACKED_BY_SERVER:rev1:server_id"
+    [label="<u1: line_update_error(server_id, rev2)" color=deeppink]
+
+  }
+
+  subgraph cluster_u2 {
+    label = "client u2"
+
+    "EMPTY" -> "KNOWN_FROM_SERVER:rev1"
+    [label = ">all: line_created(server_id, rev1bitmap)" color=deeppink]
+
+    "KNOWN_FROM_SERVER:rev1" -> "KNOWN_FROM_SERVER:rev2"
+    [label = ">all: line_updated(server_id, rev2bitmap)" color=deeppink]
+  }
+}
+
+
