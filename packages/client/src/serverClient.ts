@@ -1,12 +1,14 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
 import type { UUID } from './types';
 import * as uuid from 'uuid';
-import { Message, Coordinate, Line } from './types';
+import { Message, Line } from './types';
 import {
   ClientToServerMessage,
-  ServerToClientMessage
+  ServerToClientMessage,
+  Line as ProtoLine
 } from './protocol/protocol';
 import * as whiteboard from './editor/whiteboard';
+import DataLoader from 'dataloader';
 
 declare interface ServerConnectionEvents {
   disconnect: () => void;
@@ -15,18 +17,20 @@ declare interface ServerConnectionEvents {
 
 export class ServerConnection extends TypedEmitter<ServerConnectionEvents> {
   socket: WebSocket;
+  lineLoader: DataLoader<ProtoLine, void>;
   constructor(socket: WebSocket) {
     super();
     this.socket = socket;
     this.socket.binaryType = 'arraybuffer';
     this.socket.onmessage = event => this.dispatch(event);
+    this.lineLoader = new DataLoader(this.batchLines(this.socket), {
+      batchScheduleFn: callback => setTimeout(callback, 500)
+    });
   }
 
   private dispatch(event: MessageEvent) {
-    // console.log('MESSAGE RECEIVED:', event);
     let array = new Uint8Array(event.data);
     const decoded = ServerToClientMessage.decode(array);
-    // console.log('decoded', decoded.body);
 
     switch (decoded.body?.$case) {
       case 'lineDrawn': {
@@ -38,8 +42,24 @@ export class ServerConnection extends TypedEmitter<ServerConnectionEvents> {
     }
   }
 
+  private batchLines(socket: WebSocket) {
+    return async (lines: readonly ProtoLine[]) => {
+      const encoded = ClientToServerMessage.encode({
+        body: {
+          $case: 'linesDrawn',
+          linesDrawn: {
+            // @ts-ignore: mutability shouldn't matter
+            lines
+          }
+        }
+      }).finish();
+      socket.send(encoded);
+      // Hack to make DataLoader work
+      return lines.map(() => void {});
+    };
+  }
+
   public publishLine(line: Line) {
-    console.log('Publish line');
     const id = encodeUUID(line.UUID);
     const lineDrawn = {
       id,
@@ -48,12 +68,7 @@ export class ServerConnection extends TypedEmitter<ServerConnectionEvents> {
         value: entry[1]
       }))
     };
-
-    const encoded = ClientToServerMessage.encode({
-      body: { $case: 'lineDrawn', lineDrawn }
-    }).finish();
-
-    this.socket.send(encoded);
+    this.lineLoader.load(lineDrawn);
   }
 }
 
