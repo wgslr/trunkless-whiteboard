@@ -1,6 +1,6 @@
-import { Coordinate } from '../types';
+import { Coordinates } from '../types';
 
-export function linePoints(a: Coordinate, b: Coordinate) {
+export function linePoints(a: Coordinates, b: Coordinates) {
   let xDiff = b.x - a.x;
   let yDiff = b.y - a.y;
 
@@ -19,7 +19,7 @@ export function linePoints(a: Coordinate, b: Coordinate) {
 }
 
 // This function returns the pixels to be erased between two sampled around a specified radius of a square of pixels
-export function erasePoints(a: Coordinate, b: Coordinate) {
+export function erasePoints(a: Coordinates, b: Coordinates) {
   let radius = 3; //px
 
   let xDiff = b.x - a.x;

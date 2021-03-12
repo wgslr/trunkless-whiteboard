@@ -1,6 +1,11 @@
-import { v4 as uuidv4, v4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
+import { Coordinates } from './protocol/protocol';
+
+export type { Coordinates } from './protocol/protocol';
 
 export type UUID = ReturnType<typeof uuidv4>;
+
+export type MessageId = UUID;
 
 export type Mode = 'draw' | 'erase' | 'note';
 
@@ -11,28 +16,23 @@ export type Action =
     }
   | {
       type: 'erase';
-      lines: Map<UUID, Coordinate[]>;
+      lines: Map<UUID, Coordinates[]>;
     };
-
-export type Coordinate = {
-  x: number;
-  y: number;
-};
 
 export type Line = {
   UUID: UUID;
-  points: Map<Coordinate, number>;
+  points: Map<Coordinates, number>;
 };
 
 export type Note = {
   UUID: UUID;
-  position: Coordinate;
+  position: Coordinates;
   text: string;
 };
 
 export type Img = {
   UUID: UUID;
-  position: Coordinate;
+  position: Coordinates;
   data: string; // ts img object?
 };
 
@@ -51,7 +51,7 @@ export enum MessageCode {
 
 export type Figure = {
   type: 'Note';
-  location: Coordinate;
+  location: Coordinates;
 };
 
 export class CreateWhiteboardMsg {

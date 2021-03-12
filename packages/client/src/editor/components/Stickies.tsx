@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import StickyNote, { NoteProps } from './StickyNote';
-import { UUID, Coordinate, Note } from '../../types';
+import { UUID, Coordinates, Note } from '../../types';
 import { v5 } from 'uuid';
 import { Notes } from '@material-ui/icons';
 
@@ -14,7 +14,7 @@ interface prop {
 
 export const notes: Note[] = [];
 
-export const addNote = (pos: Coordinate) => {
+export const addNote = (pos: Coordinates) => {
   notes.push({
     UUID: v5('line' + (notes.length - 1).toString(), UUID_NAMESPACE),
     position: pos,
@@ -23,7 +23,7 @@ export const addNote = (pos: Coordinate) => {
   console.log('added note');
 };
 
-const moveNote = (id: UUID, newPos: Coordinate) => {
+const moveNote = (id: UUID, newPos: Coordinates) => {
   let index = notes.findIndex(note => note.UUID == id);
   if (index != -1) {
     notes[index].position = newPos;

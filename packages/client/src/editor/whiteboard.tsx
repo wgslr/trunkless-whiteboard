@@ -1,4 +1,4 @@
-import { Coordinate, Line, UUID, Action, Note, Img } from '../types';
+import { Coordinates, Line, UUID, Action, Note, Img } from '../types';
 import { linePoints, erasePoints } from './math';
 import { serverConnection } from '../connection-context/server-connection';
 import { v5 } from 'uuid';
@@ -12,24 +12,24 @@ export const images: Img[] = [];
 let drawing = false;
 let erasing = false;
 
-let lastPos: Coordinate | null = null;
-let eraseBuffer: Coordinate[] = [];
-let erasedPixels: Map<UUID, Coordinate[]> = new Map<UUID, Coordinate[]>();
+let lastPos: Coordinates | null = null;
+let eraseBuffer: Coordinates[] = [];
+let erasedPixels: Map<UUID, Coordinates[]> = new Map<UUID, Coordinates[]>();
 
 // TODO using v5 is temporary; generate random v4 UUIDs
 const UUID_NAMESPACE = '940beed9-f057-4088-a714-a9f5f2fc6052';
 
-export const startLine = (point: Coordinate) => {
+export const startLine = (point: Coordinates) => {
   drawing = true;
   bitmap.push({
     UUID: v5('line' + (bitmap.length - 1).toString(), UUID_NAMESPACE),
-    points: new Map<Coordinate, number>()
+    points: new Map<Coordinates, number>()
   }); // placeholder UUID
   bitmap[bitmap.length - 1].points.set(point, 1);
   lastPos = point;
 };
 
-export const appendLine = (point: Coordinate) => {
+export const appendLine = (point: Coordinates) => {
   if (!drawing) {
     return;
   }
@@ -52,16 +52,16 @@ export const finishLine = () => {
   serverConnection.connection.publishLine(bitmap[bitmap.length - 1]);
 };
 
-export const startErase = (point: Coordinate) => {
+export const startErase = (point: Coordinates) => {
   erasing = true;
   eraseBuffer = [];
-  erasedPixels = new Map<UUID, Coordinate[]>();
+  erasedPixels = new Map<UUID, Coordinates[]>();
   //eraseIndex++;
   eraseBuffer.push(point);
   lastPos = point;
 };
 
-export const appendErase = (point: Coordinate) => {
+export const appendErase = (point: Coordinates) => {
   if (!erasing) {
     return;
   }

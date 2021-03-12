@@ -1,7 +1,7 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
 import type { UUID } from './types';
 import * as uuid from 'uuid';
-import { Message, Coordinate, Line } from './types';
+import { Message, Coordinates, Line } from './types';
 import {
   ClientToServerMessage,
   ServerToClientMessage
