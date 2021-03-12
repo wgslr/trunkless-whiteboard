@@ -30,13 +30,19 @@ export class Note extends Figure {
   }
 }
 
-export class Line {
-  constructor(public id: UUID, public bitmap: Map<Coordinates, number>) {}
-}
+export type Line = {
+  id: UUID;
+  bitmap: Map<Coordinates, number>;
+};
+
+export type LineSequence = {
+  lines: Line[];
+};
 
 export enum OperationType {
   FIGURE_MOVE,
   LINE_ADD,
+  LINES_ADD,
   RETURN_ALL_FIGURES
 }
 
@@ -48,6 +54,10 @@ export type Operation =
   | {
       type: OperationType.LINE_ADD;
       data: { line: Line };
+    }
+  | {
+      type: OperationType.LINES_ADD;
+      data: { lineSequence: LineSequence };
     }
   | {
       type: OperationType.RETURN_ALL_FIGURES;
@@ -114,12 +124,22 @@ export class Whiteboard {
         this.sendToClients({
           body: {
             $case: 'lineDrawn',
-            lineDrawn: {
-              id: encodeUUID(line.id),
-              bitmap: Array.from(line.bitmap.entries()).map(entry => ({
-                coordinates: entry[0],
-                value: entry[1]
-              }))
+            lineDrawn: encodeLine(line)
+          }
+        });
+        break;
+      }
+      case OperationType.LINES_ADD: {
+        const lineSequence = op.data.lineSequence;
+        lineSequence.lines.forEach(line => this.lines.set(line.id, line));
+
+        console.log(`There are ${this.lines.size} lines on the whiteboard`);
+
+        this.sendToClients({
+          body: {
+            $case: 'linesDrawn',
+            linesDrawn: {
+              lines: lineSequence.lines.map(encodeLine)
             }
           }
         });
@@ -183,6 +203,15 @@ export const connectClient = (
     return { result: 'success' };
   }
 };
+
+// TODO: move to separate module
+export const encodeLine = (line: Line) => ({
+  id: encodeUUID(line.id),
+  bitmap: Array.from(line.bitmap.entries()).map(entry => ({
+    coordinates: entry[0],
+    value: entry[1]
+  }))
+});
 
 // setInterval(() => {
 //   console.log(`There are ${countWhiteboards()} whiteboards`, whiteboards);

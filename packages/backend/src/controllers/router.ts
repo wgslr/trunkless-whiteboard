@@ -1,4 +1,9 @@
-import { decodeUUID, messageToLine, resultToMessage } from '../encoding';
+import {
+  decodeUUID,
+  messageToLine,
+  resultToMessage,
+  messageToLines
+} from '../encoding';
 import { ClientConnection } from '../models/client-connection';
 import {
   addWhiteboard,
@@ -52,6 +57,23 @@ export const dispatch = (
         client.whiteboard.handleOperation({
           type: OperationType.LINE_ADD,
           data: { line: decodedData }
+        });
+      } else {
+        console.warn(
+          'Received LineDrawn message from client not connected to a whiteboard'
+        );
+      }
+
+      break;
+    }
+    case 'linesDrawn': {
+      const data = message.body.linesDrawn;
+      const decodedData = messageToLines(data);
+
+      if (client.whiteboard) {
+        client.whiteboard.handleOperation({
+          type: OperationType.LINES_ADD,
+          data: { lineSequence: decodedData }
         });
       } else {
         console.warn(

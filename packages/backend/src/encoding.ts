@@ -1,5 +1,5 @@
 import * as uuid from 'uuid';
-import { Line, ServerToClientMessage } from './protocol/protocol';
+import { Line, LineSequence, ServerToClientMessage } from './protocol/protocol';
 import type { Result, UUID } from './types';
 
 export const encodeUUID = (id: UUID): Uint8Array =>
@@ -15,9 +15,11 @@ export const resultToMessage = (result: Result): ServerToClientMessage => {
   }
 };
 
-export const messageToLine = (data: Line) => {
-  return {
-    id: decodeUUID(data.id),
-    bitmap: new Map(data.bitmap.map(point => [point.coordinates!, point.value]))
-  };
-};
+export const messageToLine = (data: Line) => ({
+  id: decodeUUID(data.id),
+  bitmap: new Map(data.bitmap.map(point => [point.coordinates!, point.value]))
+});
+
+export const messageToLines = (data: LineSequence) => ({
+  lines: data.lines.map(messageToLine)
+});
