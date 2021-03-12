@@ -56,14 +56,14 @@ const Stickies = () => {
     const [notelist, addSticky] = useState(notes);
     const listItems = notelist.map( note => {
         <div key={note.UUID}>
-            {new StickyNote({
-                id: note.UUID,
-                get: getNote,
-                save: updateNote,
-                delete: deleteNote
-            })}
-        </div>
-    });
+      <StickyNote
+        id={note.UUID}
+        get={getNote}
+        save={updateNote}
+        delete={deleteNote}
+      />
+    </div>;
+  });
 
     return (
         <div id='stickies'>
