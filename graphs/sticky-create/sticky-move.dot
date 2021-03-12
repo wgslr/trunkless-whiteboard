@@ -1,0 +1,37 @@
+# deeppink = message from server
+# blue = message to server
+
+Digraph G {
+  labelloc = "t";
+  label = "Sticky note moved";
+
+  subgraph cluster_u1 {
+    label = "client u1"
+
+    empty
+    -> "LOCAL_ONLY:pos:sticky_id"
+    [label = "user moves sticky to position pos"]
+
+    "LOCAL_ONLY:pos:sticky_id"
+    -> "WAITING_FOR_ACK:pos:sticky_id"
+    [label = "<u1: sticky_move(sticky_id, pos)" color = blue]
+
+    "WAITING_FOR_ACK:pos:sticky_id"
+    -> "ACKED_BY_SERVER:pos:sticky_id"
+    [label = ">u1: sticky_move_success(sticky_id)" color = deeppink]
+
+    // Error cases
+
+    "WAITING_FOR_ACK:pos:sticky_id"
+    -> empty
+    [label = "<u1: sticky_move_error(sticky_id)" color = deeppink]
+  }
+
+  subgraph cluster_u2 {
+    label = "client u2"
+
+    EMPTY
+    -> "KNOWN_FROM_SERVER:pos"
+    [label = ">all: sticky_moved(sticky_id, pos, sticky_note)" color = deeppink]
+  }
+}
