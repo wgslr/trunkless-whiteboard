@@ -25,7 +25,7 @@ export type Line = {
 };
 
 export type Note = {
-  UUID: UUID;
+  id: UUID;
   position: Coordinates;
   text: string;
 };

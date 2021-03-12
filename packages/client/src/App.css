@@ -37,3 +37,15 @@
     transform: rotate(360deg);
   }
 }
+
+.stickersRoot {
+  position: relative;
+}
+
+.stickyNote {
+  position: absolute;
+}
+
+#editor {
+  margin: 0 auto;
+}

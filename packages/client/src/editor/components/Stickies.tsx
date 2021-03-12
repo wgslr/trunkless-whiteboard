@@ -1,8 +1,7 @@
-import React, { useCallback, useState } from 'react';
-import StickyNote, { NoteProps } from './StickyNote';
-import { UUID, Coordinates, Note } from '../../types';
+import React from 'react';
 import { v5 } from 'uuid';
-import { Notes } from '@material-ui/icons';
+import { Coordinates, Note, UUID } from '../../types';
+import StickyNote from './StickyNote';
 
 const UUID_NAMESPACE = '940beed9-f057-4088-a714-a9f5f2fc6052';
 
@@ -16,7 +15,7 @@ export const notes: Note[] = [];
 
 export const addNote = (pos: Coordinates) => {
   notes.push({
-    UUID: v5('line' + (notes.length - 1).toString(), UUID_NAMESPACE),
+    id: v5('line' + (notes.length - 1).toString(), UUID_NAMESPACE),
     position: pos,
     text: ''
   });
@@ -24,7 +23,7 @@ export const addNote = (pos: Coordinates) => {
 };
 
 const moveNote = (id: UUID, newPos: Coordinates) => {
-  let index = notes.findIndex(note => note.UUID == id);
+  let index = notes.findIndex(note => note.id == id);
   if (index != -1) {
     notes[index].position = newPos;
   }
@@ -32,7 +31,7 @@ const moveNote = (id: UUID, newPos: Coordinates) => {
 
 const updateNote = (content: string, id: UUID) => {
   console.log('updating note', { id, content });
-  let index = notes.findIndex(note => note.UUID == id);
+  let index = notes.findIndex(note => note.id == id);
   if (index != -1) {
     notes[index].text = content;
     console.log('updated note', { id, content });
@@ -40,14 +39,14 @@ const updateNote = (content: string, id: UUID) => {
 };
 
 const deleteNote = (id: UUID) => {
-  let index = notes.findIndex(note => note.UUID == id);
+  let index = notes.findIndex(note => note.id == id);
   if (index != -1) {
     notes.splice(index, 1);
   }
 };
 
 const getNote = (id: UUID) => {
-  let index = notes.findIndex(note => note.UUID == id);
+  let index = notes.findIndex(note => note.id == id);
   if (index != -1) {
     return notes[index].text;
   } else return 'Note with ${id} not found';
@@ -56,17 +55,19 @@ const getNote = (id: UUID) => {
 const Stickies = () => {
   console.log({ notes });
   const listItems = notes.map(note => (
-    <div key={note.UUID}>
-      <StickyNote
-        id={note.UUID}
-        get={getNote}
-        save={updateNote}
-        delete={deleteNote}
-      />
-    </div>
+    <StickyNote
+      key={note.id}
+      save={updateNote}
+      delete={deleteNote}
+      note={note}
+    />
   ));
 
-  return <div id="stickies">{listItems}</div>;
+  return (
+    <div id="stickies" className="stickersRoot">
+      {listItems}
+    </div>
+  );
 };
 
 export default Stickies;
