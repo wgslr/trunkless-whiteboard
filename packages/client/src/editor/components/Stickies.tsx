@@ -1,7 +1,8 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import StickyNote, { NoteProps } from './StickyNote';
 import { UUID, Coordinate, Note } from '../../types';
 import { v5 } from 'uuid';
+import { Notes } from '@material-ui/icons';
 
 const UUID_NAMESPACE = '940beed9-f057-4088-a714-a9f5f2fc6052';
 
@@ -11,17 +12,17 @@ interface prop {
     remove: (id: UUID) => void;
 }
 
-const notes: Note[] = [];
+export const notes: Note[] = [];
 
 export const addNote = (pos: Coordinate) => {
     notes.push({
       UUID: v5('line' + (notes.length-1).toString(), UUID_NAMESPACE),
       position: pos,
-      text: ''
+      text: 'empty note'
     });
     console.log('added note');
 };
-  
+
 const moveNote = (id: UUID, newPos: Coordinate) => {
     let index = notes.findIndex( note => note.UUID == id);
     if (index != -1) {
@@ -52,19 +53,22 @@ const getNote = (id: UUID) => {
 };
 
 const Stickies = () => {
-    const listItems = notes.map( note => {
-        <li key={note.UUID}>
+    const [notelist, addSticky] = useState(notes);
+    const listItems = notelist.map( note => {
+        <div key={note.UUID}>
             {new StickyNote({
                 id: note.UUID,
                 get: getNote,
                 save: updateNote,
                 delete: deleteNote
             })}
-        </li>
+        </div>
     });
 
     return (
-        <ul id='stickies'>{listItems}</ul>
+        <div id='stickies'>
+            {notelist.map(note => <div key={note.UUID}>{listItems}</div>)}
+        </div>
     )
 }
 
