@@ -42,8 +42,6 @@ export type Object = {
   type: Line | Note | Img;
 };
 
-type WireFormat = string;
-
 export enum MessageCode {
   CREATE_WHITEBOARD = 'createWhiteboard',
   OPERATION_RESULT = 'operationResult',
@@ -79,15 +77,3 @@ export type Message =
   | OperationResultMsg
   | GetAllReqMsg
   | GetAllRespMsg;
-
-export const decodeMessage = (messageData: WireFormat): Message => {
-  // TODO change to protobuf
-  const parsed = JSON.parse(messageData);
-  if (!parsed.code || !Object.values(MessageCode).includes(parsed.code)) {
-    console.warn('Invalid message received:', parsed);
-    throw new Error('Invalid message received');
-  }
-  return parsed;
-};
-
-export const encode = (message: Message): WireFormat => JSON.stringify(message);
