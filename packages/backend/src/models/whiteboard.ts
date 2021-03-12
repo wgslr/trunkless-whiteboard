@@ -95,7 +95,6 @@ export class Whiteboard {
         }
         figure.location = newCoords;
         this.sendToClients({
-          // @ts-ignore
           body: {
             $case: 'figureMoved',
             figureMoved: {

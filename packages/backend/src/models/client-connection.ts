@@ -42,7 +42,6 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     this.socket = socket;
     this.setupSocketListeners();
 
-    // @ts-ignore
     this.on('message', msg => dispatch(msg, this));
 
     // TODO do proper handshake and select whiteboard
@@ -61,7 +60,6 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
       try {
         decoded = ClientToServerMessage.decode(Reader.create(message));
         console.debug({ decoded });
-        // @ts-ignore
       } catch (error) {
         console.error('Error decoding message', error);
         return;

@@ -19,7 +19,6 @@ export const dispatch = (
     case 'getAllFiguresRequest': {
       if (client.whiteboard) {
         client.send({
-          // @ts-ignore
           body: {
             $case: 'getAllFiguresResponse',
             getAllFiguresResponse: {
