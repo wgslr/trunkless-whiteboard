@@ -23,7 +23,10 @@ const noteStyle = {
 
 const StickyNote: React.FunctionComponent<NoteProps> = props => {
   const [isEditing, setIsEditing] = useState(false);
-  const [newText, setNewText] = useState('');
+
+  // TODO this won't recevie update correctly when the note text
+  // changes not because of this form, but becaus of an update from server
+  const [newText, setNewText] = useState(props.get(props.id));
 
   const edit = () => {
     setIsEditing(true);
@@ -31,23 +34,23 @@ const StickyNote: React.FunctionComponent<NoteProps> = props => {
 
   const save = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setNewText(event.currentTarget.value);
     setIsEditing(false);
+    props.save(newText, props.id);
   };
 
   const deleteNote = () => {
     props.delete(props.id);
   };
 
-  useEffect(() => {
-    props.save(newText, props.id);
-  }, [newText]);
-
   if (isEditing) {
     return (
       <div style={noteStyle}>
         <form onSubmit={save}>
-          <input type="text" />
+          <input
+            type="text"
+            value={newText}
+            onChange={e => setNewText(e.target.value)}
+          />
           <button type="submit">Save</button>
         </form>
       </div>

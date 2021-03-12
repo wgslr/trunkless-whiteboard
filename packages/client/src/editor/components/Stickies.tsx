@@ -18,7 +18,7 @@ export const addNote = (pos: Coordinate) => {
   notes.push({
     UUID: v5('line' + (notes.length - 1).toString(), UUID_NAMESPACE),
     position: pos,
-    text: 'empty note'
+    text: ''
   });
   console.log('added note');
 };
@@ -54,23 +54,19 @@ const getNote = (id: UUID) => {
 };
 
 const Stickies = () => {
-    const [notelist, addSticky] = useState(notes);
-    const listItems = notelist.map( note => {
-        <div key={note.UUID}>
+  console.log({ notes });
+  const listItems = notes.map(note => (
+    <div key={note.UUID}>
       <StickyNote
         id={note.UUID}
         get={getNote}
         save={updateNote}
         delete={deleteNote}
       />
-    </div>;
-  });
+    </div>
+  ));
 
-    return (
-        <div id='stickies'>
-            {notelist.map(note => <div key={note.UUID}>{listItems}</div>)}
-        </div>
-    )
-}
+  return <div id="stickies">{listItems}</div>;
+};
 
 export default Stickies;
