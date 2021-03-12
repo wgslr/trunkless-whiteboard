@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
-import { UUID } from '../../types';
+import { UUID, Note } from '../../types';
 
-export interface NoteProps {
-  id: UUID;
-  get: (id: UUID) => string;
+interface NoteProps {
   save: (content: string, id: UUID) => void;
   delete: (id: UUID) => void;
+  note: Note;
 }
 interface NoteState {
   editing: boolean;
@@ -17,16 +16,18 @@ interface NoteState {
 const noteStyle = {
   width: '200px',
   height: '100px',
-  backgroundColor: '#f2d233',
-  transform: 'translate(400px,400px)'
+  backgroundColor: '#f2d233'
+  // transform: 'translate(400px,400px)'
 };
 
 const StickyNote: React.FunctionComponent<NoteProps> = props => {
+  const { note } = props;
+
   const [isEditing, setIsEditing] = useState(false);
 
   // TODO this won't recevie update correctly when the note text
   // changes not because of this form, but becaus of an update from server
-  const [newText, setNewText] = useState(props.get(props.id));
+  const [newText, setNewText] = useState(note.text);
 
   const edit = () => {
     setIsEditing(true);
@@ -35,16 +36,22 @@ const StickyNote: React.FunctionComponent<NoteProps> = props => {
   const save = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsEditing(false);
-    props.save(newText, props.id);
+    props.save(newText, note.id);
   };
 
   const deleteNote = () => {
-    props.delete(props.id);
+    props.delete(note.id);
   };
 
-  if (isEditing) {
-    return (
-      <div style={noteStyle}>
+  const style = {
+    ...noteStyle,
+    top: note.position.y,
+    left: note.position.x
+  };
+
+  return (
+    <div style={style} className="stickyNote">
+      {isEditing ? (
         <form onSubmit={save}>
           <input
             type="text"
@@ -53,22 +60,19 @@ const StickyNote: React.FunctionComponent<NoteProps> = props => {
           />
           <button type="submit">Save</button>
         </form>
-      </div>
-    );
-  } else {
-    return (
-      // Add styling for note div
-      <div style={noteStyle}>
-        <p>{props.get(props.id)}</p>
-        <button onClick={edit}>
-          <EditIcon />
-        </button>
-        <button onClick={deleteNote}>
-          <DeleteIcon />
-        </button>
-      </div>
-    );
-  }
+      ) : (
+        <>
+          <p>{note.text}</p>
+          <button onClick={edit}>
+            <EditIcon />
+          </button>
+          <button onClick={deleteNote}>
+            <DeleteIcon />
+          </button>
+        </>
+      )}
+    </div>
+  );
 };
 
 export default StickyNote;

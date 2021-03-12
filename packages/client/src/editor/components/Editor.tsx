@@ -114,7 +114,13 @@ const Editor = (props: { x: number; y: number }) => {
   }, []);
 
   return (
-    <div id="editor">
+    <div
+      id="editor"
+      style={{
+        height: props.y,
+        width: props.x
+      }}
+    >
       <div>
         <Tools />
         <UndoTool onClick={renderUndo} />
