@@ -10,11 +10,15 @@ import { modeState } from "../state";
 const cursors = {
   draw: {
     component: Draw,
-    offset: { x: 0, y: -16 },
+    offset: { x: 0, y: -16 }
   },
   erase: {
     component: Erase,
     offset: { x: 8, y: -16 }
+  },
+  note: {
+    component: Draw,
+    offset: { x: 0, y: -16 }
   }
 }
 
@@ -32,6 +36,8 @@ const Cursor = ({canvas}:{canvas:HTMLCanvasElement}) => {
         return cursors.draw;
       case "erase":
         return cursors.erase;
+      case "note":
+        return cursors.note;
       }
   }, []);
 

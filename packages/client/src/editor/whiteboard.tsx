@@ -1,12 +1,13 @@
-import { Coordinate, Line, UUID, Action } from '../types';
+import { Coordinate, Line, UUID, Action, Note, Img } from '../types';
 import { linePoints, erasePoints } from './math';
 import { serverConnection } from '../connection-context/server-connection';
 import { v5 } from 'uuid';
 
 export const bitmap: Line[] = [];
-//let (bitmap.length-1) = -1;
 
 export const history: Action[] = [];
+
+export const images: Img[] = [];
 
 let drawing = false;
 let erasing = false;
@@ -20,7 +21,6 @@ const UUID_NAMESPACE = '940beed9-f057-4088-a714-a9f5f2fc6052';
 
 export const startLine = (point: Coordinate) => {
   drawing = true;
-  //(bitmap.length-1)++;
   bitmap.push({
     UUID: v5('line' + (bitmap.length-1).toString(), UUID_NAMESPACE),
     points: new Map<Coordinate, number>()
@@ -132,7 +132,7 @@ export const undo = () => {
           bitmap[index].points.set(coord,1)  ;
         });
       }
-    })
+    });
     history.pop();
   }
 };

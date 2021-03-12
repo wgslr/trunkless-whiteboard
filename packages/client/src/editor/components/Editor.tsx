@@ -1,10 +1,10 @@
-// TODO
 import React, {
   useCallback,
   useContext,
   useEffect,
   useRef,
-  useState
+  useState,
+  ReactDOM
 } from 'react';
 import { useRecoilState } from 'recoil';
 import ServerContext from '../../connection-context/server-connection';
@@ -17,10 +17,12 @@ import {
   finishLine,
   startErase,
   startLine,
-  undo
+  undo,
 } from '../whiteboard';
+import {addNote} from './Stickies';
 import Tools from './Tools';
 import UndoTool from './UndoTool';
+import Stickies from './Stickies';
 
 const Editor = (props: { x: number; y: number }) => {
   const { connection: serverConnection } = useContext(ServerContext);
@@ -41,6 +43,8 @@ const Editor = (props: { x: number; y: number }) => {
         startLine(point);
       } else if (mode === 'erase') {
         startErase(point);
+      } else if (mode === 'note') {
+        addNote(point);
       }
     },
     [mode]
@@ -52,7 +56,7 @@ const Editor = (props: { x: number; y: number }) => {
       finishLine();
     } else if (mode === 'erase') {
       finishErase();
-    }
+    } 
   }, [mode]);
 
   const handlePointerMove = useCallback(
@@ -110,11 +114,12 @@ const Editor = (props: { x: number; y: number }) => {
   }, []);
 
   return (
-    <div>
+    <div id='editor'>
       <div>
         <Tools />
         <UndoTool onClick={renderUndo} />
-      </div>  
+      </div>
+      <Stickies/>  
       <canvas
         ref={canvas}
         height={props.y}
@@ -124,6 +129,9 @@ const Editor = (props: { x: number; y: number }) => {
     </div>
   );
   // <Cursor canvas={canvas.current!}></Cursor>
+
+  // Layered canvas
+  // https://github.com/federicojacobi/layeredCanvas
 };
 
 export default Editor;
