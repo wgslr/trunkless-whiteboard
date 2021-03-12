@@ -3,9 +3,9 @@
 
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import logo from './trunkless.svg'
+import logo from './trunkless.svg';
 
-function Topbar(props: {h: number}) {
+function Topbar(props: { h: number }) {
   const styles = StyleSheet.create({
     container: {
       alignSelf: 'stretch',
@@ -20,14 +20,14 @@ function Topbar(props: {h: number}) {
     text: {
       color: '#000000'
     }
-  })
+  });
   return (
     <View style={styles.container}>
-      <img height={props.h} src={logo} alt="logo"/>
+      <img height={props.h} src={logo} alt="logo" />
       <Text style={styles.text}>Trunkless Whiteboard</Text>
       <Text style={styles.text}>v0.0</Text>
     </View>
   );
 }
 
-export default Topbar
+export default Topbar;

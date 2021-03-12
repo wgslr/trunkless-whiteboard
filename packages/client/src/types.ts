@@ -19,7 +19,6 @@ export type Coordinate = {
   y: number;
 };
 
-
 export type Line = {
   UUID: UUID;
   points: Map<Coordinate, number>;
@@ -50,7 +49,7 @@ export enum MessageCode {
   OPERATION_RESULT = 'operationResult',
   GET_ALL_REQ = 'getAllReq',
   GET_ALL_RESP = 'getAllResp'
-};
+}
 
 export type Figure = {
   type: 'Note';
@@ -59,12 +58,12 @@ export type Figure = {
 
 export class CreateWhiteboardMsg {
   readonly code = MessageCode.CREATE_WHITEBOARD;
-};
+}
 
 export class OperationResultMsg {
   readonly code = MessageCode.OPERATION_RESULT;
   success: boolean = false;
-};
+}
 
 export class GetAllReqMsg {
   readonly code = MessageCode.GET_ALL_REQ;
@@ -73,7 +72,7 @@ export class GetAllReqMsg {
 export class GetAllRespMsg {
   readonly code = MessageCode.GET_ALL_RESP;
   figures: Figure[] = [];
-};
+}
 
 export type Message =
   | CreateWhiteboardMsg

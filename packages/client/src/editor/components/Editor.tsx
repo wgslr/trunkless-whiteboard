@@ -17,9 +17,9 @@ import {
   finishLine,
   startErase,
   startLine,
-  undo,
+  undo
 } from '../whiteboard';
-import {addNote} from './Stickies';
+import { addNote } from './Stickies';
 import Tools from './Tools';
 import UndoTool from './UndoTool';
 import Stickies from './Stickies';
@@ -56,7 +56,7 @@ const Editor = (props: { x: number; y: number }) => {
       finishLine();
     } else if (mode === 'erase') {
       finishErase();
-    } 
+    }
   }, [mode]);
 
   const handlePointerMove = useCallback(
@@ -114,12 +114,12 @@ const Editor = (props: { x: number; y: number }) => {
   }, []);
 
   return (
-    <div id='editor'>
+    <div id="editor">
       <div>
         <Tools />
         <UndoTool onClick={renderUndo} />
       </div>
-      <Stickies/>  
+      <Stickies />
       <canvas
         ref={canvas}
         height={props.y}

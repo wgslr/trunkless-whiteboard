@@ -22,10 +22,10 @@ const UUID_NAMESPACE = '940beed9-f057-4088-a714-a9f5f2fc6052';
 export const startLine = (point: Coordinate) => {
   drawing = true;
   bitmap.push({
-    UUID: v5('line' + (bitmap.length-1).toString(), UUID_NAMESPACE),
+    UUID: v5('line' + (bitmap.length - 1).toString(), UUID_NAMESPACE),
     points: new Map<Coordinate, number>()
   }); // placeholder UUID
-  bitmap[(bitmap.length-1)].points.set(point, 1);
+  bitmap[bitmap.length - 1].points.set(point, 1);
   lastPos = point;
 };
 
@@ -35,21 +35,21 @@ export const appendLine = (point: Coordinate) => {
   }
   let list = linePoints(lastPos!, point);
   for (let i = 0; i < list.length; i++) {
-    bitmap[(bitmap.length-1)].points.set(list[i], 1);
+    bitmap[bitmap.length - 1].points.set(list[i], 1);
   }
   lastPos = point;
-  serverConnection.connection.publishLine(bitmap[(bitmap.length-1)]);
+  serverConnection.connection.publishLine(bitmap[bitmap.length - 1]);
 };
 
 export const finishLine = () => {
   history.push({
     type: 'draw',
-    UUID: bitmap[(bitmap.length-1)].UUID
+    UUID: bitmap[bitmap.length - 1].UUID
   });
   drawing = false;
 
   // TODO send update request to server
-  serverConnection.connection.publishLine(bitmap[(bitmap.length-1)]);
+  serverConnection.connection.publishLine(bitmap[bitmap.length - 1]);
 };
 
 export const startErase = (point: Coordinate) => {
@@ -110,12 +110,12 @@ export const undo = () => {
   if (history.length == 0) {
     return;
   }
-  const findFunction = (a:string, b:string) => a == b;
-  let lastAction = history[(history.length-1)];
+  const findFunction = (a: string, b: string) => a == b;
+  let lastAction = history[history.length - 1];
 
   if (lastAction.type == 'draw') {
     let id = lastAction.UUID;
-    let index = bitmap.findIndex( x => findFunction(x.UUID, id));
+    let index = bitmap.findIndex(x => findFunction(x.UUID, id));
     if (index != -1) {
       bitmap.splice(index, 1);
     }
@@ -123,13 +123,12 @@ export const undo = () => {
     history.pop();
 
     // TODO send update to server
-
   } else if (lastAction.type == 'erase') {
-    lastAction.lines.forEach( (modifiedPixels, uuid) => {    
-      let index = bitmap.findIndex( x => findFunction(uuid,x.UUID));
+    lastAction.lines.forEach((modifiedPixels, uuid) => {
+      let index = bitmap.findIndex(x => findFunction(uuid, x.UUID));
       if (index != -1) {
-        modifiedPixels.forEach( (coord) => {
-          bitmap[index].points.set(coord,1)  ;
+        modifiedPixels.forEach(coord => {
+          bitmap[index].points.set(coord, 1);
         });
       }
     });
