@@ -29,6 +29,10 @@ message Line {
   repeated BitmapPoint bitmap = 2;
 }
 
+message LineSequence {
+  repeated Line lines = 2;
+}
+
 message CreateWhiteboardRequest {}
 message WhiteboardCreated { string whiteboard_id = 1; }
 
@@ -66,6 +70,7 @@ message ClientToServerMessage {
     JoinWhiteboard join_whiteboard = 3;
     MoveFigure move_figure = 5;
     Line line_drawn = 6;
+    LineSequence lines_drawn = 7;
   }
 }
 
@@ -77,5 +82,6 @@ message ServerToClientMessage {
     GetAllFiguresResponse get_all_figures_response = 4;
     FigureMoved figure_moved = 5;
     Line line_drawn = 6;
+    LineSequence lines_drawn = 7;
   }
 }
