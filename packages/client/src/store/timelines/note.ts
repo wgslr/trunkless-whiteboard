@@ -48,7 +48,13 @@ export const getNewestLocalState = (nt: NoteTimeline): Note | null => {
   return null;
 };
 
-export const newNoteTimeline = (initial: Note): NoteTimeline => ({
+export const newCommitedNoteTimeline = (initial: Note): NoteTimeline => ({
+  noteId: initial.id,
+  commited: initial,
+  patches: []
+});
+
+export const newLocalNoteTimeline = (initial: Note): NoteTimeline => ({
   noteId: initial.id,
   commited: null,
   patches: [newPatch(initial)]

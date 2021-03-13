@@ -1,5 +1,5 @@
 import React from 'react';
-import { deleteNote, updateText } from '../../store/notes';
+import { localDeleteNote, localUpdateText } from '../../store/notes';
 import { Note } from '../../types';
 import StickyNote from './StickyNote';
 
@@ -8,8 +8,8 @@ const Stickies: React.FunctionComponent<{ notes: Note[] }> = ({ notes }) => (
     {notes.map(note => (
       <StickyNote
         key={note.id}
-        save={updateText}
-        delete={deleteNote}
+        save={localUpdateText}
+        delete={localDeleteNote}
         note={note}
       />
     ))}

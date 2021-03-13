@@ -1,10 +1,16 @@
 import { v4 } from 'uuid';
 import { updateStore } from '.';
 import { Coordinates, Note } from '../types';
-import { newNoteTimeline, modifyDelete, modifyText } from './timelines/note';
+import {
+  newLocalNoteTimeline,
+  modifyDelete,
+  modifyText,
+  setCommited,
+  newCommitedNoteTimeline
+} from './timelines/note';
 
-export const addNote = (pos: Coordinates) => {
-  const nt = newNoteTimeline({
+export const localAddNote = (pos: Coordinates) => {
+  const nt = newLocalNoteTimeline({
     id: v4(),
     position: pos,
     text: 'a new note'
@@ -16,7 +22,7 @@ export const addNote = (pos: Coordinates) => {
   console.log('added note timeline', { nt });
 };
 
-export const deleteNote = (id: Note['id']) => {
+export const localDeleteNote = (id: Note['id']) => {
   updateStore(store => {
     const nt = store.noteTimelines.get(id);
     if (!nt) {
@@ -29,7 +35,7 @@ export const deleteNote = (id: Note['id']) => {
   });
 };
 
-export const updateText = (id: Note['id'], newText: string) => {
+export const localUpdateText = (id: Note['id'], newText: string) => {
   updateStore(store => {
     const nt = store.noteTimelines.get(id);
     if (!nt) {
@@ -38,5 +44,22 @@ export const updateText = (id: Note['id'], newText: string) => {
     } else {
       store.noteTimelines.set(nt.noteId, modifyText(nt, newText));
     }
+  });
+};
+
+export const setServerState = (id: Note['id'], state: Note | null) => {
+  updateStore(store => {
+    let nt = store.noteTimelines.get(id);
+    if (!nt) {
+      if (state === null) {
+        // if have nothing to delete
+        return;
+      } else {
+        nt = newCommitedNoteTimeline(state);
+      }
+    } else {
+      nt = setCommited(nt, state);
+    }
+    store.noteTimelines.set(nt.noteId, nt);
   });
 };

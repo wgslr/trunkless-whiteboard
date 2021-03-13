@@ -19,7 +19,7 @@ import {
   startLine,
   undo
 } from '../whiteboard';
-import { addNote } from '../../store/notes';
+import { localAddNote } from '../../store/notes';
 import Tools from './Tools';
 import UndoTool from './UndoTool';
 import Stickies from './Stickies';
@@ -45,7 +45,7 @@ const Editor = (props: { x: number; y: number }) => {
       } else if (mode === 'erase') {
         startErase(point);
       } else if (mode === 'note') {
-        addNote(point);
+        localAddNote(point);
       }
     },
     [mode]
