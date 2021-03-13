@@ -10,15 +10,9 @@ import {
 import * as whiteboard from './editor/whiteboard';
 import { setServerState } from './store/notes';
 
-declare interface ServerConnectionEvents {
-  disconnect: () => void;
-  message: (decoded: Message) => void;
-}
-
-export class ServerConnection extends TypedEmitter<ServerConnectionEvents> {
+export class ServerConnection {
   socket: WebSocket;
   constructor(socket: WebSocket) {
-    super();
     this.socket = socket;
     this.socket.binaryType = 'arraybuffer';
     this.socket.onmessage = event => this.dispatch(event);
