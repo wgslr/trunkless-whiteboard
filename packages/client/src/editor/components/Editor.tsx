@@ -23,7 +23,7 @@ import { addNote } from '../../store/notes';
 import Tools from './Tools';
 import UndoTool from './UndoTool';
 import Stickies from './Stickies';
-import { useGlobalStore } from '../../store/hook';
+import { useGlobalStore } from '../../store';
 
 const Editor = (props: { x: number; y: number }) => {
   const { connection: serverConnection } = useContext(ServerContext);

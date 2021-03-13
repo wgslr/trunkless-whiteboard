@@ -14,6 +14,8 @@ export type CombinedState = {
   notes: Map<Note['id'], Note>;
 };
 
+export { useGlobalStore } from './hook';
+
 export const getCombinedState = (): CombinedState => {
   const noteTimelinesArray = Array.from(store.noteTimelines.values());
   return {
