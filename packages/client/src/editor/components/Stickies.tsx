@@ -52,7 +52,7 @@ const getNote = (id: UUID) => {
   } else return 'Note with ${id} not found';
 };
 
-const Stickies = () => {
+const Stickies: React.FunctionComponent<{ notes: Note[] }> = ({ notes }) => {
   console.log({ notes });
   const listItems = notes.map(note => (
     <StickyNote

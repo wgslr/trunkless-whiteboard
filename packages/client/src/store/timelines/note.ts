@@ -1,5 +1,5 @@
 import { v4 } from 'uuid';
-import type { Note, Coordinates, UUID } from '../types';
+import type { Note, Coordinates, UUID } from '../../types';
 
 type Diff = Partial<Omit<Note, 'id'>>;
 
