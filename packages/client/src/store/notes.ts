@@ -5,8 +5,8 @@ import {
   newLocalNoteTimeline,
   modifyDelete,
   modifyText,
-  setCommited,
-  newCommitedNoteTimeline
+  setCommitted,
+  newCommittedNoteTimeline
 } from './timelines/note';
 
 export const localAddNote = (pos: Coordinates) => {
@@ -55,10 +55,10 @@ export const setServerState = (id: Note['id'], state: Note | null) => {
         // if have nothing to delete
         return;
       } else {
-        nt = newCommitedNoteTimeline(state);
+        nt = newCommittedNoteTimeline(state);
       }
     } else {
-      nt = setCommited(nt, state);
+      nt = setCommitted(nt, state);
     }
     store.noteTimelines.set(nt.noteId, nt);
   });

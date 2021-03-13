@@ -12,7 +12,7 @@ type Patch = {
 
 export type NoteTimeline = {
   noteId: UUID;
-  commited: Note | null;
+  committed: Note | null;
   patches: Patch[];
 };
 
@@ -26,8 +26,8 @@ export const getNewestLocalState = (nt: NoteTimeline): Note | null => {
 
   const current: Partial<Note> = { id: nt.noteId };
   const patchesReverse = [...nt.patches.map(p => p.diff)].reverse();
-  if (nt.commited) {
-    patchesReverse.push(nt.commited); // lowest priority
+  if (nt.committed) {
+    patchesReverse.push(nt.committed); // lowest priority
   }
 
   for (const diff of patchesReverse) {
@@ -48,15 +48,15 @@ export const getNewestLocalState = (nt: NoteTimeline): Note | null => {
   return null;
 };
 
-export const newCommitedNoteTimeline = (initial: Note): NoteTimeline => ({
+export const newCommittedNoteTimeline = (initial: Note): NoteTimeline => ({
   noteId: initial.id,
-  commited: initial,
+  committed: initial,
   patches: []
 });
 
 export const newLocalNoteTimeline = (initial: Note): NoteTimeline => ({
   noteId: initial.id,
-  commited: null,
+  committed: null,
   patches: [newPatch(initial)]
 });
 
@@ -82,12 +82,12 @@ export const modifyDelete = (nt: NoteTimeline): NoteTimeline => ({
   patches: nt.patches.concat(newPatch('deleted'))
 });
 
-export const setCommited = (
+export const setCommitted = (
   nt: NoteTimeline,
-  commited: NoteTimeline['commited']
+  committed: NoteTimeline['committed']
 ): NoteTimeline => ({
   ...nt,
-  commited
+  committed
 });
 
 export const discardPatch = (
