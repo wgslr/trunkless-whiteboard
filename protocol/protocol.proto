@@ -56,6 +56,22 @@ enum ErrorReason {
   WHITEBOARD_DOES_NOT_EXIST = 1;
 }
 
+message CreateNote {
+  string change_id = 1;
+  Note note = 2;
+}
+
+message CreateNoteError {
+  string change_id = 1;
+  ErrorReason reason = 2;
+}
+
+// broadcasted to all
+message NoteCreatedOrUpdated {
+  string change_id = 1; // used by creator to discard local state
+  Note note = 2;
+}
+
 message ResultError { ErrorReason reason = 1; }
 message ResultSuccess {}
 
@@ -66,6 +82,7 @@ message ClientToServerMessage {
     JoinWhiteboard join_whiteboard = 3;
     MoveFigure move_figure = 5;
     Line line_drawn = 6;
+    CreateNote create_note = 7;
   }
 }
 
@@ -77,5 +94,7 @@ message ServerToClientMessage {
     GetAllFiguresResponse get_all_figures_response = 4;
     FigureMoved figure_moved = 5;
     Line line_drawn = 6;
+    CreateNoteError create_note_error = 7;
+    NoteCreatedOrUpdated note_created_or_updated = 8;
   }
 }
