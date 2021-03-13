@@ -1,7 +1,9 @@
 import { v4 } from 'uuid';
 import type { Note, Coordinates, UUID } from '../../types';
 
-type Diff = Partial<Omit<Note, 'id'>>;
+// TODO functions below should probably validate
+// that after 'deleted' there can't be newer patches
+type Diff = Partial<Omit<Note, 'id'>> | 'deleted';
 
 type Patch = {
   changeId: UUID;
@@ -29,6 +31,9 @@ export const getNewestLocalState = (nt: NoteTimeline): Note | null => {
   }
 
   for (const diff of patchesReverse) {
+    if (diff === 'deleted') {
+      return null;
+    }
     if (diff.position !== undefined && current.position === undefined) {
       current.position = diff.position;
     }
@@ -65,6 +70,11 @@ export const modifyPositiion = (
     patches: nt.patches.concat(newPatch({ position: newPosition }))
   };
 };
+
+export const modifyDelete = (nt: NoteTimeline): NoteTimeline => ({
+  ...nt,
+  patches: nt.patches.concat(newPatch('deleted'))
+});
 
 export const setCommited = (
   nt: NoteTimeline,
