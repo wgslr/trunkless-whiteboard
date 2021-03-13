@@ -1,5 +1,6 @@
 import { v4 } from 'uuid';
 import { updateStore } from '.';
+import { serverConnection } from '../connection-context/server-connection';
 import { Coordinates, Note } from '../types';
 import {
   newLocalNoteTimeline,
@@ -18,8 +19,12 @@ export const localAddNote = (pos: Coordinates) => {
   updateStore(store => {
     store.noteTimelines.set(nt.noteId, nt);
   });
-  // TODO push to server. Here?
-  console.log('added note timeline', { nt });
+
+  // FIXME very dirty
+  serverConnection.connection.publishNote({
+    ...(nt.patches[nt.patches.length - 1].diff as Omit<Note, 'id'>),
+    id: nt.noteId
+  });
 };
 
 export const localDeleteNote = (id: Note['id']) => {

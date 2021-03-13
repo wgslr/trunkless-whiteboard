@@ -76,30 +76,30 @@ export class Whiteboard {
 
   handleOperation(op: Operation) {
     switch (op.type) {
-      case OperationType.FIGURE_MOVE: {
-        const { figureId, newCoords } = op.data;
-        const figure = this.figures.get(figureId);
-        if (!figure) {
-          throw new OperationError('Figure does not exist');
-        }
-        if (
-          newCoords.x < 0 ||
-          newCoords.x > this.MAX_WIDTH ||
-          newCoords.y < 0 ||
-          newCoords.y > this.MAX_HEIGHT
-        ) {
-          throw new OperationError('New coords not allowed');
-        }
-        figure.location = newCoords;
-        this.sendToClients({
-          $case: 'figureMoved',
-          figureMoved: {
-            figureId: uuidStringToBytes(figure.id),
-            newCoordinates: newCoords
-          }
-        });
-        break;
-      }
+      // case OperationType.FIGURE_MOVE: {
+      //   const { figureId, newCoords } = op.data;
+      //   const figure = this.notes.get(figureId);
+      //   if (!figure) {
+      //     throw new OperationError('Figure does not exist');
+      //   }
+      //   if (
+      //     newCoords.x < 0 ||
+      //     newCoords.x > this.MAX_WIDTH ||
+      //     newCoords.y < 0 ||
+      //     newCoords.y > this.MAX_HEIGHT
+      //   ) {
+      //     throw new OperationError('New coords not allowed');
+      //   }
+      //   figure.location = newCoords;
+      //   this.sendToClients({
+      //     $case: 'figureMoved',
+      //     figureMoved: {
+      //       figureId: uuidStringToBytes(figure.id),
+      //       newCoordinates: newCoords
+      //     }
+      //   });
+      //   break;
+      // }
       case OperationType.LINE_ADD: {
         const line = op.data.line;
         this.lines.set(line.id, line);
@@ -136,7 +136,7 @@ export class Whiteboard {
       // case OperationType.RETURN_ALL_FIGURES: {
       //   // FIXME send only to requester
       //   this.sendToClients(
-      //     new GetAllRespMsg(Array.from(this.figures.values()))
+      //     new GetAllRespMsg(Array.from(this.notes.values()))
       //   );
       // }
     }
