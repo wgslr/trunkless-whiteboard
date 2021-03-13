@@ -1,62 +1,83 @@
 import { v4 } from 'uuid';
 import type { Note, Coordinates, UUID } from '../types';
 
+type Diff = Partial<Omit<Note, 'id'>>;
+
 type Patch = {
   changeId: UUID;
-  newState: Note;
+  diff: Diff;
 };
 
 type NoteTimeline = {
+  noteId: UUID;
   commited: Note | null;
-  drafts: Patch[];
+  patches: Patch[];
 };
+
+const newPatch = (diff: Diff): Patch => ({
+  changeId: v4(),
+  diff
+});
 
 export const getNewestLocalState = (nt: NoteTimeline): Note | null => {
-  if (nt.drafts.length > 0) {
-    return nt.drafts[nt.drafts.length - 1].newState;
-  } else {
-    return nt.commited;
+  // Flattens information about the note, going from newest patch to oldest
+
+  const current: Partial<Note> = { id: nt.noteId };
+  const patchesReverse = [...nt.patches.map(p => p.diff)].reverse();
+  if (nt.commited) {
+    patchesReverse.push(nt.commited); // lowest priority
   }
+
+  for (const diff of patchesReverse) {
+    if (diff.position !== undefined && current.position === undefined) {
+      current.position = diff.position;
+    }
+    if (diff.text !== undefined && current.text === undefined) {
+      current.text = diff.text;
+    }
+
+    if (current.text !== undefined && current.position !== undefined) {
+      return current as Note;
+    }
+  }
+  return null;
 };
 
-const newPatch = (newState: Note) => ({ changeId: v4(), newState });
+export const newNoteTimeline = (initial: Note): NoteTimeline => ({
+  noteId: initial.id,
+  commited: null,
+  patches: [newPatch(initial)]
+});
 
-export const setDraftText = (
+export const modifyText = (nt: NoteTimeline, newText: string): NoteTimeline => {
+  return {
+    ...nt,
+    patches: nt.patches.concat(newPatch({ text: newText }))
+  };
+};
+
+export const modifyPositiion = (
   nt: NoteTimeline,
-  newText: string
+  newPosition: Coordinates
 ): NoteTimeline => {
-  const current = getNewestLocalState(nt);
-  if (!current) {
-    console.error('moveNote called on Timeline with both states null');
-    return nt;
-  } else {
-    return {
-      ...nt,
-      drafts: nt.drafts.concat(
-        newPatch({
-          ...current,
-          text: newText
-        })
-      )
-    };
-  }
+  return {
+    ...nt,
+    patches: nt.patches.concat(newPatch({ position: newPosition }))
+  };
 };
 
-export const moveNote = (
+export const setCommited = (
   nt: NoteTimeline,
-  newPos: Coordinates
-): NoteTimeline => {
-  const current = nt.drafts ?? nt.commited;
-  if (!current) {
-    return nt;
-    console.error('moveNote called on Timeline with both states null');
-  } else {
-    return {
-      ...nt,
-      drafts: {
-        ...current,
-        position: newPos
-      }
-    };
-  }
-};
+  commited: NoteTimeline['commited']
+): NoteTimeline => ({
+  ...nt,
+  commited
+});
+
+export const discardPatch = (
+  nt: NoteTimeline,
+  changeId: Patch['changeId']
+): NoteTimeline => ({
+  ...nt,
+  patches: nt.patches.filter(p => p.changeId !== changeId)
+});
