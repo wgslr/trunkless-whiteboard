@@ -1,6 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
-import { encodeUUID, encodeUUID as uuidStringToBytes } from '../encoding';
 import {
+  encodeUUID,
+  encodeUUID as uuidStringToBytes,
+  noteToMessage
+} from '../encoding';
+import {
+  ClientToServerMessage,
   Coordinates,
   ErrorReason,
   FigureType,
@@ -19,17 +24,11 @@ export abstract class Figure {
   }
 }
 
-export class Note extends Figure {
-  type = FigureType.NOTE;
-  id = uuidv4();
-  content: string;
-  constructor(coords: Coordinates, content?: string, id?: UUID) {
-    super(id);
-    this.location = coords;
-    this.content = content ?? '';
-  }
-}
-
+export type Note = {
+  id: UUID;
+  position: Coordinates;
+  text: string;
+};
 export class Line {
   constructor(public id: UUID, public bitmap: Map<Coordinates, number>) {}
 }
@@ -37,7 +36,7 @@ export class Line {
 export enum OperationType {
   FIGURE_MOVE,
   LINE_ADD,
-  RETURN_ALL_FIGURES
+  NOTE_ADD
 }
 
 export type Operation =
@@ -50,7 +49,8 @@ export type Operation =
       data: { line: Line };
     }
   | {
-      type: OperationType.RETURN_ALL_FIGURES;
+      type: OperationType.NOTE_ADD;
+      data: { note: Note; triggeredBy: ClientToServerMessage['messsageId'] };
     };
 
 class OperationError extends Error {
@@ -65,16 +65,13 @@ export class Whiteboard {
   id: UUID;
   host: ClientConnection;
   clients: ClientConnection[];
-  figures: Map<Figure['id'], Figure> = new Map();
+  notes: Map<Note['id'], Note> = new Map();
   lines: Map<Line['id'], Line> = new Map();
 
   constructor(host: ClientConnection, id?: UUID) {
     this.id = id ?? uuidv4();
     this.host = host;
     this.clients = [host];
-
-    // FIXME remove
-    this.addNote({ x: 10, y: 20 });
   }
 
   handleOperation(op: Operation) {
@@ -121,6 +118,21 @@ export class Whiteboard {
         });
         break;
       }
+      case OperationType.NOTE_ADD: {
+        // TODO validate coords
+        // TODO validate unique id
+        const { note, triggeredBy } = op.data;
+        this.notes.set(note.id, note);
+        console.log('Added note', note);
+        this.sendToClients({
+          $case: 'noteCreatedOrUpdated',
+          noteCreatedOrUpdated: {
+            triggeredBy,
+            note: noteToMessage(note)
+          }
+        });
+        break;
+      }
       // case OperationType.RETURN_ALL_FIGURES: {
       //   // FIXME send only to requester
       //   this.sendToClients(
@@ -135,14 +147,6 @@ export class Whiteboard {
     this.clients.forEach(client => {
       client.send(message);
     });
-  }
-
-  protected addNote(coords: Coordinates) {
-    const figure = new Note(
-      coords,
-      `Note created at ${new Date().toISOString()}`
-    );
-    this.figures.set(figure.id, figure);
   }
 
   public addClientConnection(client: ClientConnection) {

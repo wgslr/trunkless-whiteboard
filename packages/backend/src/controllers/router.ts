@@ -1,4 +1,10 @@
-import { decodeUUID, messageToLine, resultToMessage } from '../encoding';
+import {
+  decodeUUID,
+  messageToLine,
+  messageToNote,
+  noteToMessage,
+  resultToMessage
+} from '../encoding';
 import { ClientConnection } from '../models/client-connection';
 import {
   addWhiteboard,
@@ -55,6 +61,24 @@ export const dispatch = (
         console.warn(
           'Received LineDrawn message from client not connected to a whiteboard'
         );
+      }
+
+      break;
+    }
+    case 'createNote': {
+      const body = message.body.createNote;
+      const data = messageToNote(body.note!);
+
+      if (client.whiteboard) {
+        client.whiteboard.handleOperation({
+          type: OperationType.NOTE_ADD,
+          data: { note: data, triggeredBy: message.messsageId }
+        });
+      } else {
+        console.warn(
+          'Received createNote message from client not connected to a whiteboard'
+        );
+        // TODO return error
       }
 
       break;

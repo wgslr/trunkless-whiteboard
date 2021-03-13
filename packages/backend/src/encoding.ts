@@ -36,11 +36,15 @@ export const messageToLine = (data: Line) => {
   };
 };
 
-// TODO move to other module
-const encodeNote = (note: Note): NoteProto => ({
-  id: Uint8Array.from(uuid.parse(note.id)),
-  content: note.content,
-  coordinates: note.location
+export const noteToMessage = (note: Note): NoteProto => ({
+  ...note,
+  id: Uint8Array.from(uuid.parse(note.id))
+});
+
+export const messageToNote = (noteMsg: NoteProto): Note => ({
+  id: uuid.stringify(noteMsg.id),
+  text: noteMsg.text,
+  position: noteMsg.position!
 });
 
 export const newServerToClientMessage = (

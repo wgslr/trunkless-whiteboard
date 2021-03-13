@@ -15,8 +15,8 @@ message Note {
   /* UUID in byte representation. Saves bandwidth, but more
      problematic in code */
   bytes id = 1;
-  Coordinates coordinates = 2;
-  string content = 3;
+  Coordinates position = 2;
+  string text = 3;
 }
 
 message BitmapPoint {
@@ -61,8 +61,14 @@ message UpdateNote { Note note = 1; }
 message DeleteNote { Note note = 1; }
 
 // broadcasted to all
-message NoteCreatedOrUpdated { Note note = 1; }
-message NoteDeleted { bytes note_id = 1; }
+message NoteCreatedOrUpdated {
+  Note note = 1;
+  string triggered_by = 2;
+}
+message NoteDeleted {
+  bytes note_id = 1;
+  string triggered_by = 2;
+}
 
 message ResultError {
   string triggered_by = 1; // message id
