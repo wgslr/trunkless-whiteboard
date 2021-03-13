@@ -8,7 +8,7 @@ type Patch = {
   diff: Diff;
 };
 
-type NoteTimeline = {
+export type NoteTimeline = {
   noteId: UUID;
   commited: Note | null;
   patches: Patch[];
