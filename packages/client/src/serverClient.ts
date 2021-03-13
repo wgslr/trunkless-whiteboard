@@ -49,12 +49,18 @@ export class ServerConnection extends TypedEmitter<ServerConnectionEvents> {
       }))
     };
 
-    const encoded = ClientToServerMessage.encode({
-      body: { $case: 'lineDrawn', lineDrawn }
-    }).finish();
+    const encoded = ClientToServerMessage.encode(
+      newClientToServerMessage({ $case: 'lineDrawn', lineDrawn })
+    ).finish();
 
     this.socket.send(encoded);
   }
+}
+
+function newClientToServerMessage(
+  body: ClientToServerMessage['body']
+): ClientToServerMessage {
+  return { messsageId: uuid.v4(), body };
 }
 
 // TODO deduplciate with backend code

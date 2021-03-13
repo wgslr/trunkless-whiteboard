@@ -19,12 +19,10 @@ export const dispatch = (
     case 'getAllFiguresRequest': {
       if (client.whiteboard) {
         client.send({
-          body: {
-            $case: 'getAllFiguresResponse',
-            getAllFiguresResponse: {
-              // @ts-ignore: FIXME Figure and Note are not overlapping
-              notes: [...client.whiteboard.figures.values()].map(encodeNote)
-            }
+          $case: 'getAllFiguresResponse',
+          getAllFiguresResponse: {
+            // @ts-ignore: FIXME Figure and Note are not overlapping
+            notes: [...client.whiteboard.figures.values()].map(encodeNote)
           }
         });
       }
@@ -35,7 +33,7 @@ export const dispatch = (
       console.log(`Client wants to join whiteboard ${whiteboardId}`);
       const result = connectClient(client, whiteboardId);
 
-      const response = resultToMessage(result);
+      const response = resultToMessage(result, message.messsageId);
       client.send(response);
       break;
     }

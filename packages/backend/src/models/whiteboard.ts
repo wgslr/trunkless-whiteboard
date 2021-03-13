@@ -95,12 +95,10 @@ export class Whiteboard {
         }
         figure.location = newCoords;
         this.sendToClients({
-          body: {
-            $case: 'figureMoved',
-            figureMoved: {
-              figureId: uuidStringToBytes(figure.id),
-              newCoordinates: newCoords
-            }
+          $case: 'figureMoved',
+          figureMoved: {
+            figureId: uuidStringToBytes(figure.id),
+            newCoordinates: newCoords
           }
         });
         break;
@@ -112,15 +110,13 @@ export class Whiteboard {
         console.log(`There are ${this.lines.size} lines on the whiteboard`);
 
         this.sendToClients({
-          body: {
-            $case: 'lineDrawn',
-            lineDrawn: {
-              id: encodeUUID(line.id),
-              bitmap: Array.from(line.bitmap.entries()).map(entry => ({
-                coordinates: entry[0],
-                value: entry[1]
-              }))
-            }
+          $case: 'lineDrawn',
+          lineDrawn: {
+            id: encodeUUID(line.id),
+            bitmap: Array.from(line.bitmap.entries()).map(entry => ({
+              coordinates: entry[0],
+              value: entry[1]
+            }))
           }
         });
         break;
@@ -134,7 +130,7 @@ export class Whiteboard {
     }
   }
 
-  protected sendToClients(message: ServerToClientMessage) {
+  protected sendToClients(message: ServerToClientMessage['body']) {
     console.log(`Sending message to ${this.clients.length} clients:`, message);
     this.clients.forEach(client => {
       client.send(message);
