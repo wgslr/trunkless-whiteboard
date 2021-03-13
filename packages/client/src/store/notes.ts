@@ -10,6 +10,7 @@ import {
   newCommittedNoteTimeline
 } from './timelines/note';
 
+// TODO change name, if we are doing server push in this function
 export const localAddNote = (pos: Coordinates) => {
   const nt = newLocalNoteTimeline({
     id: v4(),
@@ -20,11 +21,12 @@ export const localAddNote = (pos: Coordinates) => {
     store.noteTimelines.set(nt.noteId, nt);
   });
 
-  // FIXME very dirty
+  // TODO very dirty
   serverConnection.connection.publishNote({
     ...(nt.patches[nt.patches.length - 1].diff as Omit<Note, 'id'>),
     id: nt.noteId
   });
+  // TODO discard Patch from the timeline when server response comes
 };
 
 export const localDeleteNote = (id: Note['id']) => {
