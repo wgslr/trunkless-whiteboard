@@ -1,0 +1,37 @@
+# deeppink = message from server
+# blue = message to server
+
+Digraph G {
+  labelloc = "t";
+  label = "Image add"
+
+  subgraph cluster_u1 {
+    label = "client u1"
+
+    empty
+    -> "LOCAL_ONLY:pos:image_id"
+    [label = "user adds image at position pos"]
+
+    "LOCAL_ONLY:pos:image_id"
+    -> "WAITING_FOR_ACK:pos:image_id"
+    [label = "<ul: image_add(image_id, pos)" color = blue]
+
+    "WAITING_FOR_ACK:pos:image_id"
+    -> "ACKED_BY_SERVER:pos:image_id"
+    [label = ">u1: image_add_success(image_id)" color = deeppink]
+
+    // Error cases
+
+    "WAITING_FOR_ACK:pos:image_id"
+    -> empty
+    [label = "<u1: image_add_error(image_id)" color = deeppink]
+  }
+
+  subgraph cluster_u2 {
+    label = "client u2"
+
+    EMPTY
+    -> "KNOWN_FROM_SERVER:pos"
+    [label = ">all: image_added(image_id, pos)" color = deeppink]
+  }
+}
