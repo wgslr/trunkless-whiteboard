@@ -3,7 +3,7 @@
 
 Digraph G {
   labelloc = "t";
-  label = "Sticky note create";
+  label = "Sticky note add";
 
   subgraph cluster_u1 {
     label = "client u1"
