@@ -1,0 +1,38 @@
+# deeppink = message from server
+# blue = message to server
+
+Digraph G2 {
+  label = "Create whiteboard"
+
+  subgraph cluster_server {
+    label="server"
+
+    "whiteboards: []"
+    -> "create requested"
+    [label = "<h1 create_whiteboard" color = "blue"]
+
+    "create requested"
+    -> "whiteboards: []"
+    [label = "<h1 create_failed" color = "deeppink"]
+
+    "create requested"
+    -> "whiteboards: [h1]"
+    [label = "<h1 create_success" color = "deeppink"]
+  }
+
+  subgraph cluster_host {
+    label="host h1"
+
+    "needs whiteboard id"
+    -> "requested create"
+    [label = "<h1 create_whiteboard" color = "blue"]
+
+    "requested create"
+    -> "needs whiteboard id"
+    [label = "<h1 create_whiteboard_error" color = "deeppink"]
+
+    "requested create"
+    -> "users: [h1]"
+    [label = "<h1 create_whiteboard_success" color = "deeppink"]
+  }
+}
