@@ -16,6 +16,7 @@ const render = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
   reset(ctx, canvas);
 
   ctx.fillStyle = '#000000';
+  console.debug(`bitmap render: drawing ${bitmap.length} lines`);
   bitmap.forEach(line => {
     line.points.forEach((value, key) => {
       if (value != 0) {
