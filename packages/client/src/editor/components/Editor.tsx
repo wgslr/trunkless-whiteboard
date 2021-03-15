@@ -72,8 +72,8 @@ const Editor = (props: { x: number; y: number }) => {
         } else if (mode === 'erase') {
           appendErase(point);
         }
+        render(getCtx()!, canvas.current!);
       }
-      render(getCtx()!, canvas.current!);
     },
     [mode, pointerDown]
   );
