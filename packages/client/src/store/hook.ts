@@ -12,7 +12,6 @@ export const useGlobalStore = () => {
     };
   }, []);
 
-  listeners.push(setState);
   return [state];
 };
 
