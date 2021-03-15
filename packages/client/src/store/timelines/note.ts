@@ -42,6 +42,11 @@ export const getNewestLocalState = (nt: NoteTimeline): Note | null => {
     }
 
     if (current.text !== undefined && current.position !== undefined) {
+      console.debug(
+        `Processed note '${current.text}' timeline with ${
+          nt.committed ? 'non-null' : 'null'
+        } commited state and ${nt.patches.length} patches`
+      );
       return current as Note;
     }
   }

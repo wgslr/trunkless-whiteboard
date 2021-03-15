@@ -53,10 +53,13 @@ export const dispatch = (
       console.log(`Line drawn`, decodedData);
 
       if (client.whiteboard) {
-        client.whiteboard.handleOperation({
-          type: OperationType.LINE_ADD,
-          data: { line: decodedData }
-        });
+        client.whiteboard.handleOperation(
+          {
+            type: OperationType.LINE_ADD,
+            data: { line: decodedData }
+          },
+          client
+        );
       } else {
         console.warn(
           'Received LineDrawn message from client not connected to a whiteboard'
@@ -70,10 +73,13 @@ export const dispatch = (
       const data = messageToNote(body.note!);
 
       if (client.whiteboard) {
-        client.whiteboard.handleOperation({
-          type: OperationType.NOTE_ADD,
-          data: { note: data, triggeredBy: message.messsageId }
-        });
+        client.whiteboard.handleOperation(
+          {
+            type: OperationType.NOTE_ADD,
+            data: { note: data, triggeredBy: message.messsageId }
+          },
+          client
+        );
       } else {
         console.warn(
           'Received createNote message from client not connected to a whiteboard'

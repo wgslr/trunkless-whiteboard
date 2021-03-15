@@ -2,7 +2,8 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   encodeUUID,
   encodeUUID as uuidStringToBytes,
-  noteToMessage
+  noteToMessage,
+  resultToMessage
 } from '../encoding';
 import {
   ClientToServerMessage,
@@ -74,7 +75,7 @@ export class Whiteboard {
     this.clients = [host];
   }
 
-  handleOperation(op: Operation) {
+  handleOperation(op: Operation, client: ClientConnection) {
     switch (op.type) {
       // case OperationType.FIGURE_MOVE: {
       //   const { figureId, newCoords } = op.data;
@@ -122,15 +123,27 @@ export class Whiteboard {
         // TODO validate coords
         // TODO validate unique id
         const { note, triggeredBy } = op.data;
-        this.notes.set(note.id, note);
-        console.log('Added note', note);
-        this.sendToClients({
-          $case: 'noteCreatedOrUpdated',
-          noteCreatedOrUpdated: {
-            triggeredBy,
-            note: noteToMessage(note)
-          }
-        });
+        if (!this.areCoordsWithinBounds(note.position)) {
+          client.send(
+            resultToMessage(
+              {
+                result: 'error',
+                reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
+              },
+              triggeredBy
+            )
+          );
+        } else {
+          this.notes.set(note.id, note);
+          console.log('Added note', note);
+          this.sendToClients({
+            $case: 'noteCreatedOrUpdated',
+            noteCreatedOrUpdated: {
+              triggeredBy,
+              note: noteToMessage(note)
+            }
+          });
+        }
         break;
       }
       // case OperationType.RETURN_ALL_FIGURES: {
@@ -140,6 +153,16 @@ export class Whiteboard {
       //   );
       // }
     }
+  }
+
+  private areCoordsWithinBounds(coords: Coordinates): boolean {
+    console.log(coords);
+    return (
+      coords.x >= 0 &&
+      coords.x <= this.MAX_WIDTH &&
+      coords.y >= 0 &&
+      coords.y <= this.MAX_HEIGHT
+    );
   }
 
   protected sendToClients(message: ServerToClientMessage['body']) {

@@ -54,6 +54,7 @@ message JoinWhiteboard { bytes whiteboard_id = 1; }
 enum ErrorReason {
   OPERATION_NOT_ALLOWED = 0;
   WHITEBOARD_DOES_NOT_EXIST = 1;
+  COORDINATES_OUT_OF_BOUNDS = 2;
 }
 
 message CreateNote { Note note = 1; }
