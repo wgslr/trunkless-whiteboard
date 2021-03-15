@@ -15,8 +15,8 @@ message Note {
   /* UUID in byte representation. Saves bandwidth, but more
      problematic in code */
   bytes id = 1;
-  Coordinates coordinates = 2;
-  string content = 3;
+  Coordinates position = 2;
+  string text = 3;
 }
 
 message BitmapPoint {
@@ -56,20 +56,42 @@ enum ErrorReason {
   WHITEBOARD_DOES_NOT_EXIST = 1;
 }
 
-message ResultError { ErrorReason reason = 1; }
-message ResultSuccess {}
+message CreateNote { Note note = 1; }
+message UpdateNote { Note note = 1; }
+message DeleteNote { Note note = 1; }
+
+// broadcasted to all
+message NoteCreatedOrUpdated {
+  Note note = 1;
+  string triggered_by = 2;
+}
+message NoteDeleted {
+  bytes note_id = 1;
+  string triggered_by = 2;
+}
+
+message ResultError {
+  string triggered_by = 1; // message id
+  ErrorReason reason = 2;
+}
+message ResultSuccess {
+  string triggered_by = 1; // message id
+}
 
 message ClientToServerMessage {
+  string messsage_id = 100;
   oneof body {
     CreateWhiteboardRequest create_whiteboard_request = 1;
     GetAllFiguresRequest get_all_figures_request = 2;
     JoinWhiteboard join_whiteboard = 3;
     MoveFigure move_figure = 5;
     Line line_drawn = 6;
+    CreateNote create_note = 7;
   }
 }
 
 message ServerToClientMessage {
+  string messsage_id = 100;
   oneof body {
     ResultError error = 1;
     ResultSuccess success = 2;
@@ -77,5 +99,6 @@ message ServerToClientMessage {
     GetAllFiguresResponse get_all_figures_response = 4;
     FigureMoved figure_moved = 5;
     Line line_drawn = 6;
+    NoteCreatedOrUpdated note_created_or_updated = 8;
   }
 }

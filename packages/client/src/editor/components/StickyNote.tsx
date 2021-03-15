@@ -4,13 +4,9 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import { UUID, Note } from '../../types';
 
 interface NoteProps {
-  save: (content: string, id: UUID) => void;
+  save: (id: UUID, content: string) => void;
   delete: (id: UUID) => void;
   note: Note;
-}
-interface NoteState {
-  editing: boolean;
-  _newText: string;
 }
 
 const noteStyle = {
@@ -36,7 +32,7 @@ const StickyNote: React.FunctionComponent<NoteProps> = props => {
   const save = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsEditing(false);
-    props.save(newText, note.id);
+    props.save(note.id, newText);
   };
 
   const deleteNote = () => {

@@ -19,10 +19,11 @@ import {
   startLine,
   undo
 } from '../whiteboard';
-import { addNote } from './Stickies';
+import { localAddNote } from '../../store/notes';
 import Tools from './Tools';
 import UndoTool from './UndoTool';
 import Stickies from './Stickies';
+import { useGlobalStore } from '../../store';
 
 const Editor = (props: { x: number; y: number }) => {
   const { connection: serverConnection } = useContext(ServerContext);
@@ -44,7 +45,7 @@ const Editor = (props: { x: number; y: number }) => {
       } else if (mode === 'erase') {
         startErase(point);
       } else if (mode === 'note') {
-        addNote(point);
+        localAddNote(point);
       }
     },
     [mode]
@@ -107,6 +108,8 @@ const Editor = (props: { x: number; y: number }) => {
     };
   }, [handlePointerMove, handlePointerDown, handlePointerUp]);
 
+  const [globalStore] = useGlobalStore();
+
   // Main render function
   useEffect(() => {
     const timer = setInterval(() => render(getCtx()!, canvas.current!), 500);
@@ -125,7 +128,7 @@ const Editor = (props: { x: number; y: number }) => {
         <Tools />
         <UndoTool onClick={renderUndo} />
       </div>
-      <Stickies />
+      <Stickies notes={Array.from(globalStore.notes.values())} />
       <canvas
         ref={canvas}
         height={props.y}

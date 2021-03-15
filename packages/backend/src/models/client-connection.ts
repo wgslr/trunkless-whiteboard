@@ -3,35 +3,25 @@ import { TypedEmitter } from 'tiny-typed-emitter';
 import * as uuid from 'uuid';
 import type * as WebSocket from 'ws';
 import { dispatch } from '../controllers/router';
-import { decodeUUID, resultToMessage } from '../encoding';
+import { newServerToClientMessage } from '../encoding';
 import {
   ClientToServerMessage,
-  Line,
-  Note as NoteMsg,
   ServerToClientMessage
 } from '../protocol/protocol';
 import {
   addWhiteboard,
   connectClient,
-  Note,
-  Whiteboard,
-  OperationType,
-  countWhiteboards
+  countWhiteboards,
+  Whiteboard
 } from './whiteboard';
 
 let connections: ClientConnection[] = [];
 
 declare interface ClientConnectionEvents {
   disconnect: () => void;
+  // eslint-disable-next-line no-unused-vars
   message: (decoded: ClientToServerMessage) => void;
 }
-
-// TODO move to other module
-const encodeNote = (note: Note): NoteMsg => ({
-  id: Uint8Array.from(uuid.parse(note.id)),
-  content: note.content,
-  coordinates: note.location
-});
 
 export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
   socket: WebSocket;
@@ -72,12 +62,15 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     });
   }
 
-  public send(message: ServerToClientMessage) {
-    const encoded = ServerToClientMessage.encode(message).finish();
+  public send(message: ServerToClientMessage['body']): void {
+    const encoded = ServerToClientMessage.encode(
+      newServerToClientMessage(message)
+    ).finish();
     this.socket.send(encoded);
   }
 }
-export const registerClient = (socket: WebSocket) => {
+
+export const registerClient = (socket: WebSocket): void => {
   const conn = new ClientConnection(socket);
   connections.push(conn);
   conn.on('disconnect', () => {

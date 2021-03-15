@@ -1,22 +1,18 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
-import type { UUID } from './types';
+import type { Note, UUID } from './types';
 import * as uuid from 'uuid';
-import { Message, Coordinate, Line } from './types';
+import { Message, Coordinates, Line } from './types';
 import {
   ClientToServerMessage,
-  ServerToClientMessage
+  ServerToClientMessage,
+  Note as NoteProto
 } from './protocol/protocol';
 import * as whiteboard from './editor/whiteboard';
+import { setServerState } from './store/notes';
 
-declare interface ServerConnectionEvents {
-  disconnect: () => void;
-  message: (decoded: Message) => void;
-}
-
-export class ServerConnection extends TypedEmitter<ServerConnectionEvents> {
+export class ServerConnection {
   socket: WebSocket;
   constructor(socket: WebSocket) {
-    super();
     this.socket = socket;
     this.socket.binaryType = 'arraybuffer';
     this.socket.onmessage = event => this.dispatch(event);
@@ -26,7 +22,8 @@ export class ServerConnection extends TypedEmitter<ServerConnectionEvents> {
     // console.log('MESSAGE RECEIVED:', event);
     let array = new Uint8Array(event.data);
     const decoded = ServerToClientMessage.decode(array);
-    // console.log('decoded', decoded.body);
+    console.log(`Received message: ${decoded.body?.$case}`);
+    console.debug(`Received message body:`, decoded.body);
 
     switch (decoded.body?.$case) {
       case 'lineDrawn': {
@@ -34,6 +31,11 @@ export class ServerConnection extends TypedEmitter<ServerConnectionEvents> {
         // TODO encapsulate it in the whiteboard module
         // TODO ignore on the client that created the line
         whiteboard.bitmap.push({ UUID: lineData.id, points: lineData.bitmap });
+        break;
+      }
+      case 'noteCreatedOrUpdated': {
+        const noteData = messageToNote(decoded.body.noteCreatedOrUpdated.note!);
+        setServerState(noteData.id, noteData);
       }
     }
   }
@@ -49,12 +51,35 @@ export class ServerConnection extends TypedEmitter<ServerConnectionEvents> {
       }))
     };
 
-    const encoded = ClientToServerMessage.encode({
-      body: { $case: 'lineDrawn', lineDrawn }
-    }).finish();
+    const body: ClientToServerMessage['body'] = {
+      $case: 'lineDrawn',
+      lineDrawn
+    };
+    this.send(body);
+  }
 
+  public publishNote(note: Note) {
+    const body: ClientToServerMessage['body'] = {
+      $case: 'createNote',
+      createNote: {
+        note: noteToMessage(note)
+      }
+    };
+    this.send(body);
+  }
+
+  private send(body: ClientToServerMessage['body']) {
+    const encoded = ClientToServerMessage.encode(
+      newClientToServerMessage(body)
+    ).finish();
     this.socket.send(encoded);
   }
+}
+
+function newClientToServerMessage(
+  body: ClientToServerMessage['body']
+): ClientToServerMessage {
+  return { messsageId: uuid.v4(), body };
 }
 
 // TODO deduplciate with backend code
@@ -71,5 +96,20 @@ function decodeLineData(data: any) {
   return {
     id: decodeUUID(data.id),
     bitmap
+  };
+}
+
+function noteToMessage(note: Note): NoteProto {
+  return {
+    ...note,
+    id: Uint8Array.from(uuid.parse(note.id))
+  };
+}
+
+function messageToNote(noteMsg: NoteProto): Note {
+  return {
+    id: uuid.stringify(noteMsg.id),
+    text: noteMsg.text,
+    position: noteMsg.position!
   };
 }

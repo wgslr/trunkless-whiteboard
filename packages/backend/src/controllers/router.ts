@@ -1,4 +1,10 @@
-import { decodeUUID, messageToLine, resultToMessage } from '../encoding';
+import {
+  decodeUUID,
+  messageToLine,
+  messageToNote,
+  noteToMessage,
+  resultToMessage
+} from '../encoding';
 import { ClientConnection } from '../models/client-connection';
 import {
   addWhiteboard,
@@ -19,12 +25,10 @@ export const dispatch = (
     case 'getAllFiguresRequest': {
       if (client.whiteboard) {
         client.send({
-          body: {
-            $case: 'getAllFiguresResponse',
-            getAllFiguresResponse: {
-              // @ts-ignore: FIXME Figure and Note are not overlapping
-              notes: [...client.whiteboard.figures.values()].map(encodeNote)
-            }
+          $case: 'getAllFiguresResponse',
+          getAllFiguresResponse: {
+            // @ts-ignore: FIXME Figure and Note are not overlapping
+            notes: [...client.whiteboard.figures.values()].map(encodeNote)
           }
         });
       }
@@ -35,7 +39,7 @@ export const dispatch = (
       console.log(`Client wants to join whiteboard ${whiteboardId}`);
       const result = connectClient(client, whiteboardId);
 
-      const response = resultToMessage(result);
+      const response = resultToMessage(result, message.messsageId);
       client.send(response);
       break;
     }
@@ -57,6 +61,24 @@ export const dispatch = (
         console.warn(
           'Received LineDrawn message from client not connected to a whiteboard'
         );
+      }
+
+      break;
+    }
+    case 'createNote': {
+      const body = message.body.createNote;
+      const data = messageToNote(body.note!);
+
+      if (client.whiteboard) {
+        client.whiteboard.handleOperation({
+          type: OperationType.NOTE_ADD,
+          data: { note: data, triggeredBy: message.messsageId }
+        });
+      } else {
+        console.warn(
+          'Received createNote message from client not connected to a whiteboard'
+        );
+        // TODO return error
       }
 
       break;
