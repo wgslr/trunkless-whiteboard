@@ -1,23 +1,23 @@
 import { createContext } from 'react';
 import { SERVER_URL } from '../config';
 import { ServerToClientMessage } from '../protocol/protocol';
+import { handleMessage } from './incoming-handler';
 import { ProtobufSocketClient } from './protobuf-client';
 import { RequestResponseService } from './request-response';
-import { ServerConnection } from './server-connection';
 
 interface IServerContext {
-  connection: ServerConnection;
+  reqRespService: RequestResponseService;
 }
 
 const socket = new WebSocket(SERVER_URL);
-export const serverConnection: IServerContext = {
-  connection: new ServerConnection(socket)
+const client = new ProtobufSocketClient(socket);
+client.addListener('message', handleMessage);
+
+export const reqResponseService = new RequestResponseService(client);
+
+export const contextValue: IServerContext = {
+  reqRespService: reqResponseService
 };
-
-export const reqResponseService = new RequestResponseService(
-  new ProtobufSocketClient(socket)
-);
-
-const ServerContext = createContext(serverConnection);
+const ServerContext = createContext(contextValue);
 
 export default ServerContext;

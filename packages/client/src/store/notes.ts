@@ -1,21 +1,17 @@
 import { v4 } from 'uuid';
 import { updateStore } from '.';
-import {
-  reqResponseService,
-  serverConnection
-} from '../connection/ServerContext';
+import { createNoteMessage } from '../connection/messages';
+import { reqResponseService } from '../connection/ServerContext';
+import { ClientToServerMessage } from '../protocol/protocol';
 import { Coordinates, Note } from '../types';
-import { noteToMessage } from '../connection/server-connection';
 import {
-  newLocalNoteTimeline,
+  discardPatch,
   modifyDelete,
   modifyText,
-  setCommitted,
   newCommittedNoteTimeline,
-  discardPatch
+  newLocalNoteTimeline,
+  setCommitted
 } from './timelines/note';
-import { ClientToServerMessage } from '../protocol/protocol';
-import { ChangeHistoryRounded } from '@material-ui/icons';
 
 // TODO change name, if we are doing server push in this function
 export const localAddNote = (pos: Coordinates) => {
@@ -34,12 +30,7 @@ export const localAddNote = (pos: Coordinates) => {
     ...(thePatch.diff as Omit<Note, 'id'>),
     id: nt.noteId
   };
-  const body: ClientToServerMessage['body'] = {
-    $case: 'createNote',
-    createNote: {
-      note: noteToMessage(note)
-    }
-  };
+  const body: ClientToServerMessage['body'] = createNoteMessage(note);
 
   reqResponseService.send(body, response => {
     if (response == 'timeout') {

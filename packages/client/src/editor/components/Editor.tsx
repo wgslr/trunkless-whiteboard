@@ -26,7 +26,6 @@ import Stickies from './Stickies';
 import { useGlobalStore } from '../../store';
 
 const Editor = (props: { x: number; y: number }) => {
-  const { connection: serverConnection } = useContext(ServerContext);
   const canvas = useRef<HTMLCanvasElement>(null);
 
   const getCtx = () => {

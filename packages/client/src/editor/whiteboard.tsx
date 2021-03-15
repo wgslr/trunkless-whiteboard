@@ -1,7 +1,8 @@
-import { Coordinates, Line, UUID, Action, Note, Img } from '../types';
-import { linePoints, erasePoints } from './math';
-import { serverConnection } from '../connection/ServerContext';
 import { v5 } from 'uuid';
+import { lineToMessage } from '../connection/messages';
+import { reqResponseService } from '../connection/ServerContext';
+import { Action, Coordinates, Img, Line, UUID } from '../types';
+import { erasePoints, linePoints } from './math';
 
 export const bitmap: Line[] = [];
 
@@ -38,7 +39,7 @@ export const appendLine = (point: Coordinates) => {
     bitmap[bitmap.length - 1].points.set(list[i], 1);
   }
   lastPos = point;
-  serverConnection.connection.publishLine(bitmap[bitmap.length - 1]);
+  reqResponseService.send(lineToMessage(bitmap[bitmap.length - 1]));
 };
 
 export const finishLine = () => {
@@ -49,7 +50,7 @@ export const finishLine = () => {
   drawing = false;
 
   // TODO send update request to server
-  serverConnection.connection.publishLine(bitmap[bitmap.length - 1]);
+  reqResponseService.send(lineToMessage(bitmap[bitmap.length - 1]));
 };
 
 export const startErase = (point: Coordinates) => {
