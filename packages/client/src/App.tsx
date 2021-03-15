@@ -1,11 +1,7 @@
 import React from 'react';
 import { RecoilRoot } from 'recoil';
 import './App.css';
-import ServerContext, {
-  serverConnection
-} from './connection-context/server-connection';
-//import Canvas from './editor/whiteboard'
-//import Canvas from './editor/whiteboard'
+import ServerContext, { contextValue } from './connection/ServerContext';
 import Editor from './editor/components/Editor';
 import Topbar from './Topbar';
 
@@ -18,7 +14,7 @@ function App() {
     <div className="App">
       <Topbar h={topBarHeight} />
       <RecoilRoot>
-        <ServerContext.Provider value={serverConnection}>
+        <ServerContext.Provider value={contextValue}>
           <Editor x={canvasX} y={canvasY} />
         </ServerContext.Provider>
       </RecoilRoot>

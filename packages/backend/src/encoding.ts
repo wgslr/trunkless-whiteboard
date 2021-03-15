@@ -13,18 +13,17 @@ export const encodeUUID = (id: UUID): Uint8Array =>
 export const decodeUUID = (id: Uint8Array): UUID => uuid.stringify(id);
 
 export const resultToMessage = (
-  result: Result,
-  responseTo: string
+  result: Result
 ): ServerToClientMessage['body'] => {
   if (result.result === 'success') {
     return {
       $case: 'success',
-      success: { triggeredBy: responseTo }
+      success: {}
     };
   } else {
     return {
       $case: 'error',
-      error: { triggeredBy: responseTo, reason: result.reason }
+      error: { reason: result.reason }
     };
   }
 };

@@ -44,12 +44,11 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
 
   private setupSocketListeners() {
     this.socket.on('message', (message: Uint8Array) => {
-      console.log(`Client connection received a message: '${message}''`);
       // const decoded = decodeMessage(message as string);
       let decoded;
       try {
         decoded = ClientToServerMessage.decode(Reader.create(message));
-        console.debug({ decoded });
+        console.debug(`Received messaeg:`, { decoded });
       } catch (error) {
         console.error('Error decoding message', error);
         return;
@@ -62,10 +61,16 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     });
   }
 
-  public send(message: ServerToClientMessage['body']): void {
-    const encoded = ServerToClientMessage.encode(
-      newServerToClientMessage(message)
-    ).finish();
+  public send(body: ServerToClientMessage['body'], previousMessageId?: string) {
+    const message: ServerToClientMessage = {
+      messsageId: uuid.v4(),
+      body
+    };
+    if (previousMessageId) {
+      message.causedBy = previousMessageId;
+    }
+
+    const encoded = ServerToClientMessage.encode(message).finish();
     this.socket.send(encoded);
   }
 }

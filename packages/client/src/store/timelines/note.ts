@@ -6,25 +6,31 @@ import type { Note, Coordinates, UUID } from '../../types';
 type Diff = Partial<Omit<Note, 'id'>> | 'deleted';
 
 type Patch = {
-  changeId: UUID;
+  id: UUID;
   diff: Diff;
 };
 
+type Result = {
+  timeline: NoteTimeline;
+  patchId: Patch['id'];
+  figureId: UUID;
+};
+
 export type NoteTimeline = {
-  noteId: UUID;
+  figureId: UUID;
   committed: Note | null;
   patches: Patch[];
 };
 
 const newPatch = (diff: Diff): Patch => ({
-  changeId: v4(),
+  id: v4(),
   diff
 });
 
 export const getNewestLocalState = (nt: NoteTimeline): Note | null => {
   // Flattens information about the note, going from newest patch to oldest
 
-  const current: Partial<Note> = { id: nt.noteId };
+  const current: Partial<Note> = { id: nt.figureId };
   const patchesReverse = [...nt.patches.map(p => p.diff)].reverse();
   if (nt.committed) {
     patchesReverse.push(nt.committed); // lowest priority
@@ -42,6 +48,11 @@ export const getNewestLocalState = (nt: NoteTimeline): Note | null => {
     }
 
     if (current.text !== undefined && current.position !== undefined) {
+      console.debug(
+        `Processed note '${current.text}' timeline with ${
+          nt.committed ? 'non-null' : 'null'
+        } commited state and ${nt.patches.length} patches`
+      );
       return current as Note;
     }
   }
@@ -49,21 +60,35 @@ export const getNewestLocalState = (nt: NoteTimeline): Note | null => {
 };
 
 export const newCommittedNoteTimeline = (initial: Note): NoteTimeline => ({
-  noteId: initial.id,
+  figureId: initial.id,
   committed: initial,
   patches: []
 });
 
-export const newLocalNoteTimeline = (initial: Note): NoteTimeline => ({
-  noteId: initial.id,
-  committed: null,
-  patches: [newPatch(initial)]
-});
-
-export const modifyText = (nt: NoteTimeline, newText: string): NoteTimeline => {
+export const newLocalNoteTimeline = (initial: Note): Result => {
+  const patch = newPatch(initial);
+  const noteTimeline: NoteTimeline = {
+    figureId: initial.id,
+    committed: null,
+    patches: [patch]
+  };
   return {
+    timeline: noteTimeline,
+    patchId: patch.id,
+    figureId: initial.id
+  };
+};
+
+export const modifyText = (nt: NoteTimeline, newText: string): Result => {
+  const patch = newPatch({ text: newText });
+  const timeline = {
     ...nt,
-    patches: nt.patches.concat(newPatch({ text: newText }))
+    patches: nt.patches.concat(patch)
+  };
+  return {
+    figureId: nt.figureId,
+    patchId: patch.id,
+    timeline
   };
 };
 
@@ -77,10 +102,18 @@ export const modifyPositiion = (
   };
 };
 
-export const modifyDelete = (nt: NoteTimeline): NoteTimeline => ({
-  ...nt,
-  patches: nt.patches.concat(newPatch('deleted'))
-});
+export const modifyDelete = (nt: NoteTimeline): Result => {
+  const patch = newPatch('deleted');
+  const timeline = {
+    ...nt,
+    patches: nt.patches.concat(patch)
+  };
+  return {
+    timeline,
+    figureId: nt.figureId,
+    patchId: patch.id
+  };
+};
 
 export const setCommitted = (
   nt: NoteTimeline,
@@ -92,8 +125,8 @@ export const setCommitted = (
 
 export const discardPatch = (
   nt: NoteTimeline,
-  changeId: Patch['changeId']
+  changeId: Patch['id']
 ): NoteTimeline => ({
   ...nt,
-  patches: nt.patches.filter(p => p.changeId !== changeId)
+  patches: nt.patches.filter(p => p.id !== changeId)
 });

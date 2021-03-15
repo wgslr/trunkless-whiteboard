@@ -1,56 +1,46 @@
-import { v4 } from 'uuid';
 import { updateStore } from '.';
-import { serverConnection } from '../connection-context/server-connection';
-import { Coordinates, Note } from '../types';
+import { Note, UUID } from '../types';
+import * as noteTimeline from './timelines/note';
 import {
-  newLocalNoteTimeline,
   modifyDelete,
   modifyText,
-  setCommitted,
-  newCommittedNoteTimeline
+  newCommittedNoteTimeline,
+  newLocalNoteTimeline,
+  setCommitted
 } from './timelines/note';
 
+type PatchId = UUID;
+
 // TODO change name, if we are doing server push in this function
-export const localAddNote = (pos: Coordinates) => {
-  const nt = newLocalNoteTimeline({
-    id: v4(),
-    position: pos,
-    text: 'a new note'
-  });
+export const localAddNote = (note: Note) => {
+  const { timeline, figureId, patchId } = newLocalNoteTimeline(note);
   updateStore(store => {
-    store.noteTimelines.set(nt.noteId, nt);
+    store.noteTimelines.set(figureId, timeline);
   });
-
-  // TODO very dirty
-  serverConnection.connection.publishNote({
-    ...(nt.patches[nt.patches.length - 1].diff as Omit<Note, 'id'>),
-    id: nt.noteId
-  });
-  // TODO discard Patch from the timeline when server response comes
+  return patchId;
 };
 
-export const localDeleteNote = (id: Note['id']) => {
-  updateStore(store => {
-    const nt = store.noteTimelines.get(id);
-    if (!nt) {
-      console.error('tried deleting a note without NoteTimeline');
-      return;
-    } else {
-      store.noteTimelines.set(nt.noteId, modifyDelete(nt));
-      console.log('added note removal operation', { nt });
+export const localDeleteNote = (id: Note['id']): PatchId | null => {
+  return updateStore(store => {
+    const oldTimeline = store.noteTimelines.get(id);
+    if (!oldTimeline) {
+      return null;
     }
+    const { patchId, timeline, figureId } = modifyDelete(oldTimeline);
+    store.noteTimelines.set(figureId, timeline);
+    return patchId;
   });
 };
 
-export const localUpdateText = (id: Note['id'], newText: string) => {
-  updateStore(store => {
-    const nt = store.noteTimelines.get(id);
-    if (!nt) {
-      console.error('tried updating text of a note without NoteTimeline');
-      return;
-    } else {
-      store.noteTimelines.set(nt.noteId, modifyText(nt, newText));
+export const localUpdateText = (id: Note['id'], newText: string): PatchId => {
+  return updateStore(store => {
+    const oldTimeline = store.noteTimelines.get(id);
+    if (!oldTimeline) {
+      throw new Error('Tried updating text of a note without a NoteTimeline');
     }
+    const { patchId, timeline, figureId } = modifyText(oldTimeline, newText);
+    store.noteTimelines.set(figureId, timeline);
+    return patchId;
   });
 };
 
@@ -67,6 +57,15 @@ export const setServerState = (id: Note['id'], state: Note | null) => {
     } else {
       nt = setCommitted(nt, state);
     }
-    store.noteTimelines.set(nt.noteId, nt);
+    store.noteTimelines.set(nt.figureId, nt);
+  });
+};
+
+export const discardPatch = (figureId: Note['id'], patchId: PatchId) => {
+  updateStore(store => {
+    let nt = store.noteTimelines.get(figureId);
+    if (nt) {
+      store.noteTimelines.set(figureId, noteTimeline.discardPatch(nt, patchId));
+    }
   });
 };

@@ -39,8 +39,8 @@ export const dispatch = (
       console.log(`Client wants to join whiteboard ${whiteboardId}`);
       const result = connectClient(client, whiteboardId);
 
-      const response = resultToMessage(result, message.messsageId);
-      client.send(response);
+      const response = resultToMessage(result);
+      client.send(response, message.messsageId);
       break;
     }
     case 'moveFigure': {
@@ -53,10 +53,13 @@ export const dispatch = (
       console.log(`Line drawn`, decodedData);
 
       if (client.whiteboard) {
-        client.whiteboard.handleOperation({
-          type: OperationType.LINE_ADD,
-          data: { line: decodedData }
-        });
+        client.whiteboard.handleOperation(
+          {
+            type: OperationType.LINE_ADD,
+            data: { line: decodedData }
+          },
+          client
+        );
       } else {
         console.warn(
           'Received LineDrawn message from client not connected to a whiteboard'
@@ -70,10 +73,13 @@ export const dispatch = (
       const data = messageToNote(body.note!);
 
       if (client.whiteboard) {
-        client.whiteboard.handleOperation({
-          type: OperationType.NOTE_ADD,
-          data: { note: data, triggeredBy: message.messsageId }
-        });
+        client.whiteboard.handleOperation(
+          {
+            type: OperationType.NOTE_ADD,
+            data: { note: data, causedBy: message.messsageId }
+          },
+          client
+        );
       } else {
         console.warn(
           'Received createNote message from client not connected to a whiteboard'
@@ -81,6 +87,41 @@ export const dispatch = (
         // TODO return error
       }
 
+      break;
+    }
+    case 'updateNoteText': {
+      const { noteId, text } = message.body.updateNoteText;
+
+      if (client.whiteboard) {
+        client.whiteboard.handleOperation(
+          {
+            type: OperationType.NOTE_UPADTE,
+            data: {
+              causedBy: message.messsageId,
+              change: {
+                id: decodeUUID(noteId),
+                text
+              }
+            }
+          },
+          client
+        );
+      } else {
+        // TODO return error
+      }
+      break;
+    }
+    case 'deleteNote': {
+      const { noteId } = message.body.deleteNote;
+      if (client.whiteboard) {
+        client.whiteboard.handleOperation(
+          {
+            type: OperationType.NOTE_DELETE,
+            data: { causedBy: message.messsageId, noteId: decodeUUID(noteId) }
+          },
+          client
+        );
+      }
       break;
     }
     default: {

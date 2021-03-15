@@ -27,8 +27,12 @@ export const getCombinedState = (): CombinedState => {
   };
 };
 
-export const updateStore = (callback: (store: Store) => void): void => {
-  /** Callback should mutate the store */
-  callback(store);
+export const updateStore = <T>(callback: (store: Store) => T): T => {
+  /** Callback should mutate the store.
+   * By exporting this function, and not the store variable directly,
+   * we discourage mutating it without triggering the react update.
+   */
+  const result = callback(store);
   sendUpdate();
+  return result;
 };

@@ -48,35 +48,34 @@ message FigureMoved {
   bytes figure_id = 1;
   Coordinates new_coordinates = 2;
 }
+
 // Client sends this message to request joining a whiteboard
 message JoinWhiteboard { bytes whiteboard_id = 1; }
 
 enum ErrorReason {
   OPERATION_NOT_ALLOWED = 0;
   WHITEBOARD_DOES_NOT_EXIST = 1;
+  COORDINATES_OUT_OF_BOUNDS = 2;
+  FIGURE_NOT_EXISTS = 3;
 }
 
 message CreateNote { Note note = 1; }
-message UpdateNote { Note note = 1; }
-message DeleteNote { Note note = 1; }
+message UpdateNotePosition {
+  bytes note_id = 1;
+  Coordinates position = 2;
+}
+message UpdateNoteText {
+  bytes note_id = 1;
+  string text = 2;
+}
+message DeleteNote { bytes note_id = 1; }
 
 // broadcasted to all
-message NoteCreatedOrUpdated {
-  Note note = 1;
-  string triggered_by = 2;
-}
-message NoteDeleted {
-  bytes note_id = 1;
-  string triggered_by = 2;
-}
+message NoteCreatedOrUpdated { Note note = 1; }
+message NoteDeleted { bytes note_id = 1; }
 
-message ResultError {
-  string triggered_by = 1; // message id
-  ErrorReason reason = 2;
-}
-message ResultSuccess {
-  string triggered_by = 1; // message id
-}
+message ResultError { ErrorReason reason = 2; }
+message ResultSuccess {}
 
 message ClientToServerMessage {
   string messsage_id = 100;
@@ -87,11 +86,15 @@ message ClientToServerMessage {
     MoveFigure move_figure = 5;
     Line line_drawn = 6;
     CreateNote create_note = 7;
+    UpdateNoteText update_note_text = 8;
+    UpdateNotePosition update_note_position = 9;
+    DeleteNote delete_note = 10;
   }
 }
 
 message ServerToClientMessage {
   string messsage_id = 100;
+  optional string caused_by = 101;
   oneof body {
     ResultError error = 1;
     ResultSuccess success = 2;
@@ -100,5 +103,6 @@ message ServerToClientMessage {
     FigureMoved figure_moved = 5;
     Line line_drawn = 6;
     NoteCreatedOrUpdated note_created_or_updated = 8;
+    NoteDeleted note_deleted = 9;
   }
 }

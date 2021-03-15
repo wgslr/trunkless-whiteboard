@@ -1,13 +1,7 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  ReactDOM
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRecoilState } from 'recoil';
-import ServerContext from '../../connection-context/server-connection';
+import { addNote } from '../../controllers/note-controller';
+import { useGlobalStore } from '../../store';
 import render from '../render';
 import { modeState } from '../state';
 import {
@@ -19,14 +13,11 @@ import {
   startLine,
   undo
 } from '../whiteboard';
-import { localAddNote } from '../../store/notes';
+import Stickies from './Stickies';
 import Tools from './Tools';
 import UndoTool from './UndoTool';
-import Stickies from './Stickies';
-import { useGlobalStore } from '../../store';
 
 const Editor = (props: { x: number; y: number }) => {
-  const { connection: serverConnection } = useContext(ServerContext);
   const canvas = useRef<HTMLCanvasElement>(null);
 
   const getCtx = () => {
@@ -45,7 +36,7 @@ const Editor = (props: { x: number; y: number }) => {
       } else if (mode === 'erase') {
         startErase(point);
       } else if (mode === 'note') {
-        localAddNote(point);
+        addNote(point);
       }
     },
     [mode]
@@ -73,8 +64,8 @@ const Editor = (props: { x: number; y: number }) => {
         } else if (mode === 'erase') {
           appendErase(point);
         }
+        render(getCtx()!, canvas.current!);
       }
-      render(getCtx()!, canvas.current!);
     },
     [mode, pointerDown]
   );

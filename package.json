@@ -7,8 +7,8 @@
   "repository": "git@github.com:wgslr/trunkless-whiteboard.git",
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "protoc:client": "protoc --plugin=node_modules/ts-proto/protoc-gen-ts_proto ./protocol/protocol.proto --ts_proto_opt=esModuleInterop=true,unrecognizedEnum=false,oneof=unions --ts_proto_out=packages/client/src",
-    "protoc:server": "protoc --plugin=node_modules/ts-proto/protoc-gen-ts_proto ./protocol/protocol.proto --ts_proto_opt=esModuleInterop=true,unrecognizedEnum=false,oneof=unions --ts_proto_out=packages/backend/src",
+    "protoc:client": "protoc --plugin=node_modules/ts-proto/protoc-gen-ts_proto ./protocol/protocol.proto --ts_proto_opt=esModuleInterop=true,unrecognizedEnum=false,oneof=unions --ts_proto_out=packages/client/src --experimental_allow_proto3_optional",
+    "protoc:server": "protoc --plugin=node_modules/ts-proto/protoc-gen-ts_proto ./protocol/protocol.proto --ts_proto_opt=esModuleInterop=true,unrecognizedEnum=false,oneof=unions --ts_proto_out=packages/backend/src --experimental_allow_proto3_optional",
     "protoc": "concurrently \"yarn protoc:client\" \"yarn protoc:server\"",
     "start:client": "cd packages/client && yarn start",
     "start:server": "cd packages/backend && yarn dev",

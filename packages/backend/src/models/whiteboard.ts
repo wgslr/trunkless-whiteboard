@@ -2,7 +2,8 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   encodeUUID,
   encodeUUID as uuidStringToBytes,
-  noteToMessage
+  noteToMessage,
+  resultToMessage
 } from '../encoding';
 import {
   ClientToServerMessage,
@@ -36,7 +37,9 @@ export class Line {
 export enum OperationType {
   FIGURE_MOVE,
   LINE_ADD,
-  NOTE_ADD
+  NOTE_ADD,
+  NOTE_UPADTE,
+  NOTE_DELETE
 }
 
 export type Operation =
@@ -50,7 +53,21 @@ export type Operation =
     }
   | {
       type: OperationType.NOTE_ADD;
-      data: { note: Note; triggeredBy: ClientToServerMessage['messsageId'] };
+      data: { note: Note; causedBy: ClientToServerMessage['messsageId'] };
+    }
+  | {
+      type: OperationType.NOTE_UPADTE;
+      data: {
+        change: Partial<Note> & Pick<Note, 'id'>;
+        causedBy: ClientToServerMessage['messsageId'];
+      };
+    }
+  | {
+      type: OperationType.NOTE_DELETE;
+      data: {
+        noteId: Note['id'];
+        causedBy: ClientToServerMessage['messsageId'];
+      };
     };
 
 class OperationError extends Error {
@@ -74,7 +91,7 @@ export class Whiteboard {
     this.clients = [host];
   }
 
-  handleOperation(op: Operation) {
+  handleOperation(op: Operation, client: ClientConnection) {
     switch (op.type) {
       // case OperationType.FIGURE_MOVE: {
       //   const { figureId, newCoords } = op.data;
@@ -119,18 +136,96 @@ export class Whiteboard {
         break;
       }
       case OperationType.NOTE_ADD: {
-        // TODO validate coords
         // TODO validate unique id
-        const { note, triggeredBy } = op.data;
-        this.notes.set(note.id, note);
-        console.log('Added note', note);
-        this.sendToClients({
-          $case: 'noteCreatedOrUpdated',
-          noteCreatedOrUpdated: {
-            triggeredBy,
-            note: noteToMessage(note)
-          }
-        });
+        const { note, causedBy } = op.data;
+        if (!this.areCoordsWithinBounds(note.position)) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
+            }),
+            causedBy
+          );
+        } else {
+          this.notes.set(note.id, note);
+          console.log('Added note', note);
+          this.sendToClients(
+            {
+              $case: 'noteCreatedOrUpdated',
+              noteCreatedOrUpdated: {
+                note: noteToMessage(note)
+              }
+            },
+            causedBy
+          );
+        }
+        break;
+      }
+      case OperationType.NOTE_UPADTE: {
+        const { change, causedBy } = op.data;
+        if (change.position && !this.areCoordsWithinBounds(change.position)) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
+            }),
+            causedBy
+          );
+          return;
+        }
+        const note = this.notes.get(change.id);
+        if (!note) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.FIGURE_NOT_EXISTS
+            }),
+            causedBy
+          );
+          return;
+        }
+        const updated = {
+          ...note,
+          position: change.position ?? note.position,
+          text: change.text ?? note.text
+        };
+
+        this.notes.set(note.id, updated);
+        console.log('Updated note', { old: note, updated });
+        this.sendToClients(
+          {
+            $case: 'noteCreatedOrUpdated',
+            noteCreatedOrUpdated: {
+              note: noteToMessage(updated)
+            }
+          },
+          causedBy
+        );
+
+        break;
+      }
+      case OperationType.NOTE_DELETE: {
+        const { noteId, causedBy } = op.data;
+        if (this.notes.has(noteId)) {
+          this.notes.delete(noteId);
+          this.sendToClients(
+            {
+              $case: 'noteDeleted',
+              noteDeleted: {
+                noteId: encodeUUID(noteId)
+              }
+            },
+            causedBy
+          );
+        } else {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.FIGURE_NOT_EXISTS
+            }),
+            causedBy
+          );
+        }
         break;
       }
       // case OperationType.RETURN_ALL_FIGURES: {
@@ -142,10 +237,23 @@ export class Whiteboard {
     }
   }
 
-  protected sendToClients(message: ServerToClientMessage['body']) {
+  private areCoordsWithinBounds(coords: Coordinates): boolean {
+    console.log(coords);
+    return (
+      coords.x >= 0 &&
+      coords.x <= this.MAX_WIDTH &&
+      coords.y >= 0 &&
+      coords.y <= this.MAX_HEIGHT
+    );
+  }
+
+  protected sendToClients(
+    message: ServerToClientMessage['body'],
+    previousMessageId?: string
+  ) {
     console.log(`Sending message to ${this.clients.length} clients:`, message);
     this.clients.forEach(client => {
-      client.send(message);
+      client.send(message, previousMessageId);
     });
   }
 

@@ -9,64 +9,34 @@ interface NoteProps {
   note: Note;
 }
 
-const noteStyle = {
-  width: '200px',
-  height: '100px',
-  backgroundColor: '#f2d233'
-  // transform: 'translate(400px,400px)'
-};
-
 const StickyNote: React.FunctionComponent<NoteProps> = props => {
   const { note } = props;
-
-  const [isEditing, setIsEditing] = useState(false);
-
-  // TODO this won't recevie update correctly when the note text
-  // changes not because of this form, but becaus of an update from server
-  const [newText, setNewText] = useState(note.text);
-
-  const edit = () => {
-    setIsEditing(true);
-  };
-
-  const save = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsEditing(false);
-    props.save(note.id, newText);
-  };
 
   const deleteNote = () => {
     props.delete(note.id);
   };
 
   const style = {
-    ...noteStyle,
     top: note.position.y,
     left: note.position.x
   };
 
   return (
     <div style={style} className="stickyNote">
-      {isEditing ? (
-        <form onSubmit={save}>
-          <input
-            type="text"
-            value={newText}
-            onChange={e => setNewText(e.target.value)}
-          />
-          <button type="submit">Save</button>
-        </form>
-      ) : (
-        <>
-          <p>{note.text}</p>
-          <button onClick={edit}>
-            <EditIcon />
-          </button>
-          <button onClick={deleteNote}>
-            <DeleteIcon />
-          </button>
-        </>
-      )}
+      <textarea
+        onChange={e => props.save(note.id, e.target.value)}
+        value={note.text}
+      />
+      <span
+        className="delete"
+        title="Delete"
+        onClick={e => {
+          e.preventDefault();
+          deleteNote();
+        }}
+      >
+        <DeleteIcon />
+      </span>
     </div>
   );
 };

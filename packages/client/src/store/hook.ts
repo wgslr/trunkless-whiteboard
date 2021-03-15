@@ -7,9 +7,11 @@ export const useGlobalStore = () => {
   const [state, setState] = useState(getCombinedState());
   useEffect(() => {
     listeners.push(setState);
-    return () => {
+
+    const cleanup = () => {
       listeners = listeners.filter(l => l !== setState);
     };
+    return cleanup;
   }, []);
 
   return [state];
