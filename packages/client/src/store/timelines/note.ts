@@ -102,10 +102,18 @@ export const modifyPositiion = (
   };
 };
 
-export const modifyDelete = (nt: NoteTimeline): NoteTimeline => ({
-  ...nt,
-  patches: nt.patches.concat(newPatch('deleted'))
-});
+export const modifyDelete = (nt: NoteTimeline): Result => {
+  const patch = newPatch('deleted');
+  const timeline = {
+    ...nt,
+    patches: nt.patches.concat(patch)
+  };
+  return {
+    timeline,
+    figureId: nt.figureId,
+    patchId: patch.id
+  };
+};
 
 export const setCommitted = (
   nt: NoteTimeline,

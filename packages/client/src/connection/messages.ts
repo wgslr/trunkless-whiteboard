@@ -42,6 +42,13 @@ export const makeUpdateNoteTextMessage = (
   updateNoteText: { noteId: encodeUUID(id), text }
 });
 
+export const makeDeleteNoteMessage = (
+  id: Note['id']
+): ClientToServerMessage['body'] => ({
+  $case: 'deleteNote',
+  deleteNote: { noteId: encodeUUID(id) }
+});
+
 // TODO deduplciate with backend code
 const encodeUUID = (id: UUID): Uint8Array => Uint8Array.from(uuid.parse(id));
 

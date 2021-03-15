@@ -111,6 +111,19 @@ export const dispatch = (
       }
       break;
     }
+    case 'deleteNote': {
+      const { noteId } = message.body.deleteNote;
+      if (client.whiteboard) {
+        client.whiteboard.handleOperation(
+          {
+            type: OperationType.NOTE_DELETE,
+            data: { causedBy: message.messsageId, noteId: decodeUUID(noteId) }
+          },
+          client
+        );
+      }
+      break;
+    }
     default: {
       // TODO send error about unrecognized message
       break;

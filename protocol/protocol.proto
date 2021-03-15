@@ -103,5 +103,6 @@ message ServerToClientMessage {
     FigureMoved figure_moved = 5;
     Line line_drawn = 6;
     NoteCreatedOrUpdated note_created_or_updated = 8;
+    NoteDeleted note_deleted = 9;
   }
 }

@@ -1,9 +1,6 @@
-import { v4 } from 'uuid';
 import { updateStore } from '.';
-import { makeCreateNoteMessage } from '../connection/messages';
-import { reqResponseService } from '../connection/ServerContext';
-import { ClientToServerMessage } from '../protocol/protocol';
-import { Coordinates, Note, UUID } from '../types';
+import { Note, UUID } from '../types';
+import * as noteTimeline from './timelines/note';
 import {
   modifyDelete,
   modifyText,
@@ -11,7 +8,8 @@ import {
   newLocalNoteTimeline,
   setCommitted
 } from './timelines/note';
-import * as noteTimeline from './timelines/note';
+
+type PatchId = UUID;
 
 // TODO change name, if we are doing server push in this function
 export const localAddNote = (note: Note) => {
@@ -22,20 +20,19 @@ export const localAddNote = (note: Note) => {
   return patchId;
 };
 
-export const localDeleteNote = (id: Note['id']) => {
-  updateStore(store => {
+export const localDeleteNote = (id: Note['id']): PatchId | null => {
+  return updateStore(store => {
     const oldTimeline = store.noteTimelines.get(id);
     if (!oldTimeline) {
-      console.error('tried deleting a note without NoteTimeline');
-      return;
-    } else {
-      store.noteTimelines.set(oldTimeline.figureId, modifyDelete(oldTimeline));
-      console.log('added note removal operation', { nt: oldTimeline });
+      return null;
     }
+    const { patchId, timeline, figureId } = modifyDelete(oldTimeline);
+    store.noteTimelines.set(figureId, timeline);
+    return patchId;
   });
 };
 
-export const localUpdateText = (id: Note['id'], newText: string): UUID => {
+export const localUpdateText = (id: Note['id'], newText: string): PatchId => {
   return updateStore(store => {
     const oldTimeline = store.noteTimelines.get(id);
     if (!oldTimeline) {
@@ -64,7 +61,7 @@ export const setServerState = (id: Note['id'], state: Note | null) => {
   });
 };
 
-export const discardPatch = (figureId: Note['id'], patchId: UUID) => {
+export const discardPatch = (figureId: Note['id'], patchId: PatchId) => {
   updateStore(store => {
     let nt = store.noteTimelines.get(figureId);
     if (nt) {

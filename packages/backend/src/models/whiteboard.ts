@@ -38,7 +38,8 @@ export enum OperationType {
   FIGURE_MOVE,
   LINE_ADD,
   NOTE_ADD,
-  NOTE_UPADTE
+  NOTE_UPADTE,
+  NOTE_DELETE
 }
 
 export type Operation =
@@ -58,6 +59,13 @@ export type Operation =
       type: OperationType.NOTE_UPADTE;
       data: {
         change: Partial<Note> & Pick<Note, 'id'>;
+        causedBy: ClientToServerMessage['messsageId'];
+      };
+    }
+  | {
+      type: OperationType.NOTE_DELETE;
+      data: {
+        noteId: Note['id'];
         causedBy: ClientToServerMessage['messsageId'];
       };
     };
@@ -194,6 +202,30 @@ export class Whiteboard {
           causedBy
         );
 
+        break;
+      }
+      case OperationType.NOTE_DELETE: {
+        const { noteId, causedBy } = op.data;
+        if (this.notes.has(noteId)) {
+          this.notes.delete(noteId);
+          this.sendToClients(
+            {
+              $case: 'noteDeleted',
+              noteDeleted: {
+                noteId: encodeUUID(noteId)
+              }
+            },
+            causedBy
+          );
+        } else {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.FIGURE_NOT_EXISTS
+            }),
+            causedBy
+          );
+        }
         break;
       }
       // case OperationType.RETURN_ALL_FIGURES: {

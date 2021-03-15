@@ -1,3 +1,4 @@
+import { decodeUUID } from '../editor/encoding';
 import * as whiteboard from '../editor/whiteboard';
 import { ServerToClientMessage } from '../protocol/protocol';
 import { setServerState } from '../store/notes';
@@ -17,6 +18,11 @@ export const handleMessage = (message: ServerToClientMessage): void => {
     case 'noteCreatedOrUpdated': {
       const noteData = messageToNote(message.body.noteCreatedOrUpdated.note!);
       setServerState(noteData.id, noteData);
+      break;
+    }
+    case 'noteDeleted': {
+      const id = decodeUUID(message.body.noteDeleted.noteId);
+      setServerState(id, null);
     }
   }
 };
