@@ -1,14 +1,13 @@
-import { TypedEmitter } from 'tiny-typed-emitter';
-import type { Note, UUID } from '../types';
 import * as uuid from 'uuid';
-import { Message, Coordinates, Line } from '../types';
+import * as whiteboard from '../editor/whiteboard';
 import {
   ClientToServerMessage,
-  ServerToClientMessage,
-  Note as NoteProto
+  Note as NoteProto,
+  ServerToClientMessage
 } from '../protocol/protocol';
-import * as whiteboard from '../editor/whiteboard';
 import { setServerState } from '../store/notes';
+import type { Note, UUID } from '../types';
+import { Line } from '../types';
 
 export class ServerConnection {
   socket: WebSocket;
