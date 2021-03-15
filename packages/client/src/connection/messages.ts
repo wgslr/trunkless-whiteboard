@@ -1,3 +1,4 @@
+import { encode } from 'node:punycode';
 import * as uuid from 'uuid';
 import {
   ClientToServerMessage,
@@ -24,14 +25,22 @@ export function lineToMessage(line: Line): ClientToServerMessage['body'] {
   };
 }
 
-export function createNoteMessage(note: Note): ClientToServerMessage['body'] {
-  return {
-    $case: 'createNote',
-    createNote: {
-      note: noteToMessage(note)
-    }
-  };
-}
+export const makeCreateNoteMessage = (
+  note: Note
+): ClientToServerMessage['body'] => ({
+  $case: 'createNote',
+  createNote: {
+    note: noteToMessage(note)
+  }
+});
+
+export const makeUpdateNoteTextMessage = (
+  id: Note['id'],
+  text: Note['text']
+): ClientToServerMessage['body'] => ({
+  $case: 'updateNoteText',
+  updateNoteText: { noteId: encodeUUID(id), text }
+});
 
 // TODO deduplciate with backend code
 const encodeUUID = (id: UUID): Uint8Array => Uint8Array.from(uuid.parse(id));

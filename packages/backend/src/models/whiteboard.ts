@@ -37,7 +37,8 @@ export class Line {
 export enum OperationType {
   FIGURE_MOVE,
   LINE_ADD,
-  NOTE_ADD
+  NOTE_ADD,
+  NOTE_UPADTE
 }
 
 export type Operation =
@@ -52,6 +53,13 @@ export type Operation =
   | {
       type: OperationType.NOTE_ADD;
       data: { note: Note; causedBy: ClientToServerMessage['messsageId'] };
+    }
+  | {
+      type: OperationType.NOTE_UPADTE;
+      data: {
+        change: Partial<Note> & Pick<Note, 'id'>;
+        causedBy: ClientToServerMessage['messsageId'];
+      };
     };
 
 class OperationError extends Error {
@@ -120,7 +128,6 @@ export class Whiteboard {
         break;
       }
       case OperationType.NOTE_ADD: {
-        // TODO validate coords
         // TODO validate unique id
         const { note, causedBy } = op.data;
         if (!this.areCoordsWithinBounds(note.position)) {
@@ -144,6 +151,49 @@ export class Whiteboard {
             causedBy
           );
         }
+        break;
+      }
+      case OperationType.NOTE_UPADTE: {
+        const { change, causedBy } = op.data;
+        if (change.position && !this.areCoordsWithinBounds(change.position)) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
+            }),
+            causedBy
+          );
+          return;
+        }
+        const note = this.notes.get(change.id);
+        if (!note) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.FIGURE_NOT_EXISTS
+            }),
+            causedBy
+          );
+          return;
+        }
+        const updated = {
+          ...note,
+          position: change.position ?? note.position,
+          text: change.text ?? note.text
+        };
+
+        this.notes.set(note.id, updated);
+        console.log('Updated note', { old: note, updated });
+        this.sendToClients(
+          {
+            $case: 'noteCreatedOrUpdated',
+            noteCreatedOrUpdated: {
+              note: noteToMessage(updated)
+            }
+          },
+          causedBy
+        );
+
         break;
       }
       // case OperationType.RETURN_ALL_FIGURES: {

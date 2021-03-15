@@ -89,6 +89,28 @@ export const dispatch = (
 
       break;
     }
+    case 'updateNoteText': {
+      const { noteId, text } = message.body.updateNoteText;
+
+      if (client.whiteboard) {
+        client.whiteboard.handleOperation(
+          {
+            type: OperationType.NOTE_UPADTE,
+            data: {
+              causedBy: message.messsageId,
+              change: {
+                id: decodeUUID(noteId),
+                text
+              }
+            }
+          },
+          client
+        );
+      } else {
+        // TODO return error
+      }
+      break;
+    }
     default: {
       // TODO send error about unrecognized message
       break;

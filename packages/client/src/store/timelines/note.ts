@@ -6,13 +6,13 @@ import type { Note, Coordinates, UUID } from '../../types';
 type Diff = Partial<Omit<Note, 'id'>> | 'deleted';
 
 type Patch = {
-  changeId: UUID;
+  id: UUID;
   diff: Diff;
 };
 
 type Result = {
   timeline: NoteTimeline;
-  patchId: Patch['changeId'];
+  patchId: Patch['id'];
   figureId: UUID;
 };
 
@@ -23,7 +23,7 @@ export type NoteTimeline = {
 };
 
 const newPatch = (diff: Diff): Patch => ({
-  changeId: v4(),
+  id: v4(),
   diff
 });
 
@@ -74,23 +74,22 @@ export const newLocalNoteTimeline = (initial: Note): Result => {
   };
   return {
     timeline: noteTimeline,
-    patchId: patch.changeId,
+    patchId: patch.id,
     figureId: initial.id
   };
 };
 
-export const modifyText = (
-  nt: NoteTimeline,
-  newText: string
-): [NoteTimeline, Patch['changeId']] => {
+export const modifyText = (nt: NoteTimeline, newText: string): Result => {
   const patch = newPatch({ text: newText });
-  return [
-    {
-      ...nt,
-      patches: nt.patches.concat(patch)
-    },
-    patch.changeId
-  ];
+  const timeline = {
+    ...nt,
+    patches: nt.patches.concat(patch)
+  };
+  return {
+    figureId: nt.figureId,
+    patchId: patch.id,
+    timeline
+  };
 };
 
 export const modifyPositiion = (
@@ -118,8 +117,8 @@ export const setCommitted = (
 
 export const discardPatch = (
   nt: NoteTimeline,
-  changeId: Patch['changeId']
+  changeId: Patch['id']
 ): NoteTimeline => ({
   ...nt,
-  patches: nt.patches.filter(p => p.changeId !== changeId)
+  patches: nt.patches.filter(p => p.id !== changeId)
 });
