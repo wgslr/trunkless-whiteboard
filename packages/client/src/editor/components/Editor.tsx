@@ -7,7 +7,7 @@ import React, {
   ReactDOM
 } from 'react';
 import { useRecoilState } from 'recoil';
-import ServerContext from '../../connection-context/server-connection';
+import ServerContext from '../../connection/ServerContext';
 import render from '../render';
 import { modeState } from '../state';
 import {

@@ -1,6 +1,6 @@
 import { v4 } from 'uuid';
 import { updateStore } from '.';
-import { serverConnection } from '../connection-context/server-connection';
+import { serverConnection } from '../connection/ServerContext';
 import { Coordinates, Note } from '../types';
 import {
   newLocalNoteTimeline,

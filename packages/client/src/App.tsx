@@ -1,9 +1,7 @@
 import React from 'react';
 import { RecoilRoot } from 'recoil';
 import './App.css';
-import ServerContext, {
-  serverConnection
-} from './connection-context/server-connection';
+import ServerContext, { serverConnection } from './connection/ServerContext';
 //import Canvas from './editor/whiteboard'
 //import Canvas from './editor/whiteboard'
 import Editor from './editor/components/Editor';

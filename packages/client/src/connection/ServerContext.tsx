@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import { ServerConnection } from '../serverClient';
+import { ServerConnection } from './server-connection';
 
 // TODO: set as env variable
 const SERVER_URL = 'ws://localhost:3001/ws';

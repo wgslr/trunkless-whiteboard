@@ -1,6 +1,6 @@
 import { Coordinates, Line, UUID, Action, Note, Img } from '../types';
 import { linePoints, erasePoints } from './math';
-import { serverConnection } from '../connection-context/server-connection';
+import { serverConnection } from '../connection/ServerContext';
 import { v5 } from 'uuid';
 
 export const bitmap: Line[] = [];
