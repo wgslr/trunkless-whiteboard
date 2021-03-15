@@ -23,23 +23,47 @@ declare interface ClientConnectionEvents {
   message: (decoded: ClientToServerMessage) => void;
 }
 
+type ClientStatus =
+  | {
+      kind: 'NO_WHITEBOARD';
+    }
+  | {
+      kind: 'HOST' | 'CLIENT';
+      whiteboard: Whiteboard;
+    };
+export type ClientStatusEnum = ClientStatus['kind'];
+
 export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
   socket: WebSocket;
-  whiteboard?: Whiteboard;
+  status: ClientStatus = { kind: 'NO_WHITEBOARD' };
 
   constructor(socket: WebSocket) {
     super();
     this.socket = socket;
     this.setupSocketListeners();
-
     this.on('message', msg => dispatch(msg, this));
 
     // TODO do proper handshake and select whiteboard
     if (countWhiteboards() == 0) {
-      this.whiteboard = addWhiteboard(this, uuid.NIL);
+      this.status = {
+        kind: 'HOST',
+        whiteboard: addWhiteboard(this, uuid.NIL)
+      };
     } else {
       connectClient(this, uuid.NIL);
     }
+  }
+
+  public get whiteboard(): Whiteboard | null {
+    if (this.status.kind == 'NO_WHITEBOARD') {
+      return null;
+    } else {
+      return this.status.whiteboard;
+    }
+  }
+
+  public setConnectedWhiteboard(whiteboard: Whiteboard) {
+    this.status = { kind: 'CLIENT', whiteboard };
   }
 
   private setupSocketListeners() {

@@ -19,7 +19,10 @@ export const dispatch = (
 ) => {
   switch (message.body?.$case) {
     case 'createWhiteboardRequest': {
-      client.whiteboard = addWhiteboard(client);
+      client.status = {
+        kind: 'HOST',
+        whiteboard: addWhiteboard(client)
+      };
       break;
     }
     case 'getAllFiguresRequest': {

@@ -259,7 +259,7 @@ export class Whiteboard {
 
   public addClientConnection(client: ClientConnection) {
     this.clients.push(client);
-    client.whiteboard = this;
+    client.setConnectedWhiteboard(this);
     console.log('Client joined whiteboard', this.id);
   }
 }
