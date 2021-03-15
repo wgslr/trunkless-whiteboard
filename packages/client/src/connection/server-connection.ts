@@ -14,7 +14,7 @@ export class ServerConnection {
   constructor(socket: WebSocket) {
     this.socket = socket;
     this.socket.binaryType = 'arraybuffer';
-    this.socket.onmessage = event => this.dispatch(event);
+    this.socket.addEventListener('message', event => this.dispatch(event));
   }
 
   private dispatch(event: MessageEvent) {
@@ -98,7 +98,7 @@ function decodeLineData(data: any) {
   };
 }
 
-function noteToMessage(note: Note): NoteProto {
+export function noteToMessage(note: Note): NoteProto {
   return {
     ...note,
     id: Uint8Array.from(uuid.parse(note.id))

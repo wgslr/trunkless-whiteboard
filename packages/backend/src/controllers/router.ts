@@ -39,7 +39,7 @@ export const dispatch = (
       console.log(`Client wants to join whiteboard ${whiteboardId}`);
       const result = connectClient(client, whiteboardId);
 
-      const response = resultToMessage(result, message.messsageId);
+      const response = resultToMessage(result);
       client.send(response, message.messsageId);
       break;
     }

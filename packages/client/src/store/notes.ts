@@ -1,14 +1,21 @@
 import { v4 } from 'uuid';
 import { updateStore } from '.';
-import { serverConnection } from '../connection/ServerContext';
+import {
+  reqResponseService,
+  serverConnection
+} from '../connection/ServerContext';
 import { Coordinates, Note } from '../types';
+import { noteToMessage } from '../connection/server-connection';
 import {
   newLocalNoteTimeline,
   modifyDelete,
   modifyText,
   setCommitted,
-  newCommittedNoteTimeline
+  newCommittedNoteTimeline,
+  discardPatch
 } from './timelines/note';
+import { ClientToServerMessage } from '../protocol/protocol';
+import { ChangeHistoryRounded } from '@material-ui/icons';
 
 // TODO change name, if we are doing server push in this function
 export const localAddNote = (pos: Coordinates) => {
@@ -22,10 +29,34 @@ export const localAddNote = (pos: Coordinates) => {
   });
 
   // TODO very dirty
-  serverConnection.connection.publishNote({
-    ...(nt.patches[nt.patches.length - 1].diff as Omit<Note, 'id'>),
+  const thePatch = nt.patches[nt.patches.length - 1];
+  const note = {
+    ...(thePatch.diff as Omit<Note, 'id'>),
     id: nt.noteId
+  };
+  const body: ClientToServerMessage['body'] = {
+    $case: 'createNote',
+    createNote: {
+      note: noteToMessage(note)
+    }
+  };
+
+  reqResponseService.send(body, response => {
+    if (response == 'timeout') {
+      console.error('note creae TIMEOUT');
+    }
+    updateStore(store => {
+      const nt2 = store.noteTimelines.get(nt.noteId);
+      if (nt2) {
+        store.noteTimelines.set(
+          nt2?.noteId,
+          discardPatch(nt2, thePatch.changeId)
+        );
+      }
+    });
   });
+
+  // serverConnection.connection.publishNote();
   // TODO discard Patch from the timeline when server response comes
 };
 

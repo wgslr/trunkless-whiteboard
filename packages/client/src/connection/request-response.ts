@@ -1,4 +1,5 @@
 import * as uuid from 'uuid';
+import { SERVER_RESPONSE_TIMEOUT } from '../config';
 import {
   ClientToServerMessage,
   ServerToClientMessage
@@ -6,9 +7,6 @@ import {
 import { ProtobufSocketClient } from './protobuf-client';
 
 type Callback = (message: ServerToClientMessage['body'] | 'timeout') => void;
-
-/** After this time we stop looking for response among incoming messages */
-const RESPONSE_TIMEOUT = 5000;
 
 export class RequestResponseService {
   constructor(private protobufClient: ProtobufSocketClient) {}
@@ -42,6 +40,6 @@ export class RequestResponseService {
         console.log('Timeout on awaiting server response');
         callback('timeout');
       }
-    }, RESPONSE_TIMEOUT);
+    }, SERVER_RESPONSE_TIMEOUT);
   }
 }

@@ -17,9 +17,9 @@ interface Events {
 export class ProtobufSocketClient extends TypedEmitter<Events> {
   socket: WebSocket;
 
-  constructor(websocketUrl: string) {
+  constructor(socket: WebSocket) {
     super();
-    this.socket = new WebSocket(websocketUrl);
+    this.socket = socket;
     this.socket.binaryType = 'arraybuffer';
 
     this.socket.addEventListener('message', event => {
@@ -29,6 +29,8 @@ export class ProtobufSocketClient extends TypedEmitter<Events> {
     this.socket.addEventListener('close', () => {
       this.emit('disconnect');
     });
+
+    this.addListener('message', msg => console.debug('Reeived message', msg));
   }
 
   public send(message: ClientToServerMessage) {

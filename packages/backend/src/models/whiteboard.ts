@@ -125,13 +125,11 @@ export class Whiteboard {
         const { note, causedBy } = op.data;
         if (!this.areCoordsWithinBounds(note.position)) {
           client.send(
-            resultToMessage(
-              {
-                result: 'error',
-                reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
-              },
-              causedBy
-            )
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
+            }),
+            causedBy
           );
         } else {
           this.notes.set(note.id, note);
