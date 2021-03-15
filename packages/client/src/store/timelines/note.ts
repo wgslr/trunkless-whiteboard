@@ -65,11 +65,18 @@ export const newLocalNoteTimeline = (initial: Note): NoteTimeline => ({
   patches: [newPatch(initial)]
 });
 
-export const modifyText = (nt: NoteTimeline, newText: string): NoteTimeline => {
-  return {
-    ...nt,
-    patches: nt.patches.concat(newPatch({ text: newText }))
-  };
+export const modifyText = (
+  nt: NoteTimeline,
+  newText: string
+): [NoteTimeline, Patch['changeId']] => {
+  const patch = newPatch({ text: newText });
+  return [
+    {
+      ...nt,
+      patches: nt.patches.concat(patch)
+    },
+    patch.changeId
+  ];
 };
 
 export const modifyPositiion = (

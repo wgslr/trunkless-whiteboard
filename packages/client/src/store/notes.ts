@@ -74,13 +74,14 @@ export const localDeleteNote = (id: Note['id']) => {
 };
 
 export const localUpdateText = (id: Note['id'], newText: string) => {
-  updateStore(store => {
+  const patchId = updateStore(store => {
     const nt = store.noteTimelines.get(id);
-    if (!nt) {
-      console.error('tried updating text of a note without NoteTimeline');
-      return;
+    if (nt) {
+      const [newNT, patchId] = modifyText(nt, newText);
+      store.noteTimelines.set(nt.noteId, newNT);
+      return patchId;
     } else {
-      store.noteTimelines.set(nt.noteId, modifyText(nt, newText));
+      throw new Error('Tried updating text of a note without NoteTimeline');
     }
   });
 };
