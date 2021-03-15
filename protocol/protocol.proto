@@ -62,22 +62,11 @@ message UpdateNote { Note note = 1; }
 message DeleteNote { Note note = 1; }
 
 // broadcasted to all
-message NoteCreatedOrUpdated {
-  Note note = 1;
-  string triggered_by = 2;
-}
-message NoteDeleted {
-  bytes note_id = 1;
-  string triggered_by = 2;
-}
+message NoteCreatedOrUpdated { Note note = 1; }
+message NoteDeleted { bytes note_id = 1; }
 
-message ResultError {
-  string triggered_by = 1; // message id
-  ErrorReason reason = 2;
-}
-message ResultSuccess {
-  string triggered_by = 1; // message id
-}
+message ResultError { ErrorReason reason = 2; }
+message ResultSuccess {}
 
 message ClientToServerMessage {
   string messsage_id = 100;
@@ -93,6 +82,7 @@ message ClientToServerMessage {
 
 message ServerToClientMessage {
   string messsage_id = 100;
+  optional string caused_by = 101;
   oneof body {
     ResultError error = 1;
     ResultSuccess success = 2;

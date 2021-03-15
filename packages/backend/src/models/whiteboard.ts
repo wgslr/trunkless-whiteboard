@@ -51,7 +51,7 @@ export type Operation =
     }
   | {
       type: OperationType.NOTE_ADD;
-      data: { note: Note; triggeredBy: ClientToServerMessage['messsageId'] };
+      data: { note: Note; causedBy: ClientToServerMessage['messsageId'] };
     };
 
 class OperationError extends Error {
@@ -122,7 +122,7 @@ export class Whiteboard {
       case OperationType.NOTE_ADD: {
         // TODO validate coords
         // TODO validate unique id
-        const { note, triggeredBy } = op.data;
+        const { note, causedBy } = op.data;
         if (!this.areCoordsWithinBounds(note.position)) {
           client.send(
             resultToMessage(
@@ -130,19 +130,21 @@ export class Whiteboard {
                 result: 'error',
                 reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
               },
-              triggeredBy
+              causedBy
             )
           );
         } else {
           this.notes.set(note.id, note);
           console.log('Added note', note);
-          this.sendToClients({
-            $case: 'noteCreatedOrUpdated',
-            noteCreatedOrUpdated: {
-              triggeredBy,
-              note: noteToMessage(note)
-            }
-          });
+          this.sendToClients(
+            {
+              $case: 'noteCreatedOrUpdated',
+              noteCreatedOrUpdated: {
+                note: noteToMessage(note)
+              }
+            },
+            causedBy
+          );
         }
         break;
       }
@@ -165,10 +167,13 @@ export class Whiteboard {
     );
   }
 
-  protected sendToClients(message: ServerToClientMessage['body']) {
+  protected sendToClients(
+    message: ServerToClientMessage['body'],
+    previousMessageId?: string
+  ) {
     console.log(`Sending message to ${this.clients.length} clients:`, message);
     this.clients.forEach(client => {
-      client.send(message);
+      client.send(message, previousMessageId);
     });
   }
 

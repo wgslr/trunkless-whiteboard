@@ -62,10 +62,16 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     });
   }
 
-  public send(message: ServerToClientMessage['body']): void {
-    const encoded = ServerToClientMessage.encode(
-      newServerToClientMessage(message)
-    ).finish();
+  public send(body: ServerToClientMessage['body'], previousMessageId?: string) {
+    const message: ServerToClientMessage = {
+      messsageId: uuid.v4(),
+      body
+    };
+    if (previousMessageId) {
+      message.causedBy = previousMessageId;
+    }
+
+    const encoded = ServerToClientMessage.encode(message).finish();
     this.socket.send(encoded);
   }
 }

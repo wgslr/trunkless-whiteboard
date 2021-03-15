@@ -18,10 +18,10 @@ export class RequestResponseService {
 
     const eventHandler = ({ body }: Required<ServerToClientMessage>) => {
       // const data =
-      // if ('triggeredBy' in data) {
-      //   const triggeredBy = data.triggeredBy;
+      // if ('causedBy' in data) {
+      //   const causedBy = data.causedBy;
       // }
-      // triggeredBy
+      // causedBy
     };
 
     if (callback) {

@@ -40,7 +40,7 @@ export const dispatch = (
       const result = connectClient(client, whiteboardId);
 
       const response = resultToMessage(result, message.messsageId);
-      client.send(response);
+      client.send(response, message.messsageId);
       break;
     }
     case 'moveFigure': {
@@ -76,7 +76,7 @@ export const dispatch = (
         client.whiteboard.handleOperation(
           {
             type: OperationType.NOTE_ADD,
-            data: { note: data, triggeredBy: message.messsageId }
+            data: { note: data, causedBy: message.messsageId }
           },
           client
         );
