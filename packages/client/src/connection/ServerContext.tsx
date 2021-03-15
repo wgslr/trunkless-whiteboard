@@ -1,4 +1,6 @@
 import { createContext } from 'react';
+import { ServerToClientMessage } from '../protocol/protocol';
+import { ProtobufSocketClient } from './protobuf-client';
 import { ServerConnection } from './server-connection';
 
 // TODO: set as env variable
