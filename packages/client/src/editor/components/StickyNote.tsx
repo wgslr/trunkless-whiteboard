@@ -19,22 +19,6 @@ const noteStyle = {
 const StickyNote: React.FunctionComponent<NoteProps> = props => {
   const { note } = props;
 
-  const [isEditing, setIsEditing] = useState(false);
-
-  // TODO this won't recevie update correctly when the note text
-  // changes not because of this form, but becaus of an update from server
-  const [newText, setNewText] = useState(note.text);
-
-  const edit = () => {
-    setIsEditing(true);
-  };
-
-  const save = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsEditing(false);
-    props.save(note.id, newText);
-  };
-
   const deleteNote = () => {
     props.delete(note.id);
   };
@@ -47,26 +31,14 @@ const StickyNote: React.FunctionComponent<NoteProps> = props => {
 
   return (
     <div style={style} className="stickyNote">
-      {isEditing ? (
-        <form onSubmit={save}>
-          <input
-            type="text"
-            value={newText}
-            onChange={e => setNewText(e.target.value)}
-          />
-          <button type="submit">Save</button>
-        </form>
-      ) : (
-        <>
-          <p>{note.text}</p>
-          <button onClick={edit}>
-            <EditIcon />
-          </button>
-          <button onClick={deleteNote}>
-            <DeleteIcon />
-          </button>
-        </>
-      )}
+      <input
+        type="text"
+        value={note.text}
+        onChange={e => props.save(note.id, e.target.value)}
+      />
+      <button onClick={deleteNote}>
+        <DeleteIcon />
+      </button>
     </div>
   );
 };
