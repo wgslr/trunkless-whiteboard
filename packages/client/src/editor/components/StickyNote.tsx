@@ -9,13 +9,6 @@ interface NoteProps {
   note: Note;
 }
 
-const noteStyle = {
-  width: '200px',
-  height: '100px',
-  backgroundColor: '#f2d233'
-  // transform: 'translate(400px,400px)'
-};
-
 const StickyNote: React.FunctionComponent<NoteProps> = props => {
   const { note } = props;
 
@@ -24,21 +17,26 @@ const StickyNote: React.FunctionComponent<NoteProps> = props => {
   };
 
   const style = {
-    ...noteStyle,
     top: note.position.y,
     left: note.position.x
   };
 
   return (
     <div style={style} className="stickyNote">
-      <input
-        type="text"
-        value={note.text}
+      <textarea
         onChange={e => props.save(note.id, e.target.value)}
+        value={note.text}
       />
-      <button onClick={deleteNote}>
+      <span
+        className="delete"
+        title="Delete"
+        onClick={e => {
+          e.preventDefault();
+          deleteNote();
+        }}
+      >
         <DeleteIcon />
-      </button>
+      </span>
     </div>
   );
 };
