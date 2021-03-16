@@ -8,6 +8,7 @@ import {
   ClientToServerMessage
 } from './protocol/protocol';
 import type { Result, UUID } from './types';
+import { decodeUUID } from 'encoding';
 
 export type ClientToServerCase = NonNullable<
   ClientToServerMessage['body']
@@ -15,8 +16,6 @@ export type ClientToServerCase = NonNullable<
 
 export const encodeUUID = (id: UUID): Uint8Array =>
   Uint8Array.from(uuid.parse(id));
-
-export const decodeUUID = (id: Uint8Array): UUID => uuid.stringify(id);
 
 export const resultToMessage = (
   result: Result

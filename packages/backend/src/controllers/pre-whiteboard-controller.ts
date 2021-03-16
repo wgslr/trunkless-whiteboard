@@ -1,4 +1,5 @@
-import { decodeUUID, makeErrorMessage, resultToMessage } from '../encoding';
+import { makeErrorMessage, resultToMessage } from '../encoding';
+import { decodeUUID } from 'encoding';
 import { ClientConnection } from '../models/client-connection';
 import { addWhiteboard, connectClient } from '../models/whiteboard';
 import { ClientToServerMessage, ErrorReason } from '../protocol/protocol';

@@ -1,10 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
-import {
-  encodeUUID,
-  encodeUUID as uuidStringToBytes,
-  noteToMessage,
-  resultToMessage
-} from '../encoding';
+import { noteToMessage, resultToMessage } from '../encoding';
+import { encodeUUID } from 'encoding';
 import {
   ClientToServerMessage,
   Coordinates,
@@ -111,7 +107,7 @@ export class Whiteboard {
       //   this.sendToClients({
       //     $case: 'figureMoved',
       //     figureMoved: {
-      //       figureId: uuidStringToBytes(figure.id),
+      //       figureId: encodeUUID(figure.id),
       //       newCoordinates: newCoords
       //     }
       //   });
