@@ -29,8 +29,6 @@ export class ProtobufSocketClient extends TypedEmitter<Events> {
     this.socket.addEventListener('close', () => {
       this.emit('disconnect');
     });
-
-    this.addListener('message', msg => console.debug('Reeived message', msg));
   }
 
   public send(message: ClientToServerMessage) {

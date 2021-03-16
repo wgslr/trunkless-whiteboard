@@ -5,8 +5,8 @@ import { setServerState } from '../store/notes';
 import { decodeLineData, messageToNote } from './messages';
 
 export const handleMessage = (message: ServerToClientMessage): void => {
-  console.log(`Received message: ${message.body?.$case}`);
-  console.debug(`Received message body:`, message.body);
+  // console.log(`Received message: ${message.body?.$case}`);
+  // console.debug(`Received message body:`, message.body);
   switch (message.body?.$case) {
     case 'lineDrawn': {
       const lineData = decodeLineData(message.body.lineDrawn);
