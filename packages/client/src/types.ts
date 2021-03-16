@@ -21,7 +21,7 @@ export type Action =
 
 export type Line = {
   UUID: UUID;
-  points: Map<Coordinates, number>;
+  points: Set<Coordinates>;
 };
 
 export type Note = {
