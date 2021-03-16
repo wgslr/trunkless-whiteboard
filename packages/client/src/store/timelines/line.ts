@@ -7,16 +7,16 @@ type Diff =
   | { type: 'LINE_DELETED' }
   | {
       type: 'ADD_POINTS';
-      points: Set<Coordinates>;
+      points: Readonly<Coordinates[]>;
     }
   | {
       type: 'REMOVE_POINTS';
-      points: Set<Coordinates>;
+      points: Readonly<Coordinates[]>;
     };
 
 type Patch = {
-  id: UUID;
-  diff: Diff;
+  readonly id: UUID;
+  readonly diff: Diff;
 };
 
 type Result = {
@@ -55,28 +55,28 @@ export const newCommittedLineTimeline = (initial: Line): LineTimeline => ({
   patches: []
 });
 
-export const newLocalLineTimeline = (initial: Line): Result => {
+export const newLocalLineTimeline = ({ id, points }: Line): Result => {
   const patch = newPatch({
     type: 'ADD_POINTS',
-    points: new Set(initial.points)
+    points: Object.freeze(points)
   });
   const timeline: LineTimeline = {
-    figureId: initial.id,
+    figureId: id,
     committed: null,
     patches: [patch]
   };
   return {
     timeline,
     patchId: patch.id,
-    figureId: initial.id
+    figureId: id
   };
 };
 
 export const patchAddPoints = (
   lt: LineTimeline,
-  points: Set<Coordinates>
+  points: Coordinates[]
 ): Result => {
-  const patch = newPatch({ type: 'ADD_POINTS', points: new Set(points) });
+  const patch = newPatch({ type: 'ADD_POINTS', points: Object.freeze(points) });
   const timeline = {
     ...lt,
     patches: lt.patches.concat(patch)
