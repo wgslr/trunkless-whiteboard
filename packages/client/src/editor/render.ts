@@ -1,7 +1,7 @@
 //import React, { useCallback, useEffect, useRef} from "react";
 //import { isContext } from "vm";
 //import {Coordinate} from '../types';
-import { lines } from './whiteboard';
+import { Line } from '../types';
 
 const reset = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -9,7 +9,11 @@ const reset = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 };
 
-const render = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
+const render = (
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  lines: Line[]
+) => {
   if (ctx == null) {
     throw new Error('no ctx');
   }

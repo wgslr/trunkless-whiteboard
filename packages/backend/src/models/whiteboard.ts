@@ -10,6 +10,7 @@ import {
 } from '../protocol/protocol';
 import { Result, UUID } from '../types';
 import { ClientConnection } from './client-connection';
+import * as R from 'ramda';
 
 export abstract class Figure {
   id: UUID;
@@ -26,13 +27,18 @@ export type Note = {
   position: Coordinates;
   text: string;
 };
-export class Line {
-  constructor(public id: UUID, public bitmap: Map<Coordinates, number>) {}
-}
+
+export type Line = {
+  id: UUID;
+  points: Coordinates[];
+};
+
+export type LinePatch = Line;
 
 export enum OperationType {
   FIGURE_MOVE,
-  LINE_ADD,
+  LINE_CREATE,
+  LINE_ADD_POINTS,
   NOTE_ADD,
   NOTE_UPADTE,
   NOTE_DELETE
@@ -44,8 +50,15 @@ export type Operation =
       data: { figureId: UUID; newCoords: Coordinates };
     }
   | {
-      type: OperationType.LINE_ADD;
-      data: { line: Line };
+      type: OperationType.LINE_CREATE;
+      data: { line: Line; causedBy: ClientToServerMessage['messsageId'] };
+    }
+  | {
+      type: OperationType.LINE_ADD_POINTS;
+      data: {
+        change: LinePatch;
+        causedBy: ClientToServerMessage['messsageId'];
+      };
     }
   | {
       type: OperationType.NOTE_ADD;
@@ -89,46 +102,60 @@ export class Whiteboard {
 
   handleOperation(op: Operation, client: ClientConnection) {
     switch (op.type) {
-      // case OperationType.FIGURE_MOVE: {
-      //   const { figureId, newCoords } = op.data;
-      //   const figure = this.notes.get(figureId);
-      //   if (!figure) {
-      //     throw new OperationError('Figure does not exist');
-      //   }
-      //   if (
-      //     newCoords.x < 0 ||
-      //     newCoords.x > this.MAX_WIDTH ||
-      //     newCoords.y < 0 ||
-      //     newCoords.y > this.MAX_HEIGHT
-      //   ) {
-      //     throw new OperationError('New coords not allowed');
-      //   }
-      //   figure.location = newCoords;
-      //   this.sendToClients({
-      //     $case: 'figureMoved',
-      //     figureMoved: {
-      //       figureId: encodeUUID(figure.id),
-      //       newCoordinates: newCoords
-      //     }
-      //   });
-      //   break;
-      // }
-      case OperationType.LINE_ADD: {
-        const line = op.data.line;
-        this.lines.set(line.id, line);
+      case OperationType.LINE_CREATE: {
+        const { line, causedBy } = op.data;
+        this.lines.set(line.id, {
+          id: line.id,
+          points: R.uniq(line.points)
+        });
 
         console.log(`There are ${this.lines.size} lines on the whiteboard`);
 
-        this.sendToClients({
-          $case: 'lineDrawn',
-          lineDrawn: {
-            id: encodeUUID(line.id),
-            bitmap: Array.from(line.bitmap.entries()).map(entry => ({
-              coordinates: entry[0],
-              value: entry[1]
-            }))
-          }
-        });
+        this.sendToClients(
+          {
+            $case: 'lineCreatedOrUpdated',
+            lineCreatedOrUpdated: {
+              line: {
+                id: encodeUUID(line.id),
+                points: this.removeInvalidCoords(line.points)
+              }
+            }
+          },
+          causedBy
+        );
+        break;
+      }
+      case OperationType.LINE_ADD_POINTS: {
+        const { change: patch, causedBy } = op.data;
+        const line = this.lines.get(patch.id);
+        if (!line) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.FIGURE_NOT_EXISTS
+            }),
+            causedBy
+          );
+          return;
+        }
+
+        line.points = R.union(
+          line.points,
+          this.removeInvalidCoords(patch.points)
+        );
+
+        this.sendToClients(
+          {
+            $case: 'lineCreatedOrUpdated',
+            lineCreatedOrUpdated: {
+              line: {
+                id: encodeUUID(line.id),
+                points: line.points
+              }
+            }
+          },
+          causedBy
+        );
         break;
       }
       case OperationType.NOTE_ADD: {
@@ -231,6 +258,10 @@ export class Whiteboard {
       //   );
       // }
     }
+  }
+
+  private removeInvalidCoords(coordList: Coordinates[]): Coordinates[] {
+    return coordList.filter(c => this.areCoordsWithinBounds(c));
   }
 
   private areCoordsWithinBounds(coords: Coordinates): boolean {

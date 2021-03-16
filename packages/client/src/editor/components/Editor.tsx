@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRecoilState } from 'recoil';
 import { addNote } from '../../controllers/note-controller';
+import { useEffectiveLines } from '../../store/hooks';
 import render from '../render';
 import { modeState } from '../state';
 import {
@@ -17,6 +18,7 @@ import Tools from './Tools';
 import UndoTool from './UndoTool';
 
 const Editor = (props: { x: number; y: number }) => {
+  const effectiveLines = [...useEffectiveLines().values()];
   const canvas = useRef<HTMLCanvasElement>(null);
 
   const getCtx = () => {
@@ -63,7 +65,7 @@ const Editor = (props: { x: number; y: number }) => {
         } else if (mode === 'erase') {
           appendErase(point);
         }
-        render(getCtx()!, canvas.current!);
+        render(getCtx()!, canvas.current!, effectiveLines);
       }
     },
     [mode, pointerDown]
@@ -71,7 +73,7 @@ const Editor = (props: { x: number; y: number }) => {
 
   const renderUndo = () => {
     undo();
-    render(getCtx()!, canvas.current!);
+    render(getCtx()!, canvas.current!, effectiveLines);
   };
 
   useEffect(() => {
@@ -100,9 +102,8 @@ const Editor = (props: { x: number; y: number }) => {
 
   // Main render function
   useEffect(() => {
-    const timer = setInterval(() => render(getCtx()!, canvas.current!), 500);
-    return () => clearInterval(timer);
-  }, []);
+    render(getCtx()!, canvas.current!, [...effectiveLines.values()]);
+  }, [effectiveLines]);
 
   return (
     <div

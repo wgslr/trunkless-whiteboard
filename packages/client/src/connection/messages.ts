@@ -1,12 +1,10 @@
 import * as uuid from 'uuid';
 import {
   ClientToServerMessage,
-  Coordinates,
+  Line as LineProto,
   Note as NoteProto
 } from '../protocol/protocol';
-import type { Note, UUID } from '../types';
-import { Line } from '../types';
-import { Line as LineProto } from '../protocol/protocol';
+import type { Line, Note, UUID } from '../types';
 
 export function lineToMessage(line: Line): ClientToServerMessage['body'] {
   const id = encodeUUID(line.id);
@@ -46,6 +44,13 @@ export const makeDeleteNoteMessage = (
 ): ClientToServerMessage['body'] => ({
   $case: 'deleteNote',
   deleteNote: { noteId: encodeUUID(id) }
+});
+
+export const makeCreateLineMessage = (
+  line: Line
+): ClientToServerMessage['body'] => ({
+  $case: 'createLine',
+  createLine: {}
 });
 
 // TODO deduplciate with backend code

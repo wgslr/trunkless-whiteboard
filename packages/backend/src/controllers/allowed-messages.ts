@@ -4,7 +4,7 @@ import { WhiteboardMembership } from '../models/client-connection';
 const commonWhitboardMessages: ClientToServerCase[] = [
   'createNote',
   'deleteNote',
-  'lineDrawn',
+  'createLine',
   'updateNotePosition',
   'updateNoteText'
 ];

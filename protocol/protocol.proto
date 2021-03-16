@@ -30,15 +30,18 @@ message Note {
   string text = 3;
 }
 
-message BitmapPoint {
-  Coordinates coordinates = 1;
-  int32 value = 2;
-}
-
 message Line {
   bytes id = 1;
-  repeated BitmapPoint bitmap = 2;
+  repeated Coordinates points = 2;
 }
+
+message CreateLine { Line line = 1; }
+message AddPointsToLine {
+  bytes line_id = 1;
+  repeated Coordinates points = 2;
+}
+
+message LineCreatedOrUpdated { Line line = 1; }
 
 message CreateNote { Note note = 1; }
 message UpdateNotePosition {
@@ -60,11 +63,12 @@ message ClientToServerMessage {
   oneof body {
     CreateWhiteboardRequest create_whiteboard_request = 1;
     JoinWhiteboard join_whiteboard = 2;
-    Line line_drawn = 6;
     CreateNote create_note = 7;
     UpdateNoteText update_note_text = 8;
     UpdateNotePosition update_note_position = 9;
     DeleteNote delete_note = 10;
+    CreateLine create_line = 20;
+    AddPointsToLine add_points_to_line = 21;
   }
 }
 
@@ -75,7 +79,7 @@ message ServerToClientMessage {
     ResultError error = 1;
     ResultSuccess success = 2;
     WhiteboardCreated whiteboard_created = 3;
-    Line line_drawn = 6;
+    LineCreatedOrUpdated line_created_or_updated = 6;
     NoteCreatedOrUpdated note_created_or_updated = 8;
     NoteDeleted note_deleted = 9;
   }
