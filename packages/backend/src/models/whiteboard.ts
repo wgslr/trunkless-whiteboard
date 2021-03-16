@@ -104,10 +104,11 @@ export class Whiteboard {
     switch (op.type) {
       case OperationType.LINE_CREATE: {
         const { line, causedBy } = op.data;
-        this.lines.set(line.id, {
+        const sanitizedLine = {
           id: line.id,
-          points: R.uniq(line.points)
-        });
+          points: this.removeInvalidCoords(R.uniq(line.points))
+        };
+        this.lines.set(line.id, sanitizedLine);
 
         console.log(`There are ${this.lines.size} lines on the whiteboard`);
 
@@ -116,8 +117,8 @@ export class Whiteboard {
             $case: 'lineCreatedOrUpdated',
             lineCreatedOrUpdated: {
               line: {
-                id: encodeUUID(line.id),
-                points: this.removeInvalidCoords(line.points)
+                id: encodeUUID(sanitizedLine.id),
+                points: sanitizedLine.points
               }
             }
           },
