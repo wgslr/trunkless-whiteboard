@@ -54,13 +54,7 @@ const encodeUUID = (id: UUID): Uint8Array => Uint8Array.from(uuid.parse(id));
 const decodeUUID = (id: Uint8Array): UUID => uuid.stringify(id);
 
 export function decodeLineData(data: LineProto): Line {
-  const points = new Set<Coordinates>();
-  data.bitmap
-    .filter(p => p.value == 1)
-    .forEach(point => {
-      // undefined should not be possible, but typing complains
-      point.coordinates !== undefined && points.add(point.coordinates);
-    });
+  const points = data.bitmap.filter(p => p.value == 1).map(p => p.coordinates!);
 
   return {
     id: decodeUUID(data.id),

@@ -3,6 +3,7 @@ import { lineToMessage } from '../connection/messages';
 import { reqResponseService } from '../connection/ServerContext';
 import { Action, Coordinates, Img, Line, UUID } from '../types';
 import { erasePoints, linePoints } from './math';
+import * as R from 'ramda';
 
 export const lines: Line[] = [];
 
@@ -24,9 +25,8 @@ export const startLine = (point: Coordinates) => {
   drawing = true;
   lines.push({
     id: v5('line' + (lines.length - 1).toString(), UUID_NAMESPACE),
-    points: new Set()
+    points: [point]
   }); // placeholder UUID
-  lines[lines.length - 1].points.add(point);
   lastPos = point;
 };
 
@@ -34,8 +34,11 @@ export const appendLine = (point: Coordinates) => {
   if (!drawing) {
     return;
   }
-  let list = linePoints(lastPos!, point);
-  list.forEach(p => lines[lines.length - 1].points.add(p));
+  let points = linePoints(lastPos!, point);
+  lines[lines.length - 1].points = R.union(
+    lines[lines.length - 1].points,
+    points
+  );
   lastPos = point;
   reqResponseService.send(lineToMessage(lines[lines.length - 1]));
 };
@@ -76,9 +79,14 @@ export const appendErase = (point: Coordinates) => {
 const updateErase = () => {
   eraseBuffer.map(coord => {
     lines.map(line => {
-      line.points.forEach(point => {
+      // work on a copy, so that splice doesn't break iteration
+      [...line.points].forEach(point => {
         if (coord.x == point.x && coord.y == point.y) {
-          line.points.delete(point); // This pixel will not be rendered anymore
+          const index = R.indexOf(point, line.points);
+          if (index >= 0) {
+            line.points.splice(index, 1);
+          }
+          // line.points = R.reject(p => p == point, line.points); // This pixel will not be rendered anymore
           if (!erasedPixels.has(line.id)) {
             erasedPixels.set(line.id, [coord]); // and the erased pixel is added by UUID to erasedPixels...
           } else {
@@ -125,9 +133,7 @@ export const undo = () => {
     lastAction.lines.forEach((modifiedPixels, uuid) => {
       let index = lines.findIndex(x => findFunction(uuid, x.id));
       if (index != -1) {
-        modifiedPixels.forEach(coord => {
-          lines[index].points.add(coord);
-        });
+        lines[index].points = R.union(lines[index].points, modifiedPixels);
       }
     });
     history.pop();
