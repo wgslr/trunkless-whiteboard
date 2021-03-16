@@ -12,7 +12,8 @@
     "protoc": "concurrently \"yarn protoc:client\" \"yarn protoc:server\"",
     "start:client": "cd packages/client && yarn start",
     "start:server": "cd packages/backend && yarn dev",
-    "start:dev": "concurrently \"yarn start:client\" \"yarn start:server\""
+    "watch:encoding": "cd packages/encoding && yarn watch",
+    "start:dev": "concurrently \"yarn start:client\" \"yarn start:server\" \"yarn watch:encoding\""
   },
   "devDependencies": {
     "concurrently": "^6.0.0",
