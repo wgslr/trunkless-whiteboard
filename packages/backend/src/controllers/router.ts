@@ -15,17 +15,22 @@ export const dispatch = (
 
   const $case = message.body?.$case;
 
-  if (
-    client.status.kind === 'NO_WHITEBOARD' &&
-    ALLOWED_MESSAGES.NO_WHITEBOARD.includes($case)
-  ) {
-    handlePreWhiteboardMessage(message, client);
-  } else if (
-    (client.status.kind === 'USER' || client.status.kind === 'HOST') &&
-    ALLOWED_MESSAGES.USER.includes($case)
-  ) {
-    handleWhiteboardMessage(message, client);
-  } else {
-    client.send(makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED));
+  try {
+    if (
+      client.status.kind === 'NO_WHITEBOARD' &&
+      ALLOWED_MESSAGES.NO_WHITEBOARD.includes($case)
+    ) {
+      handlePreWhiteboardMessage(message, client);
+    } else if (
+      (client.status.kind === 'USER' || client.status.kind === 'HOST') &&
+      ALLOWED_MESSAGES.USER.includes($case)
+    ) {
+      handleWhiteboardMessage(message, client);
+    } else {
+      client.send(makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED));
+    }
+  } catch (error) {
+    console.error(error);
+    client.send(makeErrorMessage(ErrorReason.INTERNAL_SERVER_ERROR));
   }
 };
