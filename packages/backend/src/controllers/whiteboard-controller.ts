@@ -19,6 +19,7 @@ export const handleWhiteboardMessage = (
     client.send(makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED));
     return;
   }
+  const whiteboard = client.status.whiteboard;
 
   switch (message.body.$case) {
     case 'lineDrawn': {
@@ -26,81 +27,56 @@ export const handleWhiteboardMessage = (
       const decodedData = messageToLine(data);
       console.log(`Line drawn`, decodedData);
 
-      if (client.whiteboard) {
-        client.whiteboard.handleOperation(
-          {
-            type: OperationType.LINE_ADD,
-            data: { line: decodedData }
-          },
-          client
-        );
-      } else {
-        console.warn(
-          'Received LineDrawn message from client not connected to a whiteboard'
-        );
-      }
-
-      break;
+      whiteboard.handleOperation(
+        {
+          type: OperationType.LINE_ADD,
+          data: { line: decodedData }
+        },
+        client
+      );
+      return;
     }
     case 'createNote': {
       const body = message.body.createNote;
       const data = messageToNote(body.note!);
 
-      if (client.whiteboard) {
-        client.whiteboard.handleOperation(
-          {
-            type: OperationType.NOTE_ADD,
-            data: { note: data, causedBy: message.messsageId }
-          },
-          client
-        );
-      } else {
-        console.warn(
-          'Received createNote message from client not connected to a whiteboard'
-        );
-        // TODO return error
-      }
-
-      break;
+      whiteboard.handleOperation(
+        {
+          type: OperationType.NOTE_ADD,
+          data: { note: data, causedBy: message.messsageId }
+        },
+        client
+      );
+      return;
     }
     case 'updateNoteText': {
       const { noteId, text } = message.body.updateNoteText;
 
-      if (client.whiteboard) {
-        client.whiteboard.handleOperation(
-          {
-            type: OperationType.NOTE_UPADTE,
-            data: {
-              causedBy: message.messsageId,
-              change: {
-                id: decodeUUID(noteId),
-                text
-              }
+      whiteboard.handleOperation(
+        {
+          type: OperationType.NOTE_UPADTE,
+          data: {
+            causedBy: message.messsageId,
+            change: {
+              id: decodeUUID(noteId),
+              text
             }
-          },
-          client
-        );
-      } else {
-        // TODO return error
-      }
-      break;
+          }
+        },
+        client
+      );
+      return;
     }
     case 'deleteNote': {
       const { noteId } = message.body.deleteNote;
-      if (client.whiteboard) {
-        client.whiteboard.handleOperation(
-          {
-            type: OperationType.NOTE_DELETE,
-            data: { causedBy: message.messsageId, noteId: decodeUUID(noteId) }
-          },
-          client
-        );
-      }
-      break;
-    }
-    default: {
-      // TODO send error about unrecognized message
-      break;
+      whiteboard.handleOperation(
+        {
+          type: OperationType.NOTE_DELETE,
+          data: { causedBy: message.messsageId, noteId: decodeUUID(noteId) }
+        },
+        client
+      );
+      return;
     }
   }
 };
