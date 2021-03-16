@@ -35,8 +35,8 @@ export const appendLine = (point: Coordinates) => {
     return;
   }
   let points = linePoints(lastPos!, point);
-  lines[lines.length - 1].points = R.union(
-    lines[lines.length - 1].points,
+
+  lines[lines.length - 1].points = lines[lines.length - 1].points.concat(
     points
   );
   lastPos = point;
