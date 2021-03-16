@@ -70,8 +70,9 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
       // const decoded = decodeMessage(message as string);
       let decoded;
       try {
+        console.debug(`Decoding message`);
         decoded = ClientToServerMessage.decode(Reader.create(message));
-        console.debug(`Received messaeg:`, { decoded });
+        console.debug(`Decoded message:`, { decoded });
       } catch (error) {
         console.error('Error decoding message', error);
         return;

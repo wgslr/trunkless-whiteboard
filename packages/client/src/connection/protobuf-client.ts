@@ -32,7 +32,10 @@ export class ProtobufSocketClient extends TypedEmitter<Events> {
   }
 
   public send(message: ClientToServerMessage) {
-    this.socket.send(encode(message));
+    console.log(performance.now(), 'encoding message');
+    const encoded = encode(message);
+    console.log(performance.now(), 'sending message');
+    this.socket.send(encoded);
   }
 }
 
