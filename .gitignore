@@ -1,6 +1,9 @@
 *.swp
 packages/*/src/protocol/
 
+# flame graphs
+.clinic
+
 ## Taken from here:
 # https://github.com/github/gitignore/blob/master/Node.gitignore
 
