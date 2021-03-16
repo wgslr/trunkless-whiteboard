@@ -13,7 +13,8 @@
     "start:client": "cd packages/client && yarn start",
     "start:server": "cd packages/backend && yarn dev",
     "watch:encoding": "cd packages/encoding && yarn watch",
-    "start:dev": "concurrently \"yarn start:client\" \"yarn start:server\" \"yarn watch:encoding\""
+    "build:encoding": "cd packages/encoding && yarn build",
+    "start:dev": "yarn build:encoding && concurrently \"yarn start:client\" \"yarn start:server\" "
   },
   "devDependencies": {
     "concurrently": "^6.0.0",
