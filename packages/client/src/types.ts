@@ -12,7 +12,7 @@ export type Mode = 'draw' | 'erase' | 'note';
 export type Action =
   | {
       type: 'draw';
-      UUID: UUID;
+      id: UUID;
     }
   | {
       type: 'erase';
@@ -20,7 +20,7 @@ export type Action =
     };
 
 export type Line = {
-  UUID: UUID;
+  id: UUID;
   points: Set<Coordinates>;
 };
 
@@ -31,15 +31,9 @@ export type Note = {
 };
 
 export type Img = {
-  UUID: UUID;
+  id: UUID;
   position: Coordinates;
   data: string; // ts img object?
-};
-
-export type Object = {
-  UUID: UUID;
-  author: string;
-  type: Line | Note | Img;
 };
 
 export enum MessageCode {

@@ -23,7 +23,7 @@ const UUID_NAMESPACE = '940beed9-f057-4088-a714-a9f5f2fc6052';
 export const startLine = (point: Coordinates) => {
   drawing = true;
   lines.push({
-    UUID: v5('line' + (lines.length - 1).toString(), UUID_NAMESPACE),
+    id: v5('line' + (lines.length - 1).toString(), UUID_NAMESPACE),
     points: new Set()
   }); // placeholder UUID
   lines[lines.length - 1].points.add(point);
@@ -43,7 +43,7 @@ export const appendLine = (point: Coordinates) => {
 export const finishLine = () => {
   history.push({
     type: 'draw',
-    UUID: lines[lines.length - 1].UUID
+    id: lines[lines.length - 1].id
   });
   drawing = false;
 
@@ -79,10 +79,10 @@ const updateErase = () => {
       line.points.forEach(point => {
         if (coord.x == point.x && coord.y == point.y) {
           line.points.delete(point); // This pixel will not be rendered anymore
-          if (!erasedPixels.has(line.UUID)) {
-            erasedPixels.set(line.UUID, [coord]); // and the erased pixel is added by UUID to erasedPixels...
+          if (!erasedPixels.has(line.id)) {
+            erasedPixels.set(line.id, [coord]); // and the erased pixel is added by UUID to erasedPixels...
           } else {
-            let erasedCoords = erasedPixels.get(line.UUID);
+            let erasedCoords = erasedPixels.get(line.id);
             erasedCoords!.push(coord);
           }
         }
@@ -112,8 +112,8 @@ export const undo = () => {
   let lastAction = history[history.length - 1];
 
   if (lastAction.type == 'draw') {
-    let id = lastAction.UUID;
-    let index = lines.findIndex(x => findFunction(x.UUID, id));
+    let id = lastAction.id;
+    let index = lines.findIndex(x => findFunction(x.id, id));
     if (index != -1) {
       lines.splice(index, 1);
     }
@@ -123,7 +123,7 @@ export const undo = () => {
     // TODO send update to server
   } else if (lastAction.type == 'erase') {
     lastAction.lines.forEach((modifiedPixels, uuid) => {
-      let index = lines.findIndex(x => findFunction(uuid, x.UUID));
+      let index = lines.findIndex(x => findFunction(uuid, x.id));
       if (index != -1) {
         modifiedPixels.forEach(coord => {
           lines[index].points.add(coord);

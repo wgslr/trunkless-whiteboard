@@ -9,7 +9,7 @@ import { Line } from '../types';
 import { Line as LineProto } from '../protocol/protocol';
 
 export function lineToMessage(line: Line): ClientToServerMessage['body'] {
-  const id = encodeUUID(line.UUID);
+  const id = encodeUUID(line.id);
   const lineDrawn = {
     id,
     bitmap: [...line.points].map(entry => ({
@@ -63,7 +63,7 @@ export function decodeLineData(data: LineProto): Line {
     });
 
   return {
-    UUID: decodeUUID(data.id),
+    id: decodeUUID(data.id),
     points
   };
 }
