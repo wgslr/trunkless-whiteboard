@@ -14,43 +14,11 @@ import {
 } from '../models/whiteboard';
 import { ClientToServerMessage, ErrorReason } from '../protocol/protocol';
 import { ALLOWED_MESSAGES } from './allowed-messages';
+import { handlePreWhiteboardMessage } from './pre-whiteboard';
 
 export type ClientToServerCase = NonNullable<
   ClientToServerMessage['body']
 >['$case'];
-
-const handlePreWhiteboardMessage = (
-  message: ClientToServerMessage,
-  client: ClientConnection
-) => {
-  if (!message.body) {
-    return;
-  }
-  if (client.status.kind != 'NO_WHITEBOARD') {
-    client.send(makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED));
-    return;
-  }
-
-  // TODO  improve handling of those messages
-  switch (message.body.$case) {
-    case 'createWhiteboardRequest': {
-      client.status = {
-        kind: 'HOST',
-        whiteboard: addWhiteboard(client)
-      };
-      break;
-    }
-    case 'joinWhiteboard': {
-      const whiteboardId = decodeUUID(message.body.joinWhiteboard.whiteboardId);
-      console.log(`Client wants to join whiteboard ${whiteboardId}`);
-      const result = connectClient(client, whiteboardId);
-
-      const response = resultToMessage(result);
-      client.send(response, message.messsageId);
-      break;
-    }
-  }
-};
 
 const handleWhiteboardMessage = (
   message: ClientToServerMessage,
