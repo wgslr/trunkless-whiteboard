@@ -1,0 +1,6 @@
+{
+  "watch": ["lib", "package.json"],
+  "ext": ".ts,.js",
+  "ignore": [],
+  "exec": "yarn build"
+}
