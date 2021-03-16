@@ -1,5 +1,15 @@
 syntax = "proto3";
 
+message ResultError { ErrorReason reason = 2; }
+message ResultSuccess {}
+
+enum ErrorReason {
+  OPERATION_NOT_ALLOWED = 0;
+  WHITEBOARD_DOES_NOT_EXIST = 1;
+  COORDINATES_OUT_OF_BOUNDS = 2;
+  FIGURE_NOT_EXISTS = 3;
+}
+
 enum FigureType {
   NOTE = 0;
   LINE = 1;
@@ -29,36 +39,6 @@ message Line {
   repeated BitmapPoint bitmap = 2;
 }
 
-message CreateWhiteboardRequest {}
-message WhiteboardCreated { string whiteboard_id = 1; }
-
-// Requests that the server sends
-// information about all figures present in a whiteboard.
-message GetAllFiguresRequest {}
-
-//
-message GetAllFiguresResponse { repeated Note notes = 1; }
-
-message MoveFigure {
-  bytes figure_id = 1;
-  Coordinates new_coordinates = 2;
-}
-
-message FigureMoved {
-  bytes figure_id = 1;
-  Coordinates new_coordinates = 2;
-}
-
-// Client sends this message to request joining a whiteboard
-message JoinWhiteboard { bytes whiteboard_id = 1; }
-
-enum ErrorReason {
-  OPERATION_NOT_ALLOWED = 0;
-  WHITEBOARD_DOES_NOT_EXIST = 1;
-  COORDINATES_OUT_OF_BOUNDS = 2;
-  FIGURE_NOT_EXISTS = 3;
-}
-
 message CreateNote { Note note = 1; }
 message UpdateNotePosition {
   bytes note_id = 1;
@@ -74,16 +54,11 @@ message DeleteNote { bytes note_id = 1; }
 message NoteCreatedOrUpdated { Note note = 1; }
 message NoteDeleted { bytes note_id = 1; }
 
-message ResultError { ErrorReason reason = 2; }
-message ResultSuccess {}
-
 message ClientToServerMessage {
   string messsage_id = 100;
   oneof body {
     CreateWhiteboardRequest create_whiteboard_request = 1;
-    GetAllFiguresRequest get_all_figures_request = 2;
-    JoinWhiteboard join_whiteboard = 3;
-    MoveFigure move_figure = 5;
+    JoinWhiteboard join_whiteboard = 2;
     Line line_drawn = 6;
     CreateNote create_note = 7;
     UpdateNoteText update_note_text = 8;
@@ -99,10 +74,16 @@ message ServerToClientMessage {
     ResultError error = 1;
     ResultSuccess success = 2;
     WhiteboardCreated whiteboard_created = 3;
-    GetAllFiguresResponse get_all_figures_response = 4;
-    FigureMoved figure_moved = 5;
     Line line_drawn = 6;
     NoteCreatedOrUpdated note_created_or_updated = 8;
     NoteDeleted note_deleted = 9;
   }
 }
+
+// --- TODO ---
+
+message CreateWhiteboardRequest {}
+message WhiteboardCreated { string whiteboard_id = 1; }
+
+// Client sends this message to request joining a whiteboard
+message JoinWhiteboard { bytes whiteboard_id = 1; }

@@ -21,22 +21,6 @@ export const handleWhiteboardMessage = (
   }
 
   switch (message.body.$case) {
-    case 'getAllFiguresRequest': {
-      if (client.whiteboard) {
-        client.send({
-          $case: 'getAllFiguresResponse',
-          getAllFiguresResponse: {
-            // @ts-ignore: FIXME Figure and Note are not overlapping
-            notes: [...client.whiteboard.figures.values()].map(encodeNote)
-          }
-        });
-      }
-      break;
-    }
-    case 'moveFigure': {
-      // TODO
-      break;
-    }
     case 'lineDrawn': {
       const data = message.body.lineDrawn;
       const decodedData = messageToLine(data);
