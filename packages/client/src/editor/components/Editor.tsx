@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRecoilState } from 'recoil';
 import { addNote } from '../../controllers/note-controller';
-import { useGlobalStore } from '../../store';
 import render from '../render';
 import { modeState } from '../state';
 import {
@@ -99,8 +98,6 @@ const Editor = (props: { x: number; y: number }) => {
     };
   }, [handlePointerMove, handlePointerDown, handlePointerUp]);
 
-  const [globalStore] = useGlobalStore();
-
   // Main render function
   useEffect(() => {
     const timer = setInterval(() => render(getCtx()!, canvas.current!), 500);
@@ -119,7 +116,7 @@ const Editor = (props: { x: number; y: number }) => {
         <Tools />
         <UndoTool onClick={renderUndo} />
       </div>
-      <Stickies notes={Array.from(globalStore.notes.values())} />
+      <Stickies />
       <canvas
         ref={canvas}
         height={props.y}

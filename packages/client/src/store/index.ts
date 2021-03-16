@@ -1,38 +1,21 @@
+import { proxy, subscribe } from 'valtio';
 import type { Note } from '../types';
 import { removeNullish } from '../utils';
-import { sendUpdate } from './hook';
 import { getNewestLocalState, NoteTimeline } from './timelines/note';
 
 type Store = {
-  noteTimelines: Map<Note['id'], NoteTimeline>;
-};
-let store: Store = {
-  noteTimelines: new Map()
+  noteTimelines: { [noteId: string]: NoteTimeline };
 };
 
-export type CombinedState = {
-  notes: Map<Note['id'], Note>;
-};
+export const store: Store = proxy({ noteTimelines: Object.create(null) });
 
-export { useGlobalStore } from './hook';
-
-export const getCombinedState = (): CombinedState => {
-  const noteTimelinesArray = Array.from(store.noteTimelines.values());
-  return {
-    notes: new Map(
-      removeNullish(
-        noteTimelinesArray.map(nt => getNewestLocalState(nt))
-      ).map(note => [note.id, note])
-    )
-  };
-};
-
-export const updateStore = <T>(callback: (store: Store) => T): T => {
-  /** Callback should mutate the store.
-   * By exporting this function, and not the store variable directly,
-   * we discourage mutating it without triggering the react update.
-   */
-  const result = callback(store);
-  sendUpdate();
-  return result;
+export const getEffectiveNotes = (
+  noteTimelinesSnapshot: Readonly<Store['noteTimelines']>
+): Map<Note['id'], Note> => {
+  const noteTimelinesArray = Object.values(store.noteTimelines);
+  return new Map(
+    removeNullish(
+      noteTimelinesArray.map(nt => getNewestLocalState(nt))
+    ).map(note => [note.id, note])
+  );
 };
