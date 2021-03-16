@@ -14,9 +14,6 @@ export type ClientToServerCase = NonNullable<
   ClientToServerMessage['body']
 >['$case'];
 
-export const encodeUUID = (id: UUID): Uint8Array =>
-  Uint8Array.from(uuid.parse(id));
-
 export const resultToMessage = (
   result: Result
 ): ServerToClientMessage['body'] => {

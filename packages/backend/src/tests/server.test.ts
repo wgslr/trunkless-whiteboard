@@ -7,7 +7,7 @@ import {
   ClientToServerMessage
 } from '../protocol/protocol';
 import { v4 } from 'uuid';
-import { encodeUUID } from '../encoding';
+import { encodeUUID } from 'encoding';
 
 describe('WebSockeet server', () => {
   beforeEach(done => {
