@@ -3,7 +3,6 @@ import { TypedEmitter } from 'tiny-typed-emitter';
 import * as uuid from 'uuid';
 import type * as WebSocket from 'ws';
 import { dispatch } from '../controllers/router';
-import { newServerToClientMessage } from '../encoding';
 import {
   ClientToServerMessage,
   ServerToClientMessage
@@ -23,19 +22,19 @@ declare interface ClientConnectionEvents {
   message: (decoded: ClientToServerMessage) => void;
 }
 
-type ClientStatus =
+type WhiteboardMembershipState =
   | {
       kind: 'NO_WHITEBOARD';
     }
   | {
-      kind: 'HOST' | 'CLIENT';
+      kind: 'HOST' | 'USER';
       whiteboard: Whiteboard;
     };
-export type ClientStatusEnum = ClientStatus['kind'];
+export type WhiteboardMembership = WhiteboardMembershipState['kind'];
 
 export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
   socket: WebSocket;
-  status: ClientStatus = { kind: 'NO_WHITEBOARD' };
+  status: WhiteboardMembershipState = { kind: 'NO_WHITEBOARD' };
 
   constructor(socket: WebSocket) {
     super();
@@ -63,7 +62,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
   }
 
   public setConnectedWhiteboard(whiteboard: Whiteboard) {
-    this.status = { kind: 'CLIENT', whiteboard };
+    this.status = { kind: 'USER', whiteboard };
   }
 
   private setupSocketListeners() {
@@ -85,7 +84,10 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     });
   }
 
-  public send(body: ServerToClientMessage['body'], previousMessageId?: string) {
+  public send(
+    body: ServerToClientMessage['body'],
+    previousMessageId?: string
+  ): void {
     const message: ServerToClientMessage = {
       messsageId: uuid.v4(),
       body

@@ -3,7 +3,8 @@ import { Note } from './models/whiteboard';
 import {
   Line,
   ServerToClientMessage,
-  Note as NoteProto
+  Note as NoteProto,
+  ErrorReason
 } from './protocol/protocol';
 import type { Result, UUID } from './types';
 
@@ -21,12 +22,16 @@ export const resultToMessage = (
       success: {}
     };
   } else {
-    return {
-      $case: 'error',
-      error: { reason: result.reason }
-    };
+    return makeErrorMessage(result.reason);
   }
 };
+
+export const makeErrorMessage = (
+  reason: ErrorReason
+): ServerToClientMessage['body'] => ({
+  $case: 'error',
+  error: { reason }
+});
 
 export const messageToLine = (data: Line) => {
   return {

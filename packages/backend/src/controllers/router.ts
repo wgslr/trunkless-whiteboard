@@ -1,23 +1,38 @@
 import {
   decodeUUID,
+  makeErrorMessage,
   messageToLine,
   messageToNote,
-  noteToMessage,
   resultToMessage
 } from '../encoding';
 import { ClientConnection } from '../models/client-connection';
 import {
   addWhiteboard,
   connectClient,
-  OperationType
+  OperationType,
+  Whiteboard
 } from '../models/whiteboard';
-import { ClientToServerMessage } from '../protocol/protocol';
+import { ClientToServerMessage, ErrorReason } from '../protocol/protocol';
+import { ALLOWED_MESSAGES } from './allowed-messages';
 
-export const dispatch = (
+export type ClientToServerCase = NonNullable<
+  ClientToServerMessage['body']
+>['$case'];
+
+const handlePreWhiteboardMessage = (
   message: ClientToServerMessage,
   client: ClientConnection
 ) => {
-  switch (message.body?.$case) {
+  if (!message.body) {
+    return;
+  }
+  if (client.status.kind != 'NO_WHITEBOARD') {
+    client.send(makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED));
+    return;
+  }
+
+  // TODO  improve handling of those messages
+  switch (message.body.$case) {
     case 'createWhiteboardRequest': {
       client.status = {
         kind: 'HOST',
@@ -25,6 +40,31 @@ export const dispatch = (
       };
       break;
     }
+    case 'joinWhiteboard': {
+      const whiteboardId = decodeUUID(message.body.joinWhiteboard.whiteboardId);
+      console.log(`Client wants to join whiteboard ${whiteboardId}`);
+      const result = connectClient(client, whiteboardId);
+
+      const response = resultToMessage(result);
+      client.send(response, message.messsageId);
+      break;
+    }
+  }
+};
+
+const handleWhiteboardMessage = (
+  message: ClientToServerMessage,
+  client: ClientConnection
+) => {
+  if (!message.body) {
+    return;
+  }
+  if (client.status.kind !== 'HOST' && client.status.kind !== 'USER') {
+    client.send(makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED));
+    return;
+  }
+
+  switch (message.body.$case) {
     case 'getAllFiguresRequest': {
       if (client.whiteboard) {
         client.send({
@@ -35,15 +75,6 @@ export const dispatch = (
           }
         });
       }
-      break;
-    }
-    case 'joinWhiteboard': {
-      const whiteboardId = decodeUUID(message.body.joinWhiteboard.whiteboardId);
-      console.log(`Client wants to join whiteboard ${whiteboardId}`);
-      const result = connectClient(client, whiteboardId);
-
-      const response = resultToMessage(result);
-      client.send(response, message.messsageId);
       break;
     }
     case 'moveFigure': {
@@ -131,5 +162,30 @@ export const dispatch = (
       // TODO send error about unrecognized message
       break;
     }
+  }
+};
+
+export const dispatch = (
+  message: ClientToServerMessage,
+  client: ClientConnection
+): void => {
+  if (!message.body || !message.body.$case) {
+    return;
+  }
+
+  const $case = message.body?.$case;
+
+  if (
+    client.status.kind === 'NO_WHITEBOARD' &&
+    ALLOWED_MESSAGES.NO_WHITEBOARD.includes($case)
+  ) {
+    handlePreWhiteboardMessage(message, client);
+  } else if (
+    (client.status.kind === 'USER' || client.status.kind === 'HOST') &&
+    ALLOWED_MESSAGES.USER.includes($case)
+  ) {
+    handleWhiteboardMessage(message, client);
+  } else {
+    client.send(makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED));
   }
 };
