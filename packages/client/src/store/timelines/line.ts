@@ -1,5 +1,6 @@
 import { v4 } from 'uuid';
 import type { Coordinates, Line, UUID } from '../../types';
+import * as R from 'ramda';
 
 // TODO functions below should probably validate
 // that after 'deleted' there can't be newer patches
@@ -36,18 +37,26 @@ const newPatch = (diff: Diff): Patch => ({
   diff
 });
 
-// export const getEffectiveLine = (lt: LineTimeline): Line | null => {
-//   const current: Line = lt.committed ?? { id: lt.figureId, points: new Set() };
-//   for (const { diff } of lt.patches) {
-//     if (diff.type === 'LINE_DELETED') {
-//       return null;
-//     } else if (diff.type === 'ADD_POINTS') {
-//       diff.points.forEach(p => current.points.add(p));
-//     } else {
-//       diff.
-//     }
-//   }
-// };
+export const getEffectiveLine = (lt: LineTimeline): Line | null => {
+  const current: Line = lt.committed ?? { id: lt.figureId, points: [] };
+  for (const { diff } of lt.patches) {
+    switch (diff.type) {
+      case 'LINE_DELETED':
+        return null;
+      case 'ADD_POINTS':
+        // does not preserve uniqueness, but it will be resolved
+        // in the next REMOVE_POINTS or on returning
+        current.points = current.points.concat(diff.points);
+        break;
+      case 'REMOVE_POINTS':
+        current.points = R.difference(current.points, diff.points);
+        break;
+    }
+  }
+
+  current.points = R.uniq(current.points);
+  return current;
+};
 
 export const newCommittedLineTimeline = (initial: Line): LineTimeline => ({
   figureId: initial.id,
