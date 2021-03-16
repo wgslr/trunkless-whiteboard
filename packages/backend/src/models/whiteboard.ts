@@ -1,6 +1,6 @@
+import { encodeUUID } from 'encoding';
 import { v4 as uuidv4 } from 'uuid';
 import { noteToMessage, resultToMessage } from '../encoding';
-import { encodeUUID } from 'encoding';
 import {
   ClientToServerMessage,
   Coordinates,
@@ -10,7 +10,6 @@ import {
 } from '../protocol/protocol';
 import { Result, UUID } from '../types';
 import { ClientConnection } from './client-connection';
-import * as R from 'ramda';
 
 export abstract class Figure {
   id: UUID;
@@ -106,7 +105,7 @@ export class Whiteboard {
         const { line, causedBy } = op.data;
         const sanitizedLine = {
           id: line.id,
-          points: this.removeInvalidCoords(R.uniq(line.points))
+          points: this.removeInvalidCoords(line.points)
         };
         this.lines.set(line.id, sanitizedLine);
 
@@ -140,8 +139,7 @@ export class Whiteboard {
           return;
         }
 
-        line.points = R.union(
-          line.points,
+        line.points = line.points.concat(
           this.removeInvalidCoords(patch.points)
         );
 
