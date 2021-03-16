@@ -1,5 +1,6 @@
 import * as R from 'ramda';
 import { v4 } from 'uuid';
+import { lineToMessage } from '../../connection/messages';
 import type { Coordinates, Line, UUID } from '../../types';
 
 // TODO functions below should probably validate
@@ -38,7 +39,10 @@ const newPatch = (diff: Diff): Patch => ({
 });
 
 export const getEffectiveLine = (lt: LineTimeline): Line | null => {
-  const current: Line = lt.committed ?? { id: lt.figureId, points: [] };
+  const current: Line = lt.committed
+    ? { ...lt.committed }
+    : { id: lt.figureId, points: [] };
+  console.debug(`Flattening ${lt.patches.length} line patches`);
   for (const { diff } of lt.patches) {
     switch (diff.type) {
       case 'LINE_DELETED':

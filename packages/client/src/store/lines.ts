@@ -28,6 +28,21 @@ export const localAddPoints = (
   return patchId;
 };
 
+export const setServerState = (id: Line['id'], state: Line | null) => {
+  let lt = store.lineTimelines[id];
+  if (!lt) {
+    if (state === null) {
+      // if have nothing to delete
+      return;
+    } else {
+      lt = lineTimeline.newCommittedLineTimeline(state);
+    }
+  } else {
+    lt = lineTimeline.setCommitted(lt, state);
+  }
+  store.lineTimelines[lt.figureId] = lt;
+};
+
 export const discardPatch = (figureId: Line['id'], patchId: PatchId) => {
   let nt = store.lineTimelines[figureId];
   if (nt) {

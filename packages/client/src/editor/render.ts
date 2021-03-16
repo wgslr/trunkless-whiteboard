@@ -17,6 +17,7 @@ const render = (
   if (ctx == null) {
     throw new Error('no ctx');
   }
+  console.log('canvas render');
   reset(ctx, canvas);
 
   ctx.fillStyle = '#000000';

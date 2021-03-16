@@ -6,22 +6,6 @@ import {
 } from '../protocol/protocol';
 import type { Line, Note, UUID } from '../types';
 
-export function lineToMessage(line: Line): ClientToServerMessage['body'] {
-  const id = encodeUUID(line.id);
-  const lineDrawn = {
-    id,
-    bitmap: [...line.points].map(entry => ({
-      coordinates: entry,
-      value: 1
-    }))
-  };
-
-  return {
-    $case: 'lineDrawn',
-    lineDrawn
-  };
-}
-
 export const makeCreateNoteMessage = (
   note: Note
 ): ClientToServerMessage['body'] => ({
@@ -50,7 +34,20 @@ export const makeCreateLineMessage = (
   line: Line
 ): ClientToServerMessage['body'] => ({
   $case: 'createLine',
-  createLine: {}
+  createLine: {
+    line: lineToMessage(line)
+  }
+});
+
+export const makeAddPointsToLineMessage = (
+  lineId: Line['id'],
+  points: Line['points']
+): ClientToServerMessage['body'] => ({
+  $case: 'addPointsToLine',
+  addPointsToLine: {
+    lineId: encodeUUID(lineId),
+    points: points
+  }
 });
 
 // TODO deduplciate with backend code
@@ -59,7 +56,7 @@ const encodeUUID = (id: UUID): Uint8Array => Uint8Array.from(uuid.parse(id));
 const decodeUUID = (id: Uint8Array): UUID => uuid.stringify(id);
 
 export function decodeLineData(data: LineProto): Line {
-  const points = data.bitmap.filter(p => p.value == 1).map(p => p.coordinates!);
+  const points = data.points;
 
   return {
     id: decodeUUID(data.id),
@@ -67,10 +64,17 @@ export function decodeLineData(data: LineProto): Line {
   };
 }
 
+export function lineToMessage(line: Line): LineProto {
+  return {
+    ...line,
+    id: encodeUUID(line.id)
+  };
+}
+
 export function noteToMessage(note: Note): NoteProto {
   return {
     ...note,
-    id: Uint8Array.from(uuid.parse(note.id))
+    id: encodeUUID(note.id)
   };
 }
 

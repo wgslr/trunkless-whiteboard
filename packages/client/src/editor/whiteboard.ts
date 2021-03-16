@@ -4,6 +4,7 @@ import { reqResponseService } from '../connection/ServerContext';
 import { Action, Coordinates, Img, Line, UUID } from '../types';
 import { erasePoints, linePoints } from './math';
 import * as R from 'ramda';
+import { addLine, addPointsToLine } from '../controllers/line-controller';
 
 export const lines: Line[] = [];
 
@@ -23,10 +24,8 @@ const UUID_NAMESPACE = '940beed9-f057-4088-a714-a9f5f2fc6052';
 
 export const startLine = (point: Coordinates) => {
   drawing = true;
-  lines.push({
-    id: v5('line' + (lines.length - 1).toString(), UUID_NAMESPACE),
-    points: [point]
-  }); // placeholder UUID
+  const newLine = addLine([point]);
+  lines.push(newLine);
   lastPos = point;
 };
 
@@ -34,13 +33,10 @@ export const appendLine = (point: Coordinates) => {
   if (!drawing) {
     return;
   }
-  let points = linePoints(lastPos!, point);
+  let newPoints = linePoints(lastPos!, point);
 
-  lines[lines.length - 1].points = lines[lines.length - 1].points.concat(
-    points
-  );
+  addPointsToLine(lines[lines.length - 1].id, newPoints);
   lastPos = point;
-  reqResponseService.send(lineToMessage(lines[lines.length - 1]));
 };
 
 export const finishLine = () => {
@@ -51,7 +47,7 @@ export const finishLine = () => {
   drawing = false;
 
   // TODO send update request to server
-  reqResponseService.send(lineToMessage(lines[lines.length - 1]));
+  // reqResponseService.send(lineToMessage(lines[lines.length - 1]));
 };
 
 export const startErase = (point: Coordinates) => {
