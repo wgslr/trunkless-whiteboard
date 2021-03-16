@@ -1,10 +1,10 @@
 import React from 'react';
 import { deleteNote, updateNoteText } from '../../controllers/note-controller';
-import { useEffectivNotes } from '../../store/hooks';
+import { useEffectiveNotes } from '../../store/hooks';
 import StickyNote from './StickyNote';
 
 const Stickies: React.FunctionComponent = () => {
-  const notesSnaphost = useEffectivNotes();
+  const notesSnaphost = useEffectiveNotes();
   return (
     <div id="stickies" className="stickersRoot">
       {Array.from(notesSnaphost.values()).map(note => (

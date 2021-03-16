@@ -4,17 +4,15 @@ import { removeNullish } from '../utils';
 import { getNewestLocalState, NoteTimeline } from './timelines/note';
 
 type Store = {
-  noteTimelines: Map<Note['id'], NoteTimeline>;
+  noteTimelines: { [noteId: string]: NoteTimeline };
 };
 
-export const store: Store = proxy({ noteTimelines: new Map() });
-
-subscribe(store, () => console.log('Store changed', { store }));
+export const store: Store = proxy({ noteTimelines: Object.create(null) });
 
 export const getEffectiveNotes = (
   noteTimelinesSnapshot: Readonly<Store['noteTimelines']>
 ): Map<Note['id'], Note> => {
-  const noteTimelinesArray = Array.from(noteTimelinesSnapshot.values());
+  const noteTimelinesArray = Object.values(store.noteTimelines);
   return new Map(
     removeNullish(
       noteTimelinesArray.map(nt => getNewestLocalState(nt))
