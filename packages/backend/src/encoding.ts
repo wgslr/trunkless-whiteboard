@@ -4,9 +4,14 @@ import {
   Line,
   ServerToClientMessage,
   Note as NoteProto,
-  ErrorReason
+  ErrorReason,
+  ClientToServerMessage
 } from './protocol/protocol';
 import type { Result, UUID } from './types';
+
+export type ClientToServerCase = NonNullable<
+  ClientToServerMessage['body']
+>['$case'];
 
 export const encodeUUID = (id: UUID): Uint8Array =>
   Uint8Array.from(uuid.parse(id));

@@ -1,6 +1,5 @@
+import { ClientToServerCase } from '../encoding';
 import { WhiteboardMembership } from '../models/client-connection';
-import { ClientToServerMessage } from '../protocol/protocol';
-import { ClientToServerCase } from './router';
 
 const commonWhitboardMessages: ClientToServerCase[] = [
   'createNote',
