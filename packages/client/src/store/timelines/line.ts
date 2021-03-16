@@ -1,6 +1,5 @@
 import * as R from 'ramda';
 import { v4 } from 'uuid';
-import { lineToMessage } from '../../connection/messages';
 import type { Coordinates, Line, UUID } from '../../types';
 
 // TODO functions below should probably validate
@@ -39,10 +38,11 @@ const newPatch = (diff: Diff): Patch => ({
 });
 
 export const getEffectiveLine = (lt: LineTimeline): Line | null => {
-  const current: Line = lt.committed
-    ? { ...lt.committed }
-    : { id: lt.figureId, points: [] };
-  console.debug(`Flattening ${lt.patches.length} line patches`);
+  // store coords as strings to allow storage in Set
+  const pointJSONs: Set<string> = lt.committed
+    ? new Set(lt.committed.points.map(p => JSON.stringify(p)))
+    : new Set();
+
   for (const { diff } of lt.patches) {
     switch (diff.type) {
       case 'LINE_DELETED':
@@ -50,16 +50,17 @@ export const getEffectiveLine = (lt: LineTimeline): Line | null => {
       case 'ADD_POINTS':
         // does not preserve uniqueness, but it will be resolved
         // in the next REMOVE_POINTS or on returning
-        current.points = current.points.concat(diff.points);
+        diff.points.forEach(p => pointJSONs.add(JSON.stringify(p)));
         break;
       case 'REMOVE_POINTS':
-        current.points = R.difference(current.points, diff.points);
+        diff.points.forEach(p => pointJSONs.delete(JSON.stringify(p)));
         break;
     }
   }
-
-  current.points = R.uniq(current.points);
-  return current;
+  return {
+    id: lt.figureId,
+    points: [...pointJSONs].map(s => JSON.parse(s))
+  };
 };
 
 export const newCommittedLineTimeline = (initial: Line): LineTimeline => ({
