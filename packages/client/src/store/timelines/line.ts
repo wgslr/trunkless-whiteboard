@@ -1,6 +1,6 @@
+import * as R from 'ramda';
 import { v4 } from 'uuid';
 import type { Coordinates, Line, UUID } from '../../types';
-import * as R from 'ramda';
 
 // TODO functions below should probably validate
 // that after 'deleted' there can't be newer patches
@@ -96,3 +96,19 @@ export const patchAddPoints = (
     figureId: lt.figureId
   };
 };
+
+export const setCommitted = (
+  lt: LineTimeline,
+  committed: LineTimeline['committed']
+): LineTimeline => ({
+  ...lt,
+  committed
+});
+
+export const discardPatch = (
+  lt: LineTimeline,
+  changeId: Patch['id']
+): LineTimeline => ({
+  ...lt,
+  patches: lt.patches.filter(p => p.id !== changeId)
+});

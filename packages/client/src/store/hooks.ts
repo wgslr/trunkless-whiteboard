@@ -1,7 +1,12 @@
 import { useSnapshot } from 'valtio';
-import { getEffectiveNotes, store } from '.';
+import { getEffectiveLines, getEffectiveNotes, store } from '.';
 
 export const useEffectiveNotes = () => {
-  const noteTimelinesSnapshot = useSnapshot(store);
-  return getEffectiveNotes(noteTimelinesSnapshot.noteTimelines);
+  const storeSnapshot = useSnapshot(store);
+  return getEffectiveNotes(storeSnapshot.noteTimelines);
+};
+
+export const useEffectiveLines = () => {
+  const storeSnapshot = useSnapshot(store);
+  return getEffectiveLines(storeSnapshot.lineTimelines);
 };

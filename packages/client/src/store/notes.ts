@@ -11,7 +11,6 @@ import {
 
 type PatchId = UUID;
 
-// TODO change name, if we are doing server push in this function
 export const localAddNote = (note: Note) => {
   const { timeline, figureId, patchId } = newLocalNoteTimeline(note);
   store.noteTimelines[figureId] = timeline;
