@@ -2,8 +2,8 @@ import { store } from '.';
 import { Note, UUID } from '../types';
 import * as noteTimeline from './timelines/note';
 import {
-  modifyDelete,
-  modifyText,
+  patchDeleteNote,
+  patchText,
   newCommittedNoteTimeline,
   newLocalNoteTimeline,
   setCommitted
@@ -23,7 +23,7 @@ export const localDeleteNote = (id: Note['id']): PatchId | null => {
   if (!oldTimeline) {
     return null;
   }
-  const { patchId, timeline, figureId } = modifyDelete(oldTimeline);
+  const { patchId, timeline, figureId } = patchDeleteNote(oldTimeline);
   store.noteTimelines[figureId] = timeline;
   return patchId;
 };
@@ -33,7 +33,7 @@ export const localUpdateText = (id: Note['id'], newText: string): PatchId => {
   if (!oldTimeline) {
     throw new Error('Tried updating text of a note without a NoteTimeline');
   }
-  const { patchId, timeline, figureId } = modifyText(oldTimeline, newText);
+  const { patchId, timeline, figureId } = patchText(oldTimeline, newText);
   store.noteTimelines[figureId] = timeline;
   return patchId;
 };

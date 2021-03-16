@@ -27,7 +27,7 @@ const newPatch = (diff: Diff): Patch => ({
   diff
 });
 
-export const getNewestLocalState = (nt: NoteTimeline): Note | null => {
+export const getEffectiveNote = (nt: NoteTimeline): Note | null => {
   // Flattens information about the note, going from newest patch to oldest
 
   const current: Partial<Note> = { id: nt.figureId };
@@ -79,7 +79,7 @@ export const newLocalNoteTimeline = (initial: Note): Result => {
   };
 };
 
-export const modifyText = (nt: NoteTimeline, newText: string): Result => {
+export const patchText = (nt: NoteTimeline, newText: string): Result => {
   const patch = newPatch({ text: newText });
   const timeline = {
     ...nt,
@@ -92,7 +92,7 @@ export const modifyText = (nt: NoteTimeline, newText: string): Result => {
   };
 };
 
-export const modifyPositiion = (
+export const patchPosition = (
   nt: NoteTimeline,
   newPosition: Coordinates
 ): NoteTimeline => {
@@ -102,7 +102,7 @@ export const modifyPositiion = (
   };
 };
 
-export const modifyDelete = (nt: NoteTimeline): Result => {
+export const patchDeleteNote = (nt: NoteTimeline): Result => {
   const patch = newPatch('deleted');
   const timeline = {
     ...nt,

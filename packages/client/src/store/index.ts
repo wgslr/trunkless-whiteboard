@@ -1,7 +1,7 @@
 import { proxy, subscribe } from 'valtio';
 import type { Note } from '../types';
 import { removeNullish } from '../utils';
-import { getNewestLocalState, NoteTimeline } from './timelines/note';
+import { getEffectiveNote, NoteTimeline } from './timelines/note';
 
 type Store = {
   noteTimelines: { [noteId: string]: NoteTimeline };
@@ -15,7 +15,7 @@ export const getEffectiveNotes = (
   const noteTimelinesArray = Object.values(noteTimelinesSnapshot);
   return new Map(
     removeNullish(
-      noteTimelinesArray.map(nt => getNewestLocalState(nt))
+      noteTimelinesArray.map(nt => getEffectiveNote(nt))
     ).map(note => [note.id, note])
   );
 };
