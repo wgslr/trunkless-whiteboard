@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@types/uuid": "^8.3.0",
+    "encoding": "^0.0.0",
     "express": "^4.17.1",
     "tiny-typed-emitter": "^2.0.3",
     "uuid": "^8.3.2",

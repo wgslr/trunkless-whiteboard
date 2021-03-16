@@ -1,4 +1,4 @@
-import { decodeUUID } from '../editor/encoding';
+import { decodeUUID } from 'encoding';
 import * as whiteboard from '../editor/whiteboard';
 import { ServerToClientMessage } from '../protocol/protocol';
 import { setServerState } from '../store/notes';
