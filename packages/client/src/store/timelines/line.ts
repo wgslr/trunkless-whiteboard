@@ -1,6 +1,5 @@
-import { METHODS } from 'node:http';
 import { v4 } from 'uuid';
-import type { Coordinates, UUID, Line } from '../../types';
+import type { Coordinates, Line, UUID } from '../../types';
 
 // TODO functions below should probably validate
 // that after 'deleted' there can't be newer patches
@@ -36,6 +35,19 @@ const newPatch = (diff: Diff): Patch => ({
   id: v4(),
   diff
 });
+
+// export const getEffectiveLine = (lt: LineTimeline): Line | null => {
+//   const current: Line = lt.committed ?? { id: lt.figureId, points: new Set() };
+//   for (const { diff } of lt.patches) {
+//     if (diff.type === 'LINE_DELETED') {
+//       return null;
+//     } else if (diff.type === 'ADD_POINTS') {
+//       diff.points.forEach(p => current.points.add(p));
+//     } else {
+//       diff.
+//     }
+//   }
+// };
 
 export const newCommittedLineTimeline = (initial: Line): LineTimeline => ({
   figureId: initial.id,
