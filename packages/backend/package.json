@@ -9,7 +9,7 @@
   "directories": {},
   "files": [],
   "scripts": {
-    "start": "tsc && node dist/app.js",
+    "start": "tsc && node dist/index.js",
     "dev": "nodemon",
     "test": "NODE_ENV=test jest --verbose --runInBand",
     "test:watch": "NODE_ENV=test jest --verbose --runInBand --watch"

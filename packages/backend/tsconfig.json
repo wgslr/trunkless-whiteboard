@@ -1,3 +1,24 @@
 {
-  "extends": "../../tsconfig.json"
+  "compilerOptions": {
+    "target": "ES6",
+    "lib": ["es6", "es2017", "es2020.promise", "esnext.asynciterable"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "removeComments": false,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": false,
+    "alwaysStrict": true,
+    "noFallthroughCasesInSwitch": true,
+    "typeRoots": ["./src/types", "./node_modules/@types"],
+    "baseUrl": "./src/types",
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "dist",
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "downlevelIteration": true
+  }
 }
