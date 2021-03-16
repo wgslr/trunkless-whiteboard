@@ -7,6 +7,6 @@ export const useEffectiveNotes = () => {
 };
 
 export const useEffectiveLines = () => {
-  const storeSnapshot = useSnapshot(store, { sync: true });
+  const storeSnapshot = useSnapshot(store);
   return getEffectiveLines(storeSnapshot.lineTimelines);
 };
