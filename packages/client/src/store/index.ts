@@ -12,7 +12,7 @@ export const store: Store = proxy({ noteTimelines: Object.create(null) });
 export const getEffectiveNotes = (
   noteTimelinesSnapshot: Readonly<Store['noteTimelines']>
 ): Map<Note['id'], Note> => {
-  const noteTimelinesArray = Object.values(store.noteTimelines);
+  const noteTimelinesArray = Object.values(noteTimelinesSnapshot);
   return new Map(
     removeNullish(
       noteTimelinesArray.map(nt => getNewestLocalState(nt))
