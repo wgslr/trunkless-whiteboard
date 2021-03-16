@@ -59,3 +59,19 @@ export const newLocalLineTimeline = (initial: Line): Result => {
     figureId: initial.id
   };
 };
+
+export const patchAddPoints = (
+  lt: LineTimeline,
+  points: Set<Coordinates>
+): Result => {
+  const patch = newPatch({ type: 'ADD_POINTS', points: new Set(points) });
+  const timeline = {
+    ...lt,
+    patches: lt.patches.concat(patch)
+  };
+  return {
+    timeline,
+    patchId: patch.id,
+    figureId: lt.figureId
+  };
+};
