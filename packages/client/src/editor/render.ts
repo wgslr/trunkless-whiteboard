@@ -1,7 +1,7 @@
 //import React, { useCallback, useEffect, useRef} from "react";
 //import { isContext } from "vm";
 //import {Coordinate} from '../types';
-import { bitmap } from './whiteboard';
+import { lines } from './whiteboard';
 
 const reset = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -16,12 +16,15 @@ const render = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
   reset(ctx, canvas);
 
   ctx.fillStyle = '#000000';
-  console.debug(`bitmap render: drawing ${bitmap.length} lines`);
-  bitmap.forEach(line => {
-    line.points.forEach((value, key) => {
-      if (value != 0) {
-        ctx.fillRect(key.x - canvas.offsetLeft, key.y - canvas.offsetTop, 1, 1);
-      }
+  console.debug(`bitmap render: drawing ${lines.length} lines`);
+  lines.forEach(line => {
+    line.points.forEach(point => {
+      ctx.fillRect(
+        point.x - canvas.offsetLeft,
+        point.y - canvas.offsetTop,
+        1,
+        1
+      );
     });
   });
 };

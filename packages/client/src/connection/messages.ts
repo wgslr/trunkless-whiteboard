@@ -1,21 +1,20 @@
-import { encode } from 'node:punycode';
 import * as uuid from 'uuid';
 import {
   ClientToServerMessage,
-  Note as NoteProto,
-  ServerToClientMessage
+  Coordinates,
+  Note as NoteProto
 } from '../protocol/protocol';
-import { setServerState } from '../store/notes';
 import type { Note, UUID } from '../types';
 import { Line } from '../types';
+import { Line as LineProto } from '../protocol/protocol';
 
 export function lineToMessage(line: Line): ClientToServerMessage['body'] {
   const id = encodeUUID(line.UUID);
   const lineDrawn = {
     id,
-    bitmap: Array.from(line.points.entries()).map(entry => ({
-      coordinates: entry[0],
-      value: entry[1]
+    bitmap: [...line.points].map(entry => ({
+      coordinates: entry,
+      value: 1
     }))
   };
 
@@ -54,15 +53,18 @@ const encodeUUID = (id: UUID): Uint8Array => Uint8Array.from(uuid.parse(id));
 
 const decodeUUID = (id: Uint8Array): UUID => uuid.stringify(id);
 
-export function decodeLineData(data: any) {
-  const bitmap = new Map();
-  for (let point of data.bitmap) {
-    bitmap.set(point.coordinates, point.value);
-  }
+export function decodeLineData(data: LineProto): Line {
+  const points = new Set<Coordinates>();
+  data.bitmap
+    .filter(p => p.value == 1)
+    .forEach(point => {
+      // undefined should not be possible, but typing complains
+      point.coordinates !== undefined && points.add(point.coordinates);
+    });
 
   return {
-    id: decodeUUID(data.id),
-    bitmap
+    UUID: decodeUUID(data.id),
+    points
   };
 }
 

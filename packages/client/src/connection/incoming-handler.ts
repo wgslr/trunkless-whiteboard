@@ -12,7 +12,7 @@ export const handleMessage = (message: ServerToClientMessage): void => {
       const lineData = decodeLineData(message.body.lineDrawn);
       // TODO encapsulate it in the whiteboard module
       // TODO ignore on the client that created the line
-      whiteboard.bitmap.push({ UUID: lineData.id, points: lineData.bitmap });
+      whiteboard.lines.push({ UUID: lineData.UUID, points: lineData.points });
       break;
     }
     case 'noteCreatedOrUpdated': {

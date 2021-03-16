@@ -4,7 +4,7 @@ import { reqResponseService } from '../connection/ServerContext';
 import { Action, Coordinates, Img, Line, UUID } from '../types';
 import { erasePoints, linePoints } from './math';
 
-export const bitmap: Line[] = [];
+export const lines: Line[] = [];
 
 export const history: Action[] = [];
 
@@ -22,11 +22,11 @@ const UUID_NAMESPACE = '940beed9-f057-4088-a714-a9f5f2fc6052';
 
 export const startLine = (point: Coordinates) => {
   drawing = true;
-  bitmap.push({
-    UUID: v5('line' + (bitmap.length - 1).toString(), UUID_NAMESPACE),
+  lines.push({
+    UUID: v5('line' + (lines.length - 1).toString(), UUID_NAMESPACE),
     points: new Set()
   }); // placeholder UUID
-  bitmap[bitmap.length - 1].points.add(point);
+  lines[lines.length - 1].points.add(point);
   lastPos = point;
 };
 
@@ -35,20 +35,20 @@ export const appendLine = (point: Coordinates) => {
     return;
   }
   let list = linePoints(lastPos!, point);
-  list.forEach(p => bitmap[bitmap.length - 1].points.add(p));
+  list.forEach(p => lines[lines.length - 1].points.add(p));
   lastPos = point;
-  reqResponseService.send(lineToMessage(bitmap[bitmap.length - 1]));
+  reqResponseService.send(lineToMessage(lines[lines.length - 1]));
 };
 
 export const finishLine = () => {
   history.push({
     type: 'draw',
-    UUID: bitmap[bitmap.length - 1].UUID
+    UUID: lines[lines.length - 1].UUID
   });
   drawing = false;
 
   // TODO send update request to server
-  reqResponseService.send(lineToMessage(bitmap[bitmap.length - 1]));
+  reqResponseService.send(lineToMessage(lines[lines.length - 1]));
 };
 
 export const startErase = (point: Coordinates) => {
@@ -74,17 +74,16 @@ export const appendErase = (point: Coordinates) => {
 };
 
 const updateErase = () => {
-  eraseBuffer.map((coord, j) => {
-    bitmap.map((line, i) => {
-      line.points.forEach((value, key) => {
-        if (coord.x == key.x && coord.y == key.y) {
-          line.points.delete(key); // This pixel will not be rendered anymore
+  eraseBuffer.map(coord => {
+    lines.map(line => {
+      line.points.forEach(point => {
+        if (coord.x == point.x && coord.y == point.y) {
+          line.points.delete(point); // This pixel will not be rendered anymore
           if (!erasedPixels.has(line.UUID)) {
             erasedPixels.set(line.UUID, [coord]); // and the erased pixel is added by UUID to erasedPixels...
           } else {
             let erasedCoords = erasedPixels.get(line.UUID);
             erasedCoords!.push(coord);
-            erasedPixels.set(line.UUID, erasedCoords!);
           }
         }
       });
@@ -114,9 +113,9 @@ export const undo = () => {
 
   if (lastAction.type == 'draw') {
     let id = lastAction.UUID;
-    let index = bitmap.findIndex(x => findFunction(x.UUID, id));
+    let index = lines.findIndex(x => findFunction(x.UUID, id));
     if (index != -1) {
-      bitmap.splice(index, 1);
+      lines.splice(index, 1);
     }
 
     history.pop();
@@ -124,10 +123,10 @@ export const undo = () => {
     // TODO send update to server
   } else if (lastAction.type == 'erase') {
     lastAction.lines.forEach((modifiedPixels, uuid) => {
-      let index = bitmap.findIndex(x => findFunction(uuid, x.UUID));
+      let index = lines.findIndex(x => findFunction(uuid, x.UUID));
       if (index != -1) {
         modifiedPixels.forEach(coord => {
-          bitmap[index].points.add(coord);
+          lines[index].points.add(coord);
         });
       }
     });
