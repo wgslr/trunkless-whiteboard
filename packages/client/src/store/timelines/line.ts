@@ -39,28 +39,21 @@ const newPatch = (diff: Diff): Patch => ({
 
 export const getEffectiveLine = (lt: LineTimeline): Line | null => {
   // store coords as strings to allow storage in Set
-  const pointJSONs: Set<string> = lt.committed
-    ? new Set(lt.committed.points.map(p => JSON.stringify(p)))
-    : new Set();
+  let points: Coordinates[] = lt.committed ? lt.committed.points : [];
 
   for (const { diff } of lt.patches) {
     switch (diff.type) {
       case 'LINE_DELETED':
         return null;
       case 'ADD_POINTS':
-        // does not preserve uniqueness, but it will be resolved
-        // in the next REMOVE_POINTS or on returning
-        diff.points.forEach(p => pointJSONs.add(JSON.stringify(p)));
+        points = points.concat(diff.points);
         break;
       case 'REMOVE_POINTS':
-        diff.points.forEach(p => pointJSONs.delete(JSON.stringify(p)));
+        points = R.without(diff.points, points);
         break;
     }
   }
-  return {
-    id: lt.figureId,
-    points: [...pointJSONs].map(s => JSON.parse(s))
-  };
+  return { id: lt.figureId, points };
 };
 
 export const newCommittedLineTimeline = (initial: Line): LineTimeline => ({
