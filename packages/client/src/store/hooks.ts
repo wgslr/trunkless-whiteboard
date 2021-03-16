@@ -1,11 +1,9 @@
 import { useSnapshot } from 'valtio';
-import { getEffectiveNotes, noteTimelinesState } from '../store';
+import { getEffectiveNotes, store } from '.';
 import { NoteTimeline } from '../store/timelines/note';
 import { Note } from '../types';
 
 export const useEffectivNotes = () => {
-  const noteTimelinesSnapshot = useSnapshot(noteTimelinesState) as Readonly<
-    Map<Note['id'], NoteTimeline>
-  >;
-  return getEffectiveNotes(noteTimelinesSnapshot);
+  const noteTimelinesSnapshot = useSnapshot(store);
+  return getEffectiveNotes(noteTimelinesSnapshot.noteTimelines);
 };
