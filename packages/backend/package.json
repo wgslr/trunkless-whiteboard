@@ -1,13 +1,7 @@
 {
   "name": "backend",
   "version": "0.0.0",
-  "description": "",
-  "author": "",
   "homepage": "https://github.com/wgslr/trunkless-whiteboard#readme",
-  "license": "",
-  "main": "index.ts",
-  "directories": {},
-  "files": [],
   "scripts": {
     "start": "tsc && node dist/index.js",
     "dev": "nodemon",
