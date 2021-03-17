@@ -4,7 +4,12 @@ import { reqResponseService } from '../connection/ServerContext';
 import { Action, Coordinates, Img, Line, UUID } from '../types';
 import { erasePoints, linePoints } from './math';
 import * as R from 'ramda';
-import { addLine, addPointsToLine } from '../controllers/line-controller';
+import {
+  addLine,
+  addPointsToLine,
+  remotePointsFromLine
+} from '../controllers/line-controller';
+import { getEffectiveLines } from '../store';
 
 export const lines: Line[] = [];
 
@@ -16,7 +21,6 @@ let drawing = false;
 let erasing = false;
 
 let lastPos: Coordinates | null = null;
-let eraseBuffer: Coordinates[] = [];
 let erasedPixels: Map<UUID, Coordinates[]> = new Map<UUID, Coordinates[]>();
 
 // TODO using v5 is temporary; generate random v4 UUIDs
@@ -52,10 +56,8 @@ export const finishLine = () => {
 
 export const startErase = (point: Coordinates) => {
   erasing = true;
-  eraseBuffer = [];
   erasedPixels = new Map<UUID, Coordinates[]>();
   //eraseIndex++;
-  eraseBuffer.push(point);
   lastPos = point;
 };
 
@@ -63,16 +65,23 @@ export const appendErase = (point: Coordinates) => {
   if (!erasing) {
     return;
   }
-  eraseBuffer = [];
-  let list = erasePoints(lastPos!, point);
-  for (let i = 0; i < list.length; i++) {
-    eraseBuffer.push(list[i]);
-  }
-  updateErase();
+  let erasedPoints = erasePoints(lastPos!, point);
+  updateErasedLines(erasedPoints);
   lastPos = point;
 };
 
-const updateErase = () => {
+const updateErasedLines = (erasedPoints: Coordinates[]) => {
+  const lines = getEffectiveLines();
+
+  lines.forEach(line => {
+    const intersection = R.intersection(line.points, erasedPoints);
+    if (intersection.length > 0) {
+      remotePointsFromLine(line.id, intersection);
+    }
+  });
+};
+
+const updateErase = (eraseBuffer: Coordinates[]) => {
   eraseBuffer.map(coord => {
     lines.map(line => {
       // work on a copy, so that splice doesn't break iteration

@@ -21,9 +21,27 @@ export const localAddPoints = (
   return updateLineStore(lineTimelines => {
     const oldTimeline = lineTimelines[id];
     if (!oldTimeline) {
-      throw new Error('Tried updating text of a line without a LineTimeline');
+      throw new Error('Tried updating points of a line without a LineTimeline');
     }
     const { patchId, timeline, figureId } = lineTimeline.patchAddPoints(
+      oldTimeline,
+      points
+    );
+    lineTimelines[figureId] = timeline;
+    return patchId;
+  });
+};
+
+export const localRemovePoints = (
+  id: Line['id'],
+  points: Line['points']
+): PatchId => {
+  return updateLineStore(lineTimelines => {
+    const oldTimeline = lineTimelines[id];
+    if (!oldTimeline) {
+      throw new Error('Tried updating points of a line without a LineTimeline');
+    }
+    const { patchId, timeline, figureId } = lineTimeline.patchRemovePoints(
       oldTimeline,
       points
     );

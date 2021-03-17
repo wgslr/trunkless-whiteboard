@@ -79,6 +79,25 @@ export const newLocalLineTimeline = ({ id, points }: Line): Result => {
   };
 };
 
+export const patchRemovePoints = (
+  lt: LineTimeline,
+  points: Coordinates[]
+): Result => {
+  const patch = newPatch({
+    type: 'REMOVE_POINTS',
+    points: Object.freeze(points)
+  });
+  const timeline = {
+    ...lt,
+    patches: lt.patches.concat(patch)
+  };
+  return {
+    timeline,
+    patchId: patch.id,
+    figureId: lt.figureId
+  };
+};
+
 export const patchAddPoints = (
   lt: LineTimeline,
   points: Coordinates[]

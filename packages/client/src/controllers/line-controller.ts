@@ -5,7 +5,12 @@ import {
 } from '../connection/messages';
 import { reqResponseService } from '../connection/ServerContext';
 import { ClientToServerMessage } from '../protocol/protocol';
-import { discardPatch, localAddLine, localAddPoints } from '../store/lines';
+import {
+  discardPatch,
+  localAddLine,
+  localAddPoints,
+  localRemovePoints
+} from '../store/lines';
 import { Line } from '../types';
 
 export const addLine = (points: Line['points']): Readonly<Line> => {
@@ -27,4 +32,12 @@ export const addPointsToLine = (id: Line['id'], points: Line['points']) => {
   reqResponseService.send(body, () => {
     discardPatch(id, patchId);
   });
+};
+
+export const remotePointsFromLine = (
+  id: Line['id'],
+  points: Line['points']
+) => {
+  const patchId = localRemovePoints(id, points);
+  // TODO send to server
 };
