@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRecoilState } from 'recoil';
 import { addNote } from '../../controllers/note-controller';
 import { useEffectiveLines } from '../../store/hooks';
+import { Line } from '../../types';
 import { coordToNumber } from '../../utils';
 import { useDrawing } from '../drawing-state';
 import render from '../render';
@@ -78,10 +79,11 @@ const Canvas = (props: { x: number; y: number }) => {
 
   // Main render function
   useEffect(() => {
-    const tempLine =
-      drawContext.status == 'DRAWING'
-        ? [{ id: '', points: drawContext.drawnPixelsBuffer }]
-        : [];
+    // const tempLine =
+    //   drawContext.status == 'DRAWING'
+    //     ? [{ id: '', points: drawContext.drawnPixelsBuffer }]
+    //     : [];
+    const tempLine: Line[] = [];
     render(getCtx()!, canvas.current!, [
       ...effectiveLines.values(),
       ...tempLine

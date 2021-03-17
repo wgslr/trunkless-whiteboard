@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRecoilValue } from 'recoil';
-import { CoordNumber } from '../types';
+import { v4 } from 'uuid';
+import { addLine, addPointsToLine } from '../controllers/line-controller';
+import { CoordNumber, Mode, UUID } from '../types';
 import { coordToNumber, setUnion } from '../utils';
 import { calculateErasePoints, calculateLinePoints } from './math';
 import { modeState } from './state';
@@ -11,14 +13,17 @@ type Context =
     }
   | {
       status: 'DRAWING';
+      lineId: UUID;
       lastPosition: CoordNumber;
-      drawnPixelsBuffer: Set<CoordNumber>;
+      drawnPixelsBuffer: Set<CoordNumber>; // contains only points which were not added to the global store yet
     }
   | {
       status: 'ERASING';
       lastPosition: CoordNumber;
       erasedPixelsBuffer: Set<CoordNumber>;
     };
+
+let context: Context = { status: 'IDLE' };
 
 const deriveStateFromNewPosition = (
   newPosition: CoordNumber,
@@ -27,15 +32,16 @@ const deriveStateFromNewPosition = (
   switch (prevContext.status) {
     case 'IDLE':
       return prevContext;
-    case 'DRAWING':
+    case 'DRAWING': {
       return {
-        status: 'DRAWING',
+        ...prevContext,
         lastPosition: newPosition,
         drawnPixelsBuffer: setUnion(
           prevContext.drawnPixelsBuffer,
           calculateLinePoints(prevContext.lastPosition, newPosition)
         )
       };
+    }
     case 'ERASING':
       return {
         status: 'ERASING',
@@ -48,28 +54,39 @@ const deriveStateFromNewPosition = (
   }
 };
 
+const onPointerDown = (position: CoordNumber, mode: Mode) => {
+  if (mode === 'draw') {
+    const { id } = addLine(new Set([position]));
+    context = {
+      status: 'DRAWING',
+      lineId: id,
+      lastPosition: position,
+      drawnPixelsBuffer: new Set([position])
+    };
+  } else if (mode === 'erase') {
+    context = {
+      status: 'ERASING',
+      lastPosition: position,
+      erasedPixelsBuffer: new Set([position])
+    };
+  }
+};
+
+const onPointerMove = (newPosition: CoordNumber) => {
+  context = deriveStateFromNewPosition(newPosition, context);
+  if (context.status === 'DRAWING') {
+    addPointsToLine(context.lineId, context.drawnPixelsBuffer);
+    context.drawnPixelsBuffer = new Set();
+  }
+};
+
 export const useDrawing = (canvas: React.RefObject<HTMLCanvasElement>) => {
-  const [context, setContext] = useState<Context>({ status: 'IDLE' });
   const mode = useRecoilValue(modeState);
 
   const handlePointerDown = useCallback(
     (event: PointerEvent) => {
-      console.log('pointer down. mode:', { mode });
       const point = coordToNumber({ x: event.x, y: event.y });
-      if (mode === 'draw') {
-        setContext({
-          status: 'DRAWING',
-          lastPosition: point,
-          drawnPixelsBuffer: new Set([point])
-        });
-      } else if (mode === 'erase') {
-        setContext({
-          status: 'ERASING',
-          lastPosition: point,
-          erasedPixelsBuffer: new Set([point])
-        });
-      }
-      // adding notes handled elsewhere
+      onPointerDown(point, mode);
     },
     [mode]
   );
@@ -81,12 +98,7 @@ export const useDrawing = (canvas: React.RefObject<HTMLCanvasElement>) => {
         return;
       }
       const point = coordToNumber({ x: event.x, y: event.y });
-      setContext(prev => {
-        const derived = deriveStateFromNewPosition(point, prev);
-        console.log({ derived });
-        return derived;
-      });
-      // adding notes handled elsewhere
+      onPointerMove(point);
     },
     [canvas]
   );
@@ -97,10 +109,9 @@ export const useDrawing = (canvas: React.RefObject<HTMLCanvasElement>) => {
       if (event.target !== canvas.current) {
         return;
       }
-      // const point = coordToNumber({ x: event.x, y: event.y });
-      // setContext(prev => deriveStateFromNewPosition(point, prev));
-      setContext({ status: 'IDLE' });
-      // adding notes handled elsewhere
+      const point = coordToNumber({ x: event.x, y: event.y });
+      onPointerMove(point); // add potentially missing points
+      context = { status: 'IDLE' };
     },
     [canvas]
   );
@@ -121,7 +132,7 @@ export const useDrawing = (canvas: React.RefObject<HTMLCanvasElement>) => {
       canvasElem.removeEventListener('pointerdown', handlePointerDown);
       canvasElem.removeEventListener('pointerup', handlePointerUp);
     };
-  }, [handlePointerMove, handlePointerDown, handlePointerUp]);
+  }, [handlePointerMove, handlePointerDown, handlePointerUp, canvas]);
 
-  return context;
+  // return context;
 };
