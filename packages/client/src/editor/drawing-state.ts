@@ -1,7 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import lodash from 'lodash';
+import { useCallback, useEffect } from 'react';
 import { useRecoilValue } from 'recoil';
-import { v4 } from 'uuid';
-import { addLine, addPointsToLine } from '../controllers/line-controller';
+import {
+  addLine,
+  addPointsToLine,
+  removePointsFromLine
+} from '../controllers/line-controller';
 import { CoordNumber, Mode, UUID } from '../types';
 import { coordToNumber, setUnion } from '../utils';
 import { calculateErasePoints, calculateLinePoints } from './math';
@@ -24,6 +28,7 @@ type Context =
     };
 
 let context: Context = { status: 'IDLE' };
+const FLUSH_PERIOD_MS = 100;
 
 const deriveStateFromNewPosition = (
   newPosition: CoordNumber,
@@ -54,6 +59,21 @@ const deriveStateFromNewPosition = (
   }
 };
 
+const flushEraseBuffer = () => {};
+
+const flush = () => {
+  if (context.status === 'DRAWING') {
+    addPointsToLine(context.lineId, context.drawnPixelsBuffer);
+    context.drawnPixelsBuffer = new Set();
+  } else if (context.status === 'ERASING') {
+    flushEraseBuffer();
+  }
+};
+const throttledFlushDrawing = lodash.throttle(flush, FLUSH_PERIOD_MS, {
+  leading: true,
+  trailing: true
+});
+
 const onPointerDown = (position: CoordNumber, mode: Mode) => {
   if (mode === 'draw') {
     const { id } = addLine(new Set([position]));
@@ -74,10 +94,7 @@ const onPointerDown = (position: CoordNumber, mode: Mode) => {
 
 const onPointerMove = (newPosition: CoordNumber) => {
   context = deriveStateFromNewPosition(newPosition, context);
-  if (context.status === 'DRAWING') {
-    addPointsToLine(context.lineId, context.drawnPixelsBuffer);
-    context.drawnPixelsBuffer = new Set();
-  }
+  throttledFlushDrawing();
 };
 
 export const useDrawing = (canvas: React.RefObject<HTMLCanvasElement>) => {

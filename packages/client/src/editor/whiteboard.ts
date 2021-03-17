@@ -3,7 +3,7 @@ import * as R from 'ramda';
 import {
   addLine,
   addPointsToLine,
-  remotePointsFromLine
+  removePointsFromLine
 } from '../controllers/line-controller';
 import { getEffectiveLines } from '../store';
 import { Action, CoordNumber, Img, Line, UUID } from '../types';
@@ -78,7 +78,7 @@ const updateErasedLines = (erasedPoints: Set<CoordNumber>) => {
   lines.forEach(line => {
     const intersection = setIntersection(line.points, erasedPoints);
     if (intersection.size > 0) {
-      remotePointsFromLine(line.id, intersection);
+      removePointsFromLine(line.id, intersection);
     }
   });
 };

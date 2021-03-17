@@ -34,7 +34,7 @@ export const addPointsToLine = (id: Line['id'], points: Line['points']) => {
   });
 };
 
-export const remotePointsFromLine = (
+export const removePointsFromLine = (
   id: Line['id'],
   points: Line['points']
 ) => {
