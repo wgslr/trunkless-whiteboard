@@ -1,8 +1,7 @@
 import { decodeUUID } from 'encoding';
-import * as whiteboard from '../editor/whiteboard';
 import { ServerToClientMessage } from '../protocol/protocol';
-import * as notesStore from '../store/notes';
 import * as linesStore from '../store/lines';
+import * as notesStore from '../store/notes';
 import { decodeLineData, messageToNote } from './messages';
 
 export const handleMessage = (message: ServerToClientMessage): void => {
