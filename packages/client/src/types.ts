@@ -3,6 +3,8 @@ import { Coordinates } from './protocol/protocol';
 
 export type { Coordinates } from './protocol/protocol';
 
+export type CoordNumber = number;
+
 export type UUID = ReturnType<typeof uuidv4>;
 
 export type MessageId = UUID;
