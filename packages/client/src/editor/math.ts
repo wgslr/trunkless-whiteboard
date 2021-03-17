@@ -1,7 +1,7 @@
 import { Coordinates, CoordNumber } from '../types';
 import { coordToNumber, numberToCoord } from '../utils';
 
-export function linePoints(
+export function calculateLinePoints(
   aNum: CoordNumber,
   bNum: CoordNumber
 ): Set<CoordNumber> {
@@ -25,7 +25,7 @@ export function linePoints(
 }
 
 // This function returns the pixels to be erased between two sampled around a specified radius of a square of pixels
-export function erasePoints(
+export function calculateErasePoints(
   aNum: CoordNumber,
   bNum: CoordNumber
 ): Set<CoordNumber> {

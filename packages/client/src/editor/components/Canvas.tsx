@@ -3,6 +3,7 @@ import { useRecoilState } from 'recoil';
 import { addNote } from '../../controllers/note-controller';
 import { useEffectiveLines } from '../../store/hooks';
 import { coordToNumber } from '../../utils';
+import { useDrawing } from '../drawing-state';
 import render from '../render';
 import { modeState } from '../state';
 import {
@@ -73,28 +74,19 @@ const Canvas = (props: { x: number; y: number }) => {
     }
   }, []);
 
-  useEffect(() => {
-    if (canvas.current === null) {
-      return;
-    }
-
-    const canvasElem = canvas.current;
-
-    canvasElem.addEventListener('pointermove', handlePointerMove);
-    canvasElem.addEventListener('pointerdown', handlePointerDown);
-    canvasElem.addEventListener('pointerup', handlePointerUp);
-
-    return () => {
-      canvasElem.removeEventListener('pointermove', handlePointerMove);
-      canvasElem.removeEventListener('pointerdown', handlePointerDown);
-      canvasElem.removeEventListener('pointerup', handlePointerUp);
-    };
-  }, [handlePointerMove, handlePointerDown, handlePointerUp]);
+  const drawContext = useDrawing(canvas);
 
   // Main render function
   useEffect(() => {
-    render(getCtx()!, canvas.current!, [...effectiveLines.values()]);
-  }, [effectiveLines]);
+    const tempLine =
+      drawContext.status == 'DRAWING'
+        ? [{ id: '', points: drawContext.drawnPixelsBuffer }]
+        : [];
+    render(getCtx()!, canvas.current!, [
+      ...effectiveLines.values(),
+      ...tempLine
+    ]);
+  }, [effectiveLines, drawContext]);
 
   return (
     <canvas

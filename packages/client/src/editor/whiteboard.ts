@@ -8,7 +8,7 @@ import {
 import { getEffectiveLines } from '../store';
 import { Action, CoordNumber, Img, Line, UUID } from '../types';
 import { setIntersection, setUnion } from '../utils';
-import { erasePoints, linePoints } from './math';
+import { calculateErasePoints, calculateLinePoints } from './math';
 
 export const lines: Line[] = [];
 
@@ -39,7 +39,7 @@ export const appendLine = (point: CoordNumber) => {
   if (!drawing) {
     return;
   }
-  let newPoints = linePoints(lastPos!, point);
+  let newPoints = calculateLinePoints(lastPos!, point);
 
   addPointsToLine(lines[lines.length - 1].id, newPoints);
   lastPos = point;
@@ -67,7 +67,7 @@ export const appendErase = (point: CoordNumber) => {
   if (!erasing) {
     return;
   }
-  let erasedPoints = erasePoints(lastPos!, point);
+  let erasedPoints = calculateErasePoints(lastPos!, point);
   updateErasedLines(erasedPoints);
   lastPos = point;
 };
