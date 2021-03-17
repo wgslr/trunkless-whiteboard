@@ -1,17 +1,17 @@
 import express from 'express';
-// import wsServer from './ws-server';
 import * as WebSocket from 'ws';
 import { registerClient } from './models/client-connection';
-import { countWhiteboards } from './models/whiteboard';
 import * as http from 'http';
-
-import * as protocol from './protocol/protocol';
+import * as path from 'path';
 
 const app = express();
+// Static is relative to where node is executed
+app.use(express.static(path.join(__dirname, 'build')));
+
 const server = http.createServer(app);
 const wsserver = new WebSocket.Server({ server, path: '/ws' });
 
-wsserver.on('connection', (websocket: WebSocket, request) => {
+wsserver.on('connection', (websocket: WebSocket) => {
   console.log('Incoming websocket connection');
 
   registerClient(websocket);
