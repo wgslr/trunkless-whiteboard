@@ -1,6 +1,5 @@
-import * as R from 'ramda';
 import { v4 } from 'uuid';
-import type { Coordinates, CoordNumber, Line, UUID } from '../../types';
+import type { CoordNumber, Line, UUID } from '../../types';
 
 // TODO functions below should probably validate
 // that after 'deleted' there can't be newer patches
@@ -39,21 +38,23 @@ const newPatch = (diff: Diff): Patch => ({
 
 export const getEffectiveLine = (lt: LineTimeline): Line | null => {
   // store coords as strings to allow storage in Set
-  let points: CoordNumber[] = lt.committed ? lt.committed.points : [];
+  let points: Set<CoordNumber> = new Set(
+    lt.committed ? lt.committed.points : []
+  );
 
   for (const { diff } of lt.patches) {
     switch (diff.type) {
       case 'LINE_DELETED':
         return null;
       case 'ADD_POINTS':
-        points = points.concat(diff.points);
+        diff.points.forEach(p => points.add(p));
         break;
       case 'REMOVE_POINTS':
-        points = R.without(diff.points, points);
+        diff.points.forEach(p => points.delete(p));
         break;
     }
   }
-  return { id: lt.figureId, points };
+  return { id: lt.figureId, points: [...points] };
 };
 
 export const newCommittedLineTimeline = (initial: Line): LineTimeline => ({
