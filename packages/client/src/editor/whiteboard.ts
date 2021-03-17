@@ -10,12 +10,16 @@ import {
   remotePointsFromLine
 } from '../controllers/line-controller';
 import { getEffectiveLines } from '../store';
+import fp from 'lodash/fp';
 
 export const lines: Line[] = [];
 
 export const history: Action[] = [];
 
 export const images: Img[] = [];
+
+const factor = 1000000;
+// const flattenCorod
 
 let drawing = false;
 let erasing = false;
@@ -74,9 +78,15 @@ const updateErasedLines = (erasedPoints: Coordinates[]) => {
   const lines = getEffectiveLines();
 
   lines.forEach(line => {
-    const intersection = R.intersection(line.points, erasedPoints);
+    const intersection = fp.intersection(
+      line.points.map(c => c.x * factor + c.y),
+      erasedPoints.map(c => c.x * factor + c.y)
+    );
     if (intersection.length > 0) {
-      remotePointsFromLine(line.id, intersection);
+      remotePointsFromLine(
+        line.id,
+        intersection.map(c => ({ x: Math.floor(c / factor), y: c % factor }))
+      );
     }
   });
 };

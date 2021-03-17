@@ -1,4 +1,4 @@
-import * as R from 'ramda';
+import fp from 'lodash/fp';
 import { v4 } from 'uuid';
 import type { Coordinates, Line, UUID } from '../../types';
 
@@ -37,23 +37,38 @@ const newPatch = (diff: Diff): Patch => ({
   diff
 });
 
+const factor = 1000000;
+const coordDiiff = (l: Coordinates[], r: Coordinates[]) =>
+  fp.intersection(
+    l.map(c => c.x * factor + c.y),
+    r.map(c => c.x * factor + c.y)
+  );
+
 export const getEffectiveLine = (lt: LineTimeline): Line | null => {
   // store coords as strings to allow storage in Set
-  let points: Coordinates[] = lt.committed ? lt.committed.points : [];
+  let points = (lt.committed ? lt.committed.points : []).map(
+    c => c.x * factor + c.y
+  );
 
   for (const { diff } of lt.patches) {
     switch (diff.type) {
       case 'LINE_DELETED':
         return null;
       case 'ADD_POINTS':
-        points = points.concat(diff.points);
+        points = points.concat(diff.points.map(c => c.x * factor + c.y));
         break;
       case 'REMOVE_POINTS':
-        points = R.without(diff.points, points);
+        points = fp.without(
+          diff.points.map(c => c.x * factor + c.y),
+          points
+        );
         break;
     }
   }
-  return { id: lt.figureId, points };
+  return {
+    id: lt.figureId,
+    points: points.map(c => ({ x: Math.floor(c / factor), y: c % factor }))
+  };
 };
 
 export const newCommittedLineTimeline = (initial: Line): LineTimeline => ({
