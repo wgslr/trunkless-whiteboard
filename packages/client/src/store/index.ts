@@ -10,7 +10,6 @@ const lineTimelines: { [lineId: string]: LineTimeline } = Object.create(null);
 export const updateNotes = <T>(
   callback: (nTimelines: typeof noteTimelines) => T
 ): T => {
-  // Legacy function from before valtio introduction
   const result = callback(noteTimelines);
   effectiveNotesCache = null;
   sendNotesUpdate();
@@ -20,7 +19,6 @@ export const updateNotes = <T>(
 export const updateLineStore = <T>(
   callback: (lTimelines: typeof lineTimelines) => T
 ): T => {
-  // Legacy function from before valtio introduction
   const result = callback(lineTimelines);
   effectiveLinesCache = null;
   sendLinesUpdate();

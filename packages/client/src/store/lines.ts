@@ -69,7 +69,7 @@ export const setServerState = (id: Line['id'], state: Line | null) => {
 
 export const discardPatch = (figureId: Line['id'], patchId: PatchId) => {
   return updateLineStore(lineTimelines => {
-    let nt = lineTimelines[figureId];
+    const nt = lineTimelines[figureId];
     if (nt) {
       lineTimelines[figureId] = lineTimeline.discardPatch(nt, patchId);
     }

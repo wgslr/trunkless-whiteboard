@@ -15,8 +15,8 @@ const LARGER_THAN_ANY_CANVAS = 1000000;
 export const coordToNumber = (coords: Coordinates): CoordNumber =>
   coords.x * LARGER_THAN_ANY_CANVAS + coords.y;
 export const numberToCoord = (num: CoordNumber): Coordinates => {
-  let y = num % LARGER_THAN_ANY_CANVAS;
-  let x = (num - y) / LARGER_THAN_ANY_CANVAS;
+  const y = num % LARGER_THAN_ANY_CANVAS;
+  const x = (num - y) / LARGER_THAN_ANY_CANVAS;
   return { x, y };
 };
 

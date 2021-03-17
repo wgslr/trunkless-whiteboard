@@ -62,7 +62,7 @@ export const setServerState = (id: Note['id'], state: Note | null) => {
 
 export const discardPatch = (figureId: Note['id'], patchId: PatchId) => {
   return updateNoteStore(noteTimelines => {
-    let nt = noteTimelines[figureId];
+    const nt = noteTimelines[figureId];
     if (nt) {
       noteTimelines[figureId] = noteTimeline.discardPatch(nt, patchId);
     }

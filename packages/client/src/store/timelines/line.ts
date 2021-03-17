@@ -38,7 +38,7 @@ const newPatch = (diff: Diff): Patch => ({
 
 export const getEffectiveLine = (lt: LineTimeline): Line | null => {
   // store coords as strings to allow storage in Set
-  let points: Set<CoordNumber> = new Set(
+  const points: Set<CoordNumber> = new Set(
     lt.committed ? lt.committed.points : []
   );
 

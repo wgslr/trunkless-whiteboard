@@ -1,10 +1,10 @@
 import { Coordinates, CoordNumber } from '../types';
 import { coordToNumber, numberToCoord } from '../utils';
 
-export function calculateLinePoints(
+export const calculateLinePoints = (
   aNum: CoordNumber,
   bNum: CoordNumber
-): Set<CoordNumber> {
+): Set<CoordNumber> => {
   const a = numberToCoord(aNum);
   const b = numberToCoord(bNum);
   let xDiff = b.x - a.x;
@@ -22,13 +22,13 @@ export function calculateLinePoints(
     });
   }
   return new Set(coordList.map(coordToNumber)); // coordList includes original Coords a & b
-}
+};
 
 // This function returns the pixels to be erased between two sampled around a specified radius of a square of pixels
-export function calculateErasePoints(
+export const calculateErasePoints = (
   aNum: CoordNumber,
   bNum: CoordNumber
-): Set<CoordNumber> {
+): Set<CoordNumber> => {
   let radius = 3; //px
 
   const a = numberToCoord(aNum);
@@ -62,4 +62,4 @@ export function calculateErasePoints(
     }
   }
   return new Set(coordList.map(coordToNumber)); // coordList includes a bunch of redundant pixels as the "radius window" traverses the canvas
-}
+};
