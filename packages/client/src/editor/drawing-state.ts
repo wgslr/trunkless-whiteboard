@@ -1,5 +1,5 @@
 import lodash from 'lodash';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRecoilValue } from 'recoil';
 import {
   addLine,
@@ -97,37 +97,53 @@ const onPointerMove = (newPosition: CoordNumber) => {
   throttledFlushDrawing();
 };
 
+type Return = [draw: Set<CoordNumber>, erase: Set<CoordNumber>];
+
+/**
+ * Sets up listeners on canvas to handle drawing.
+ * Returns pixels from the temporary buffers for rendering loally.
+ */
 export const useDrawing = (canvas: React.RefObject<HTMLCanvasElement>) => {
+  const [temporary, setTemporary] = useState<Return>([new Set(), new Set()]);
   const mode = useRecoilValue(modeState);
+
+  const updateTemporary = () => {
+    if (context.status === 'DRAWING') {
+      setTemporary([context.drawnPixelsBuffer, new Set()]);
+    } else if (context.status === 'ERASING') {
+      setTemporary([new Set(), context.erasedPixelsBuffer]);
+    }
+  };
 
   const handlePointerDown = useCallback(
     (event: PointerEvent) => {
       const point = coordToNumber({ x: event.x, y: event.y });
       onPointerDown(point, mode);
+      updateTemporary();
     },
     [mode]
   );
 
   const handlePointerMove = useCallback(
     (event: PointerEvent) => {
-      console.log('pointer move');
       if (event.target !== canvas.current) {
         return;
       }
       const point = coordToNumber({ x: event.x, y: event.y });
       onPointerMove(point);
+      updateTemporary();
     },
     [canvas]
   );
 
   const handlePointerUp = useCallback(
     (event: PointerEvent) => {
-      console.log('pointer up');
       if (event.target !== canvas.current) {
         return;
       }
       const point = coordToNumber({ x: event.x, y: event.y });
       onPointerMove(point); // add potentially missing points
+      updateTemporary();
       context = { status: 'IDLE' };
     },
     [canvas]
@@ -151,5 +167,5 @@ export const useDrawing = (canvas: React.RefObject<HTMLCanvasElement>) => {
     };
   }, [handlePointerMove, handlePointerDown, handlePointerUp, canvas]);
 
-  // return context;
+  return temporary;
 };

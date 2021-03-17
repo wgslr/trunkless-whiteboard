@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRecoilState } from 'recoil';
 import { addNote } from '../../controllers/note-controller';
 import { useEffectiveLines } from '../../store/hooks';
-import { Line } from '../../types';
 import { coordToNumber } from '../../utils';
+import { Line } from '../../types';
 import { useDrawing } from '../drawing-state';
 import render from '../render';
 import { modeState } from '../state';
@@ -75,20 +75,12 @@ const Canvas = (props: { x: number; y: number }) => {
     }
   }, []);
 
-  const drawContext = useDrawing(canvas);
+  const [tempDraw, tempErase] = useDrawing(canvas);
 
   // Main render function
   useEffect(() => {
-    // const tempLine =
-    //   drawContext.status == 'DRAWING'
-    //     ? [{ id: '', points: drawContext.drawnPixelsBuffer }]
-    //     : [];
-    const tempLine: Line[] = [];
-    render(getCtx()!, canvas.current!, [
-      ...effectiveLines.values(),
-      ...tempLine
-    ]);
-  }, [effectiveLines, drawContext]);
+    render(getCtx()!, canvas.current!, effectiveLines, tempDraw, tempErase);
+  }, [effectiveLines, tempDraw, tempErase]);
 
   return (
     <canvas
