@@ -18,15 +18,40 @@ export const handleWhiteboardMessage = (
   const whiteboard = client.status.whiteboard;
 
   switch (message.body.$case) {
-    case 'lineDrawn': {
-      const data = message.body.lineDrawn;
-      const decodedData = messageToLine(data);
-      console.log(`Line drawn`, decodedData);
+    case 'createLine': {
+      const data = message.body.createLine;
+      const decodedData = messageToLine(data.line!);
 
       whiteboard.handleOperation(
         {
-          type: OperationType.LINE_ADD,
-          data: { line: decodedData }
+          type: OperationType.LINE_CREATE,
+          data: { line: decodedData, causedBy: message.messsageId }
+        },
+        client
+      );
+      return;
+    }
+    case 'addPointsToLine': {
+      const { lineId: idRaw, points } = message.body.addPointsToLine;
+      const id = decodeUUID(idRaw);
+
+      whiteboard.handleOperation(
+        {
+          type: OperationType.LINE_ADD_POINTS,
+          data: { causedBy: message.messsageId, change: { id, points } }
+        },
+        client
+      );
+      return;
+    }
+    case 'removePointsFromLine': {
+      const { lineId: idRaw, points } = message.body.removePointsFromLine;
+      const id = decodeUUID(idRaw);
+
+      whiteboard.handleOperation(
+        {
+          type: OperationType.LINE_REMOVE_POINTS,
+          data: { causedBy: message.messsageId, change: { id, points } }
         },
         client
       );

@@ -1,28 +1,11 @@
 import * as uuid from 'uuid';
 import {
   ClientToServerMessage,
-  Coordinates,
+  Line as LineProto,
   Note as NoteProto
 } from '../protocol/protocol';
-import type { Note, UUID } from '../types';
-import { Line } from '../types';
-import { Line as LineProto } from '../protocol/protocol';
-
-export function lineToMessage(line: Line): ClientToServerMessage['body'] {
-  const id = encodeUUID(line.UUID);
-  const lineDrawn = {
-    id,
-    bitmap: [...line.points].map(entry => ({
-      coordinates: entry,
-      value: 1
-    }))
-  };
-
-  return {
-    $case: 'lineDrawn',
-    lineDrawn
-  };
-}
+import type { Line, Note, UUID } from '../types';
+import { coordToNumber, numberToCoord } from '../utils';
 
 export const makeCreateNoteMessage = (
   note: Note
@@ -48,30 +31,62 @@ export const makeDeleteNoteMessage = (
   deleteNote: { noteId: encodeUUID(id) }
 });
 
+export const makeCreateLineMessage = (
+  line: Line
+): ClientToServerMessage['body'] => ({
+  $case: 'createLine',
+  createLine: {
+    line: lineToMessage(line)
+  }
+});
+
+export const makeAddPointsToLineMessage = (
+  lineId: Line['id'],
+  points: Line['points']
+): ClientToServerMessage['body'] => ({
+  $case: 'addPointsToLine',
+  addPointsToLine: {
+    lineId: encodeUUID(lineId),
+    points: [...points].map(numberToCoord)
+  }
+});
+
+export const makeRemovePointsFromLineMessage = (
+  lineId: Line['id'],
+  points: Line['points']
+): ClientToServerMessage['body'] => ({
+  $case: 'removePointsFromLine',
+  removePointsFromLine: {
+    lineId: encodeUUID(lineId),
+    points: [...points].map(numberToCoord)
+  }
+});
+
 // TODO deduplciate with backend code
 const encodeUUID = (id: UUID): Uint8Array => Uint8Array.from(uuid.parse(id));
 
 const decodeUUID = (id: Uint8Array): UUID => uuid.stringify(id);
 
 export function decodeLineData(data: LineProto): Line {
-  const points = new Set<Coordinates>();
-  data.bitmap
-    .filter(p => p.value == 1)
-    .forEach(point => {
-      // undefined should not be possible, but typing complains
-      point.coordinates !== undefined && points.add(point.coordinates);
-    });
+  const points = data.points;
 
   return {
-    UUID: decodeUUID(data.id),
-    points
+    id: decodeUUID(data.id),
+    points: new Set(data.points.map(coordToNumber))
+  };
+}
+
+export function lineToMessage(line: Line): LineProto {
+  return {
+    id: encodeUUID(line.id),
+    points: [...line.points].map(numberToCoord)
   };
 }
 
 export function noteToMessage(note: Note): NoteProto {
   return {
     ...note,
-    id: Uint8Array.from(uuid.parse(note.id))
+    id: encodeUUID(note.id)
   };
 }
 

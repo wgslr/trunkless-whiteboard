@@ -1,7 +1,7 @@
 import * as uuid from 'uuid';
-import { Note } from './models/whiteboard';
+import { Note, Line } from './models/whiteboard';
 import {
-  Line,
+  Line as LineProto,
   ServerToClientMessage,
   Note as NoteProto,
   ErrorReason,
@@ -34,12 +34,10 @@ export const makeErrorMessage = (
   error: { reason }
 });
 
-export const messageToLine = (data: Line) => {
-  return {
-    id: decodeUUID(data.id),
-    bitmap: new Map(data.bitmap.map(point => [point.coordinates!, point.value]))
-  };
-};
+export const messageToLine = (data: LineProto): Line => ({
+  id: decodeUUID(data.id),
+  points: data.points
+});
 
 export const noteToMessage = (note: Note): NoteProto => ({
   ...note,

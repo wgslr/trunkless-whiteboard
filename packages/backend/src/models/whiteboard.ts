@@ -1,6 +1,6 @@
+import { encodeUUID } from 'encoding';
 import { v4 as uuidv4 } from 'uuid';
 import { noteToMessage, resultToMessage } from '../encoding';
-import { encodeUUID } from 'encoding';
 import {
   ClientToServerMessage,
   Coordinates,
@@ -10,6 +10,7 @@ import {
 } from '../protocol/protocol';
 import { Result, UUID } from '../types';
 import { ClientConnection } from './client-connection';
+import fp from 'lodash/fp';
 
 export abstract class Figure {
   id: UUID;
@@ -26,13 +27,19 @@ export type Note = {
   position: Coordinates;
   text: string;
 };
-export class Line {
-  constructor(public id: UUID, public bitmap: Map<Coordinates, number>) {}
-}
+
+export type Line = {
+  id: UUID;
+  points: Coordinates[];
+};
+
+export type LinePatch = Line;
 
 export enum OperationType {
   FIGURE_MOVE,
-  LINE_ADD,
+  LINE_CREATE,
+  LINE_ADD_POINTS,
+  LINE_REMOVE_POINTS,
   NOTE_ADD,
   NOTE_UPADTE,
   NOTE_DELETE
@@ -44,8 +51,22 @@ export type Operation =
       data: { figureId: UUID; newCoords: Coordinates };
     }
   | {
-      type: OperationType.LINE_ADD;
-      data: { line: Line };
+      type: OperationType.LINE_CREATE;
+      data: { line: Line; causedBy: ClientToServerMessage['messsageId'] };
+    }
+  | {
+      type: OperationType.LINE_ADD_POINTS;
+      data: {
+        change: LinePatch;
+        causedBy: ClientToServerMessage['messsageId'];
+      };
+    }
+  | {
+      type: OperationType.LINE_REMOVE_POINTS;
+      data: {
+        change: LinePatch;
+        causedBy: ClientToServerMessage['messsageId'];
+      };
     }
   | {
       type: OperationType.NOTE_ADD;
@@ -72,6 +93,8 @@ class OperationError extends Error {
   }
 }
 
+const coordToNumber = (coord: Coordinates) => coord.x * 1000000 + coord.y;
+
 export class Whiteboard {
   MAX_WIDTH = 400;
   MAX_HEIGHT = 400;
@@ -89,46 +112,98 @@ export class Whiteboard {
 
   handleOperation(op: Operation, client: ClientConnection) {
     switch (op.type) {
-      // case OperationType.FIGURE_MOVE: {
-      //   const { figureId, newCoords } = op.data;
-      //   const figure = this.notes.get(figureId);
-      //   if (!figure) {
-      //     throw new OperationError('Figure does not exist');
-      //   }
-      //   if (
-      //     newCoords.x < 0 ||
-      //     newCoords.x > this.MAX_WIDTH ||
-      //     newCoords.y < 0 ||
-      //     newCoords.y > this.MAX_HEIGHT
-      //   ) {
-      //     throw new OperationError('New coords not allowed');
-      //   }
-      //   figure.location = newCoords;
-      //   this.sendToClients({
-      //     $case: 'figureMoved',
-      //     figureMoved: {
-      //       figureId: encodeUUID(figure.id),
-      //       newCoordinates: newCoords
-      //     }
-      //   });
-      //   break;
-      // }
-      case OperationType.LINE_ADD: {
-        const line = op.data.line;
-        this.lines.set(line.id, line);
+      case OperationType.LINE_CREATE: {
+        const { line, causedBy } = op.data;
+        const sanitizedLine = {
+          id: line.id,
+          points: this.removeInvalidCoords(line.points)
+        };
+        this.lines.set(line.id, sanitizedLine);
 
-        console.log(`There are ${this.lines.size} lines on the whiteboard`);
+        this.sendToClients(
+          {
+            $case: 'lineCreatedOrUpdated',
+            lineCreatedOrUpdated: {
+              line: {
+                id: encodeUUID(sanitizedLine.id),
+                points: sanitizedLine.points
+              }
+            }
+          },
+          causedBy
+        );
+        break;
+      }
+      case OperationType.LINE_ADD_POINTS: {
+        const { change: patch, causedBy } = op.data;
+        const line = this.lines.get(patch.id);
+        if (!line) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.FIGURE_NOT_EXISTS
+            }),
+            causedBy
+          );
+          return;
+        }
 
-        this.sendToClients({
-          $case: 'lineDrawn',
-          lineDrawn: {
-            id: encodeUUID(line.id),
-            bitmap: Array.from(line.bitmap.entries()).map(entry => ({
-              coordinates: entry[0],
-              value: entry[1]
-            }))
-          }
-        });
+        line.points = line.points.concat(
+          this.removeInvalidCoords(patch.points)
+        );
+
+        this.sendToClients(
+          {
+            $case: 'lineCreatedOrUpdated',
+            lineCreatedOrUpdated: {
+              line: {
+                id: encodeUUID(line.id),
+                points: line.points
+              }
+            }
+          },
+          causedBy
+        );
+        break;
+      }
+      case OperationType.LINE_REMOVE_POINTS: {
+        const { change: patch, causedBy } = op.data;
+        const line = this.lines.get(patch.id);
+        if (!line) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.FIGURE_NOT_EXISTS
+            }),
+            causedBy
+          );
+          return;
+        }
+
+        const newLinePoints = fp.differenceBy(
+          coordToNumber,
+          line.points,
+          patch.points
+        );
+        const removedPoints = line.points.length - newLinePoints.length;
+        console.log('Removed points', removedPoints);
+        if (removedPoints > 0) {
+          line.points = newLinePoints;
+          this.sendToClients(
+            {
+              $case: 'lineCreatedOrUpdated',
+              lineCreatedOrUpdated: {
+                line: {
+                  id: encodeUUID(line.id),
+                  points: line.points
+                }
+              }
+            },
+            causedBy
+          );
+        } else {
+          // TODO maybe send error response about no-operation
+        }
         break;
       }
       case OperationType.NOTE_ADD: {
@@ -144,7 +219,6 @@ export class Whiteboard {
           );
         } else {
           this.notes.set(note.id, note);
-          console.log('Added note', note);
           this.sendToClients(
             {
               $case: 'noteCreatedOrUpdated',
@@ -187,7 +261,6 @@ export class Whiteboard {
         };
 
         this.notes.set(note.id, updated);
-        console.log('Updated note', { old: note, updated });
         this.sendToClients(
           {
             $case: 'noteCreatedOrUpdated',
@@ -233,8 +306,12 @@ export class Whiteboard {
     }
   }
 
+  private removeInvalidCoords(coordList: Coordinates[]): Coordinates[] {
+    return coordList;
+    return coordList.filter(c => this.areCoordsWithinBounds(c));
+  }
+
   private areCoordsWithinBounds(coords: Coordinates): boolean {
-    console.log(coords);
     return (
       coords.x >= 0 &&
       coords.x <= this.MAX_WIDTH &&
@@ -247,7 +324,10 @@ export class Whiteboard {
     message: ServerToClientMessage['body'],
     previousMessageId?: string
   ) {
-    console.log(`Sending message to ${this.clients.length} clients:`, message);
+    console.debug(
+      `Sending message to ${this.clients.length} clients:`,
+      message?.$case
+    );
     this.clients.forEach(client => {
       client.send(message, previousMessageId);
     });
@@ -287,7 +367,3 @@ export const connectClient = (
     return { result: 'success' };
   }
 };
-
-// setInterval(() => {
-//   console.log(`There are ${countWhiteboards()} whiteboards`, whiteboards);
-// }, 2000);
