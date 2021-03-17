@@ -1,10 +1,8 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../../tsconfig-base.json",
   "compilerOptions": {
-    "outDir": "./dist",
-    "declaration": true,
-    "typeRoots": [
-      "./lib"
-    ]
+    "outDir": "dist",
+    "typeRoots": ["./lib"],
+    "declaration": true
   }
 }
