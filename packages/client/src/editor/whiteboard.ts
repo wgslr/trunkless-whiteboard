@@ -78,15 +78,13 @@ const updateErasedLines = (erasedPoints: Coordinates[]) => {
   const lines = getEffectiveLines();
 
   lines.forEach(line => {
-    const intersection = fp.intersection(
-      line.points.map(c => c.x * factor + c.y),
-      erasedPoints.map(c => c.x * factor + c.y)
+    const intersection = fp.intersectionBy(
+      c => c.x * factor + c.y,
+      line.points,
+      erasedPoints
     );
     if (intersection.length > 0) {
-      remotePointsFromLine(
-        line.id,
-        intersection.map(c => ({ x: Math.floor(c / factor), y: c % factor }))
-      );
+      remotePointsFromLine(line.id, intersection);
     }
   });
 };
