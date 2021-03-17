@@ -16,7 +16,7 @@ COPY packages/backend/package.json ./packages/backend/
 COPY packages/client/package.json ./packages/client/
 COPY packages/encoding/package.json ./packages/encoding/
 
-COPY --from=builder packages/encoding/dist ./packages/encoding/dist
+COPY --from=builder /app/packages/encoding/dist ./packages/encoding/dist
 
 RUN yarn global add lerna && lerna bootstrap --ignore-scripts -- --production --no-optional
 COPY --from=builder /app/dist ./dist
