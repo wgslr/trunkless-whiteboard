@@ -45,11 +45,6 @@ export enum MessageCode {
   GET_ALL_RESP = 'getAllResp'
 }
 
-export type Figure = {
-  type: 'Note';
-  location: Coordinates;
-};
-
 export class CreateWhiteboardMsg {
   readonly code = MessageCode.CREATE_WHITEBOARD;
 }
@@ -59,17 +54,4 @@ export class OperationResultMsg {
   success: boolean = false;
 }
 
-export class GetAllReqMsg {
-  readonly code = MessageCode.GET_ALL_REQ;
-}
-
-export class GetAllRespMsg {
-  readonly code = MessageCode.GET_ALL_RESP;
-  figures: Figure[] = [];
-}
-
-export type Message =
-  | CreateWhiteboardMsg
-  | OperationResultMsg
-  | GetAllReqMsg
-  | GetAllRespMsg;
+export type Message = CreateWhiteboardMsg | OperationResultMsg;
