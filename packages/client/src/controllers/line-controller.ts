@@ -10,6 +10,7 @@ import {
   discardPatch,
   localAddLine,
   localAddPoints,
+  localDeleteLine,
   localRemovePoints
 } from '../store/lines';
 import { Line } from '../types';
@@ -47,4 +48,14 @@ export const removePointsFromLine = (
   reqResponseService.send(body, () => {
     discardPatch(id, patchId);
   });
+};
+
+export const deleteLine = (id: Line['id']) => {
+  const patchId = localDeleteLine(id);
+  // const body: ClientToServerMessage['body'] = makeRemovePointsFromLineMessage(
+  //   id,
+  // );
+  // reqResponseService.send(body, () => {
+  //   discardPatch(id, patchId);
+  // });
 };

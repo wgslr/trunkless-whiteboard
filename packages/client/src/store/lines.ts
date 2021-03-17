@@ -50,6 +50,20 @@ export const localRemovePoints = (
   });
 };
 
+export const localDeleteLine = (id: Line['id']): PatchId => {
+  return updateLineStore(lineTimelines => {
+    const oldTimeline = lineTimelines[id];
+    if (!oldTimeline) {
+      throw new Error('Tried deleting line without LineTimeline');
+    }
+    const { patchId, timeline, figureId } = lineTimeline.patchDeleteLine(
+      oldTimeline
+    );
+    lineTimelines[figureId] = timeline;
+    return patchId;
+  });
+};
+
 export const setServerState = (id: Line['id'], state: Line | null) => {
   return updateLineStore(lineTimelines => {
     let lt = lineTimelines[id];

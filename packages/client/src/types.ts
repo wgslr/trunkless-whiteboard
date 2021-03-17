@@ -11,16 +11,6 @@ export type MessageId = UUID;
 
 export type Mode = 'draw' | 'erase' | 'note';
 
-export type Action =
-  | {
-      type: 'draw';
-      id: UUID;
-    }
-  | {
-      type: 'erase';
-      lines: Map<UUID, CoordNumber[]>;
-    };
-
 export type Line = {
   id: UUID;
   points: Set<CoordNumber>;

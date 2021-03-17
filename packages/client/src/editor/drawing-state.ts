@@ -1,5 +1,5 @@
 import lodash from 'lodash';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useRecoilValue } from 'recoil';
 import {
   addLine,
@@ -7,10 +7,11 @@ import {
   removePointsFromLine
 } from '../controllers/line-controller';
 import { getEffectiveLines } from '../store';
-import { CoordNumber, Mode, UUID } from '../types';
+import { Line, CoordNumber, Mode, UUID } from '../types';
 import { coordToNumber, setIntersection, setUnion } from '../utils';
 import { calculateErasePoints, calculateLinePoints } from './math';
 import { modeState } from './state';
+import { history } from './history';
 
 type Context =
   | {
@@ -25,7 +26,10 @@ type Context =
   | {
       status: 'ERASING';
       lastPosition: CoordNumber;
+      // contains only points which were not added to the global store yet
       erasedPixelsBuffer: Set<CoordNumber>;
+      // contains all modified points during this erase operaation
+      modifiedPixelsInLines: Map<Line['id'], Set<CoordNumber>>;
     };
 
 let context: Context = { status: 'IDLE' };
@@ -50,7 +54,7 @@ const deriveStateFromNewPosition = (
     }
     case 'ERASING':
       return {
-        status: 'ERASING',
+        ...prevContext,
         lastPosition: newPosition,
         erasedPixelsBuffer: setUnion(
           prevContext.erasedPixelsBuffer,
@@ -62,15 +66,23 @@ const deriveStateFromNewPosition = (
 
 const flushEraseBuffer = () => {
   if (context.status !== 'ERASING') return;
-  const erased = context.erasedPixelsBuffer;
 
-  const lines = getEffectiveLines();
-  lines.forEach(line => {
-    const intersection = setIntersection(line.points, erased);
+  const lines = getEffectiveLines().values();
+  for (const line of lines) {
+    const intersection = setIntersection(
+      line.points,
+      context.erasedPixelsBuffer
+    );
     if (intersection.size > 0) {
       removePointsFromLine(line.id, intersection);
+      const oldModified =
+        context.modifiedPixelsInLines.get(line.id) ?? new Set();
+      context.modifiedPixelsInLines.set(
+        line.id,
+        setUnion(oldModified, intersection)
+      );
     }
-  });
+  }
   context.erasedPixelsBuffer.clear();
 };
 
@@ -100,16 +112,49 @@ const onPointerDown = (position: CoordNumber, mode: Mode) => {
     context = {
       status: 'ERASING',
       lastPosition: position,
-      erasedPixelsBuffer: new Set([position])
+      erasedPixelsBuffer: new Set([position]),
+      modifiedPixelsInLines: new Map()
     };
   }
 };
 
 const onPointerMove = (newPosition: CoordNumber) => {
-  context = deriveStateFromNewPosition(newPosition, context);
   if (context.status !== 'IDLE') {
+    context = deriveStateFromNewPosition(newPosition, context);
     throttledFlushDrawing();
   }
+};
+
+const onPointerUp = (point: CoordNumber) => {
+  if (context.status === 'IDLE') {
+    return;
+  }
+  onPointerMove(point); // add last line/erase segment
+  throttledFlushDrawing.flush();
+
+  if (context.status === 'DRAWING') {
+    finishDrawing();
+  } else if (context.status === 'ERASING') {
+    finishErase();
+  }
+};
+
+const finishDrawing = () => {
+  if (context.status !== 'DRAWING') return;
+  history.push({
+    type: 'DRAWN_LINE',
+    lineId: context.lineId
+  });
+  context = { status: 'IDLE' };
+};
+
+const finishErase = () => {
+  if (context.status !== 'ERASING') return;
+  history.push({
+    type: 'ERASED',
+    lines: context.modifiedPixelsInLines
+  });
+  context = { status: 'IDLE' };
 };
 
 /**
@@ -145,9 +190,7 @@ export const useDrawing = (
         return;
       }
       const point = coordToNumber({ x: event.x, y: event.y });
-      onPointerMove(point); // add potentially missing points
-      throttledFlushDrawing.flush();
-      context = { status: 'IDLE' };
+      onPointerUp(point);
     },
     [canvas]
   );
