@@ -82,6 +82,18 @@ const Canvas = (props: { x: number; y: number }) => {
     render(getCtx()!, canvas.current!, effectiveLines);
   }, [effectiveLines]);
 
+  useEffect(() => {
+    const c = canvas.current;
+    if (c !== null && mode === 'note') {
+      const listener = (event: PointerEvent) => {
+        const point = { x: event.x, y: event.y };
+        addNote(point);
+      };
+      c.addEventListener('pointerdown', listener);
+      return () => c.removeEventListener('pointerdown', listener);
+    }
+  }, [mode]);
+
   return (
     <canvas
       ref={canvas}
