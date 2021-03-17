@@ -12,6 +12,7 @@ export const updateNotes = <T>(
 ): T => {
   // Legacy function from before valtio introduction
   const result = callback(noteTimelines);
+  effectiveNotesCache = null;
   sendNotesUpdate();
   return result;
 };
@@ -21,24 +22,41 @@ export const updateLineStore = <T>(
 ): T => {
   // Legacy function from before valtio introduction
   const result = callback(lineTimelines);
+  effectiveLinesCache = null;
   sendLinesUpdate();
   return result;
 };
 
-export const getEffectiveNotes = (): Map<Note['id'], Note> => {
+let effectiveNotesCache: Map<Note['id'], Note> | null = null;
+const calculateEffectiveNotes = (): void => {
   const noteTimelinesArray = Object.values(noteTimelines);
-  return new Map(
+  effectiveNotesCache = new Map(
     removeNullish(
       noteTimelinesArray.map(nt => getEffectiveNote(nt))
     ).map(note => [note.id, note])
   );
 };
 
-export const getEffectiveLines = (): Map<Line['id'], Line> => {
+export const getEffectiveNotes = (): Map<Note['id'], Note> => {
+  if (effectiveNotesCache === null) {
+    calculateEffectiveNotes();
+  }
+  return effectiveNotesCache!;
+};
+
+let effectiveLinesCache: Map<Line['id'], Line> | null = null;
+const calculateEffectiveLines = (): void => {
   const lineTimelinesArray = Object.values(lineTimelines);
-  return new Map(
+  effectiveLinesCache = new Map(
     removeNullish(
       lineTimelinesArray.map(lt => getEffectiveLine(lt))
     ).map(line => [line.id, line])
   );
+};
+
+export const getEffectiveLines = (): Map<Line['id'], Line> => {
+  if (effectiveLinesCache === null) {
+    calculateEffectiveLines();
+  }
+  return effectiveLinesCache!;
 };
