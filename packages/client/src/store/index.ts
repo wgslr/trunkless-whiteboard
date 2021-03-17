@@ -1,23 +1,32 @@
-import { proxy } from 'valtio';
 import type { Line, Note } from '../types';
 import { removeNullish } from '../utils';
+import { sendLinesUpdate, sendNotesUpdate } from './hooks';
 import { getEffectiveLine, LineTimeline } from './timelines/line';
 import { getEffectiveNote, NoteTimeline } from './timelines/note';
 
-type Store = {
-  noteTimelines: { [noteId: string]: NoteTimeline };
-  lineTimelines: { [lineId: string]: LineTimeline };
+const noteTimelines: { [noteId: string]: NoteTimeline } = Object.create(null);
+const lineTimelines: { [lineId: string]: LineTimeline } = Object.create(null);
+
+export const updateNotes = <T>(
+  callback: (nTimelines: typeof noteTimelines) => T
+): T => {
+  // Legacy function from before valtio introduction
+  const result = callback(noteTimelines);
+  sendNotesUpdate();
+  return result;
 };
 
-export const store: Store = proxy({
-  noteTimelines: Object.create(null),
-  lineTimelines: Object.create(null)
-});
+export const updateLineStore = <T>(
+  callback: (lTimelines: typeof lineTimelines) => T
+): T => {
+  // Legacy function from before valtio introduction
+  const result = callback(lineTimelines);
+  sendLinesUpdate();
+  return result;
+};
 
-export const getEffectiveNotes = (
-  noteTimelinesSnapshot: Readonly<Store['noteTimelines']>
-): Map<Note['id'], Note> => {
-  const noteTimelinesArray = Object.values(noteTimelinesSnapshot);
+export const getEffectiveNotes = (): Map<Note['id'], Note> => {
+  const noteTimelinesArray = Object.values(noteTimelines);
   return new Map(
     removeNullish(
       noteTimelinesArray.map(nt => getEffectiveNote(nt))
@@ -25,10 +34,8 @@ export const getEffectiveNotes = (
   );
 };
 
-export const getEffectiveLines = (
-  lineTimelinesSnapshot: Readonly<Store['lineTimelines']>
-): Map<Line['id'], Line> => {
-  const lineTimelinesArray = Object.values(lineTimelinesSnapshot);
+export const getEffectiveLines = (): Map<Line['id'], Line> => {
+  const lineTimelinesArray = Object.values(lineTimelines);
   return new Map(
     removeNullish(
       lineTimelinesArray.map(lt => getEffectiveLine(lt))

@@ -1,24 +1,47 @@
-import { useState, useEffect } from 'react';
-import { useSnapshot, subscribe } from 'valtio';
-import { getEffectiveLines, getEffectiveNotes, store } from '.';
+import { useEffect, useState } from 'react';
+import { getEffectiveLines, getEffectiveNotes } from '.';
+
+let noteListeners: React.Dispatch<
+  React.SetStateAction<ReturnType<typeof getEffectiveNotes>>
+>[] = [];
+let lineListeners: React.Dispatch<
+  React.SetStateAction<ReturnType<typeof getEffectiveLines>>
+>[] = [];
 
 export const useEffectiveNotes = () => {
-  const storeSnapshot = useSnapshot(store);
-  return getEffectiveNotes(storeSnapshot.noteTimelines);
+  const [state, setState] = useState(getEffectiveNotes());
+  useEffect(() => {
+    noteListeners.push(setState);
+    return () => {
+      noteListeners = noteListeners.filter(l => l !== setState);
+    };
+  }, []);
+
+  return state;
 };
 
 export const useEffectiveLines = () => {
-  const [effectiveLines, setEffectiveLines] = useState<
-    ReturnType<typeof getEffectiveLines>
-  >(new Map());
-  // Use the mutable store to compue effective lines.
-  // Skipping snapshot generation greatly improves performance
-  useEffect(
-    () =>
-      subscribe(store.lineTimelines, () => {
-        setEffectiveLines(getEffectiveLines(store.lineTimelines));
-      }),
-    [store.lineTimelines]
-  );
-  return effectiveLines;
+  const [state, setState] = useState(getEffectiveLines());
+  useEffect(() => {
+    lineListeners.push(setState);
+    return () => {
+      lineListeners = lineListeners.filter(l => l !== setState);
+    };
+  }, []);
+
+  return state;
+};
+
+export const sendNotesUpdate = () => {
+  const newState = getEffectiveNotes();
+  for (const listener of noteListeners) {
+    listener(newState);
+  }
+};
+
+export const sendLinesUpdate = () => {
+  const newState = getEffectiveLines();
+  for (const listener of lineListeners) {
+    listener(newState);
+  }
 };
