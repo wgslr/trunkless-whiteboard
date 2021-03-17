@@ -61,10 +61,13 @@ const deriveStateFromNewPosition = (
 
 const flushEraseBuffer = () => {};
 
-const flush = () => {
-  if (context.status === 'DRAWING') {
-    addPointsToLine(context.lineId, context.drawnPixelsBuffer);
-    context.drawnPixelsBuffer = new Set();
+const flush = (contextSnapshot: Context) => {
+  // receives the context as arugment instead of using the global
+  // variable, to avoid running after the context switches to 'IDLE',
+  // which caused loss of line ending segments
+  if (contextSnapshot.status === 'DRAWING') {
+    addPointsToLine(contextSnapshot.lineId, contextSnapshot.drawnPixelsBuffer);
+    contextSnapshot.drawnPixelsBuffer = new Set();
   } else if (context.status === 'ERASING') {
     flushEraseBuffer();
   }
@@ -94,7 +97,9 @@ const onPointerDown = (position: CoordNumber, mode: Mode) => {
 
 const onPointerMove = (newPosition: CoordNumber) => {
   context = deriveStateFromNewPosition(newPosition, context);
-  throttledFlushDrawing();
+  if (context.status !== 'IDLE') {
+    throttledFlushDrawing(context);
+  }
 };
 
 type Return = [draw: Set<CoordNumber>, erase: Set<CoordNumber>];
@@ -109,9 +114,15 @@ export const useDrawing = (canvas: React.RefObject<HTMLCanvasElement>) => {
 
   const updateTemporary = () => {
     if (context.status === 'DRAWING') {
-      setTemporary([context.drawnPixelsBuffer, new Set()]);
+      const buffer = context.drawnPixelsBuffer;
+      setTemporary(prev => [setUnion(prev[0], buffer), new Set()]);
     } else if (context.status === 'ERASING') {
-      setTemporary([new Set(), context.erasedPixelsBuffer]);
+      const buffer = context.erasedPixelsBuffer;
+      setTemporary(prev => [new Set(), setUnion(prev[1], buffer)]);
+    } else {
+      setTemporary(prev =>
+        prev[0].size === 0 && prev[1].size === 0 ? prev : [new Set(), new Set()]
+      );
     }
   };
 
