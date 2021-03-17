@@ -368,6 +368,29 @@ export class Whiteboard {
     this.clients.push(client);
     client.setConnectedWhiteboard(this);
     console.log('Client joined whiteboard', this.id);
+    this.bootstrapClient(client);
+  }
+
+  private bootstrapClient(client: ClientConnection) {
+    for (const [, line] of this.lines) {
+      client.send({
+        $case: 'lineCreatedOrUpdated',
+        lineCreatedOrUpdated: {
+          line: {
+            id: encodeUUID(line.id),
+            points: line.points
+          }
+        }
+      });
+    }
+    for (const [, note] of this.notes) {
+      client.send({
+        $case: 'noteCreatedOrUpdated',
+        noteCreatedOrUpdated: {
+          note: noteToMessage(note)
+        }
+      });
+    }
   }
 }
 
