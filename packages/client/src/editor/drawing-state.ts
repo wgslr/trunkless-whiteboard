@@ -88,7 +88,7 @@ export const useDrawing = (canvas: React.RefObject<HTMLCanvasElement>) => {
       });
       // adding notes handled elsewhere
     },
-    [mode]
+    [canvas]
   );
 
   const handlePointerUp = useCallback(
@@ -102,7 +102,7 @@ export const useDrawing = (canvas: React.RefObject<HTMLCanvasElement>) => {
       setContext({ status: 'IDLE' });
       // adding notes handled elsewhere
     },
-    [mode]
+    [canvas]
   );
 
   useEffect(() => {
