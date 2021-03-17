@@ -20,7 +20,7 @@ export const addLine = (points: Line['points']): Readonly<Line> => {
   reqResponseService.send(body, () => {
     discardPatch(line.id, patchId);
   });
-  return { id: line.id, points: Array.from(line.points) };
+  return {...line};
 };
 
 export const addPointsToLine = (id: Line['id'], points: Line['points']) => {

@@ -23,7 +23,8 @@ const render = (
   ctx.fillStyle = '#000000';
   console.debug(`canvas render: drawing ${lines.length} lines`);
   lines.forEach(line => {
-    line.points.map(numberToCoord).forEach(point => {
+    line.points.forEach(pointNumber => {
+      const point = numberToCoord(pointNumber);
       ctx.fillRect(
         point.x - canvas.offsetLeft,
         point.y - canvas.offsetTop,

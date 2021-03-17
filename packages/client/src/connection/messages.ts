@@ -47,7 +47,7 @@ export const makeAddPointsToLineMessage = (
   $case: 'addPointsToLine',
   addPointsToLine: {
     lineId: encodeUUID(lineId),
-    points: points.map(numberToCoord)
+    points: [...points].map(numberToCoord)
   }
 });
 
@@ -61,14 +61,14 @@ export function decodeLineData(data: LineProto): Line {
 
   return {
     id: decodeUUID(data.id),
-    points: data.points.map(coordToNumber)
+    points: new Set(data.points.map(coordToNumber))
   };
 }
 
 export function lineToMessage(line: Line): LineProto {
   return {
     id: encodeUUID(line.id),
-    points: line.points.map(numberToCoord)
+    points: [...line.points].map(numberToCoord)
   };
 }
 

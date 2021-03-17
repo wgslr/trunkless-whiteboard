@@ -4,7 +4,7 @@ import { coordToNumber, numberToCoord } from '../utils';
 export function linePoints(
   aNum: CoordNumber,
   bNum: CoordNumber
-): CoordNumber[] {
+): Set<CoordNumber> {
   const a = numberToCoord(aNum);
   const b = numberToCoord(bNum);
   let xDiff = b.x - a.x;
@@ -21,14 +21,14 @@ export function linePoints(
       y: Math.floor(a.y + yInterval * i)
     });
   }
-  return coordList.map(coordToNumber); // coordList includes original Coords a & b
+  return new Set(coordList.map(coordToNumber)); // coordList includes original Coords a & b
 }
 
 // This function returns the pixels to be erased between two sampled around a specified radius of a square of pixels
 export function erasePoints(
   aNum: CoordNumber,
   bNum: CoordNumber
-): CoordNumber[] {
+): Set<CoordNumber> {
   let radius = 3; //px
 
   const a = numberToCoord(aNum);
@@ -61,5 +61,5 @@ export function erasePoints(
       });
     }
   }
-  return coordList.map(coordToNumber); // coordList includes a bunch of redundant pixels as the "radius window" traverses the canvas
+  return new Set(coordList.map(coordToNumber)); // coordList includes a bunch of redundant pixels as the "radius window" traverses the canvas
 }

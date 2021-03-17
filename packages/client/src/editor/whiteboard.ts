@@ -7,6 +7,7 @@ import {
 } from '../controllers/line-controller';
 import { getEffectiveLines } from '../store';
 import { Action, CoordNumber, Img, Line, UUID } from '../types';
+import { setIntersection, setUnion } from '../utils';
 import { erasePoints, linePoints } from './math';
 
 export const lines: Line[] = [];
@@ -29,7 +30,7 @@ const UUID_NAMESPACE = '940beed9-f057-4088-a714-a9f5f2fc6052';
 
 export const startLine = (point: CoordNumber) => {
   drawing = true;
-  const newLine = addLine([point]);
+  const newLine = addLine(new Set([point]));
   lines.push(newLine);
   lastPos = point;
 };
@@ -71,12 +72,12 @@ export const appendErase = (point: CoordNumber) => {
   lastPos = point;
 };
 
-const updateErasedLines = (erasedPoints: CoordNumber[]) => {
+const updateErasedLines = (erasedPoints: Set<CoordNumber>) => {
   const lines = getEffectiveLines();
 
   lines.forEach(line => {
-    const intersection = fp.intersection(line.points, erasedPoints);
-    if (intersection.length > 0) {
+    const intersection = setIntersection(line.points, erasedPoints);
+    if (intersection.size > 0) {
       remotePointsFromLine(line.id, intersection);
     }
   });
@@ -88,10 +89,7 @@ const updateErase = (eraseBuffer: CoordNumber[]) => {
       // work on a copy, so that splice doesn't break iteration
       [...line.points].forEach(point => {
         if (coord == point) {
-          const index = R.indexOf(point, line.points);
-          if (index >= 0) {
-            line.points.splice(index, 1);
-          }
+          line.points.delete(point);
           // line.points = R.reject(p => p == point, line.points); // This pixel will not be rendered anymore
           if (!erasedPixels.has(line.id)) {
             erasedPixels.set(line.id, [coord]); // and the erased pixel is added by UUID to erasedPixels...
@@ -139,7 +137,10 @@ export const undo = () => {
     lastAction.lines.forEach((modifiedPixels, uuid) => {
       let index = lines.findIndex(x => findFunction(uuid, x.id));
       if (index != -1) {
-        lines[index].points = R.union(lines[index].points, modifiedPixels);
+        lines[index].points = setUnion(
+          lines[index].points,
+          new Set(modifiedPixels)
+        );
       }
     });
     history.pop();
