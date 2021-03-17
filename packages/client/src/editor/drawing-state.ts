@@ -29,7 +29,7 @@ type Context =
     };
 
 let context: Context = { status: 'IDLE' };
-const FLUSH_PERIOD_MS = 100;
+const FLUSH_PERIOD_MS = 50;
 
 const deriveStateFromNewPosition = (
   newPosition: CoordNumber,
@@ -60,29 +60,26 @@ const deriveStateFromNewPosition = (
   }
 };
 
-const flushEraseBuffer = (contextSnapshot: Context) => {
-  if (contextSnapshot.status !== 'ERASING') return;
+const flushEraseBuffer = () => {
+  if (context.status !== 'ERASING') return;
+  const erased = context.erasedPixelsBuffer;
 
   const lines = getEffectiveLines();
   lines.forEach(line => {
-    const intersection = setIntersection(
-      line.points,
-      contextSnapshot.erasedPixelsBuffer
-    );
+    const intersection = setIntersection(line.points, erased);
     if (intersection.size > 0) {
       removePointsFromLine(line.id, intersection);
     }
   });
+  context.erasedPixelsBuffer.clear();
 };
 
-const flush = (contextSnapshot: Context) => {
-  // receives the context as arugment instead of using the global
-  // variable, to avoid running after the context switches to 'IDLE',
-  // which caused loss of line ending segments
-  if (contextSnapshot.status === 'DRAWING') {
-    addPointsToLine(contextSnapshot.lineId, contextSnapshot.drawnPixelsBuffer);
+const flush = () => {
+  if (context.status === 'DRAWING' && context.drawnPixelsBuffer) {
+    addPointsToLine(context.lineId, context.drawnPixelsBuffer);
+    context.drawnPixelsBuffer.clear();
   } else if (context.status === 'ERASING') {
-    flushEraseBuffer(contextSnapshot);
+    flushEraseBuffer();
   }
 };
 const throttledFlushDrawing = lodash.throttle(flush, FLUSH_PERIOD_MS, {
@@ -111,42 +108,23 @@ const onPointerDown = (position: CoordNumber, mode: Mode) => {
 const onPointerMove = (newPosition: CoordNumber) => {
   context = deriveStateFromNewPosition(newPosition, context);
   if (context.status !== 'IDLE') {
-    throttledFlushDrawing(context);
+    throttledFlushDrawing();
   }
 };
-
-type Return = [draw: Set<CoordNumber>, erase: Set<CoordNumber>];
 
 /**
  * Sets up listeners on canvas to handle drawing.
  * Returns pixels from the temporary buffers for rendering loally.
  */
-export const useDrawing = (canvas: React.RefObject<HTMLCanvasElement>) => {
-  const [temporary, setTemporary] = useState<Return>([new Set(), new Set()]);
+export const useDrawing = (
+  canvas: React.RefObject<HTMLCanvasElement>
+): void => {
   const mode = useRecoilValue(modeState);
-
-  const updateTemporary = () => {
-    if (context.status === 'DRAWING') {
-      const buffer = context.drawnPixelsBuffer;
-      setTemporary(prev => [setUnion(prev[0], buffer), new Set()]);
-    } else if (context.status === 'ERASING') {
-      const buffer = context.erasedPixelsBuffer;
-      setTemporary(prev => [new Set(), setUnion(prev[1], buffer)]);
-    } else {
-      setTemporary(prev =>
-        ((console.log('local buffer cleare') as unknown) as false) ||
-        (prev[0].size === 0 && prev[1].size === 0)
-          ? prev
-          : [new Set(), new Set()]
-      );
-    }
-  };
 
   const handlePointerDown = useCallback(
     (event: PointerEvent) => {
       const point = coordToNumber({ x: event.x, y: event.y });
       onPointerDown(point, mode);
-      updateTemporary();
     },
     [mode]
   );
@@ -158,7 +136,6 @@ export const useDrawing = (canvas: React.RefObject<HTMLCanvasElement>) => {
       }
       const point = coordToNumber({ x: event.x, y: event.y });
       onPointerMove(point);
-      updateTemporary();
     },
     [canvas]
   );
@@ -170,7 +147,7 @@ export const useDrawing = (canvas: React.RefObject<HTMLCanvasElement>) => {
       }
       const point = coordToNumber({ x: event.x, y: event.y });
       onPointerMove(point); // add potentially missing points
-      updateTemporary();
+      throttledFlushDrawing.flush();
       context = { status: 'IDLE' };
     },
     [canvas]
@@ -193,6 +170,4 @@ export const useDrawing = (canvas: React.RefObject<HTMLCanvasElement>) => {
       canvasElem.removeEventListener('pointerup', handlePointerUp);
     };
   }, [handlePointerMove, handlePointerDown, handlePointerUp, canvas]);
-
-  return temporary;
 };

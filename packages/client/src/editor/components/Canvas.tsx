@@ -75,12 +75,12 @@ const Canvas = (props: { x: number; y: number }) => {
     }
   }, []);
 
-  const [tempDraw, tempErase] = useDrawing(canvas);
+  useDrawing(canvas);
 
   // Main render function
   useEffect(() => {
-    render(getCtx()!, canvas.current!, effectiveLines, tempDraw, tempErase);
-  }, [effectiveLines, tempDraw, tempErase]);
+    render(getCtx()!, canvas.current!, effectiveLines);
+  }, [effectiveLines]);
 
   return (
     <canvas
