@@ -114,7 +114,6 @@ const onPointerMove = (newPosition: CoordNumber) => {
 
 /**
  * Sets up listeners on canvas to handle drawing.
- * Returns pixels from the temporary buffers for rendering loally.
  */
 export const useDrawing = (
   canvas: React.RefObject<HTMLCanvasElement>
