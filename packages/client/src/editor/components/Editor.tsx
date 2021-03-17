@@ -65,7 +65,6 @@ const Editor = (props: { x: number; y: number }) => {
         } else if (mode === 'erase') {
           appendErase(point);
         }
-        render(getCtx()!, canvas.current!, effectiveLines);
       }
     },
     [mode, pointerDown]
@@ -73,7 +72,6 @@ const Editor = (props: { x: number; y: number }) => {
 
   const renderUndo = () => {
     undo();
-    render(getCtx()!, canvas.current!, effectiveLines);
   };
 
   useEffect(() => {
