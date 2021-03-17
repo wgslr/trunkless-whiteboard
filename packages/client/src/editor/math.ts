@@ -1,6 +1,12 @@
-import { Coordinates } from '../types';
+import { Coordinates, CoordNumber } from '../types';
+import { coordToNumber, numberToCoord } from '../utils';
 
-export function linePoints(a: Coordinates, b: Coordinates) {
+export function linePoints(
+  aNum: CoordNumber,
+  bNum: CoordNumber
+): CoordNumber[] {
+  const a = numberToCoord(aNum);
+  const b = numberToCoord(bNum);
   let xDiff = b.x - a.x;
   let yDiff = b.y - a.y;
 
@@ -15,12 +21,18 @@ export function linePoints(a: Coordinates, b: Coordinates) {
       y: Math.floor(a.y + yInterval * i)
     });
   }
-  return coordList; // coordList includes original Coords a & b
+  return coordList.map(coordToNumber); // coordList includes original Coords a & b
 }
 
 // This function returns the pixels to be erased between two sampled around a specified radius of a square of pixels
-export function erasePoints(a: Coordinates, b: Coordinates) {
+export function erasePoints(
+  aNum: CoordNumber,
+  bNum: CoordNumber
+): CoordNumber[] {
   let radius = 3; //px
+
+  const a = numberToCoord(aNum);
+  const b = numberToCoord(bNum);
 
   let xDiff = b.x - a.x;
   let yDiff = b.y - a.y;
@@ -49,5 +61,5 @@ export function erasePoints(a: Coordinates, b: Coordinates) {
       });
     }
   }
-  return coordList; // coordList includes a bunch of redundant pixels as the "radius window" traverses the canvas
+  return coordList.map(coordToNumber); // coordList includes a bunch of redundant pixels as the "radius window" traverses the canvas
 }

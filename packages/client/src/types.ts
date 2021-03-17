@@ -3,6 +3,8 @@ import { Coordinates } from './protocol/protocol';
 
 export type { Coordinates } from './protocol/protocol';
 
+export type CoordNumber = number;
+
 export type UUID = ReturnType<typeof uuidv4>;
 
 export type MessageId = UUID;
@@ -16,12 +18,12 @@ export type Action =
     }
   | {
       type: 'erase';
-      lines: Map<UUID, Coordinates[]>;
+      lines: Map<UUID, CoordNumber[]>;
     };
 
 export type Line = {
   id: UUID;
-  points: Coordinates[];
+  points: CoordNumber[];
 };
 
 export type Note = {
@@ -43,11 +45,6 @@ export enum MessageCode {
   GET_ALL_RESP = 'getAllResp'
 }
 
-export type Figure = {
-  type: 'Note';
-  location: Coordinates;
-};
-
 export class CreateWhiteboardMsg {
   readonly code = MessageCode.CREATE_WHITEBOARD;
 }
@@ -57,17 +54,4 @@ export class OperationResultMsg {
   success: boolean = false;
 }
 
-export class GetAllReqMsg {
-  readonly code = MessageCode.GET_ALL_REQ;
-}
-
-export class GetAllRespMsg {
-  readonly code = MessageCode.GET_ALL_RESP;
-  figures: Figure[] = [];
-}
-
-export type Message =
-  | CreateWhiteboardMsg
-  | OperationResultMsg
-  | GetAllReqMsg
-  | GetAllRespMsg;
+export type Message = CreateWhiteboardMsg | OperationResultMsg;

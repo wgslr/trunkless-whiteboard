@@ -1,8 +1,4 @@
-import { v5 } from 'uuid';
-import { lineToMessage } from '../connection/messages';
-import { reqResponseService } from '../connection/ServerContext';
-import { Action, Coordinates, Img, Line, UUID } from '../types';
-import { erasePoints, linePoints } from './math';
+import fp from 'lodash/fp';
 import * as R from 'ramda';
 import {
   addLine,
@@ -10,7 +6,8 @@ import {
   remotePointsFromLine
 } from '../controllers/line-controller';
 import { getEffectiveLines } from '../store';
-import fp from 'lodash/fp';
+import { Action, CoordNumber, Img, Line, UUID } from '../types';
+import { erasePoints, linePoints } from './math';
 
 export const lines: Line[] = [];
 
@@ -24,20 +21,20 @@ const factor = 1000000;
 let drawing = false;
 let erasing = false;
 
-let lastPos: Coordinates | null = null;
-let erasedPixels: Map<UUID, Coordinates[]> = new Map<UUID, Coordinates[]>();
+let lastPos: CoordNumber | null = null;
+let erasedPixels: Map<UUID, CoordNumber[]> = new Map();
 
 // TODO using v5 is temporary; generate random v4 UUIDs
 const UUID_NAMESPACE = '940beed9-f057-4088-a714-a9f5f2fc6052';
 
-export const startLine = (point: Coordinates) => {
+export const startLine = (point: CoordNumber) => {
   drawing = true;
   const newLine = addLine([point]);
   lines.push(newLine);
   lastPos = point;
 };
 
-export const appendLine = (point: Coordinates) => {
+export const appendLine = (point: CoordNumber) => {
   if (!drawing) {
     return;
   }
@@ -58,14 +55,14 @@ export const finishLine = () => {
   // reqResponseService.send(lineToMessage(lines[lines.length - 1]));
 };
 
-export const startErase = (point: Coordinates) => {
+export const startErase = (point: CoordNumber) => {
   erasing = true;
-  erasedPixels = new Map<UUID, Coordinates[]>();
+  erasedPixels = new Map<UUID, CoordNumber[]>();
   //eraseIndex++;
   lastPos = point;
 };
 
-export const appendErase = (point: Coordinates) => {
+export const appendErase = (point: CoordNumber) => {
   if (!erasing) {
     return;
   }
@@ -74,27 +71,23 @@ export const appendErase = (point: Coordinates) => {
   lastPos = point;
 };
 
-const updateErasedLines = (erasedPoints: Coordinates[]) => {
+const updateErasedLines = (erasedPoints: CoordNumber[]) => {
   const lines = getEffectiveLines();
 
   lines.forEach(line => {
-    const intersection = fp.intersectionBy(
-      c => c.x * factor + c.y,
-      line.points,
-      erasedPoints
-    );
+    const intersection = fp.intersection(line.points, erasedPoints);
     if (intersection.length > 0) {
       remotePointsFromLine(line.id, intersection);
     }
   });
 };
 
-const updateErase = (eraseBuffer: Coordinates[]) => {
+const updateErase = (eraseBuffer: CoordNumber[]) => {
   eraseBuffer.map(coord => {
     lines.map(line => {
       // work on a copy, so that splice doesn't break iteration
       [...line.points].forEach(point => {
-        if (coord.x == point.x && coord.y == point.y) {
+        if (coord == point) {
           const index = R.indexOf(point, line.points);
           if (index >= 0) {
             line.points.splice(index, 1);

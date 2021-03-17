@@ -1,6 +1,5 @@
-import fp from 'lodash/fp';
 import { v4 } from 'uuid';
-import type { Coordinates, Line, UUID } from '../../types';
+import type { CoordNumber, Line, UUID } from '../../types';
 
 // TODO functions below should probably validate
 // that after 'deleted' there can't be newer patches
@@ -8,11 +7,11 @@ type Diff =
   | { type: 'LINE_DELETED' }
   | {
       type: 'ADD_POINTS';
-      points: Readonly<Coordinates[]>;
+      points: Readonly<CoordNumber[]>;
     }
   | {
       type: 'REMOVE_POINTS';
-      points: Readonly<Coordinates[]>;
+      points: Readonly<CoordNumber[]>;
     };
 
 type Patch = {
@@ -37,17 +36,10 @@ const newPatch = (diff: Diff): Patch => ({
   diff
 });
 
-const factor = 1000000;
-const coordDiiff = (l: Coordinates[], r: Coordinates[]) =>
-  fp.intersection(
-    l.map(c => c.x * factor + c.y),
-    r.map(c => c.x * factor + c.y)
-  );
-
 export const getEffectiveLine = (lt: LineTimeline): Line | null => {
   // store coords as strings to allow storage in Set
-  let points = (lt.committed ? lt.committed.points : []).map(
-    c => c.x * factor + c.y
+  let points: Set<CoordNumber> = new Set(
+    lt.committed ? lt.committed.points : []
   );
 
   for (const { diff } of lt.patches) {
@@ -55,20 +47,14 @@ export const getEffectiveLine = (lt: LineTimeline): Line | null => {
       case 'LINE_DELETED':
         return null;
       case 'ADD_POINTS':
-        points = points.concat(diff.points.map(c => c.x * factor + c.y));
+        diff.points.forEach(p => points.add(p));
         break;
       case 'REMOVE_POINTS':
-        points = fp.without(
-          diff.points.map(c => c.x * factor + c.y),
-          points
-        );
+        diff.points.forEach(p => points.delete(p));
         break;
     }
   }
-  return {
-    id: lt.figureId,
-    points: points.map(c => ({ x: Math.floor(c / factor), y: c % factor }))
-  };
+  return { id: lt.figureId, points: [...points] };
 };
 
 export const newCommittedLineTimeline = (initial: Line): LineTimeline => ({
@@ -96,7 +82,7 @@ export const newLocalLineTimeline = ({ id, points }: Line): Result => {
 
 export const patchRemovePoints = (
   lt: LineTimeline,
-  points: Coordinates[]
+  points: CoordNumber[]
 ): Result => {
   const patch = newPatch({
     type: 'REMOVE_POINTS',
@@ -115,7 +101,7 @@ export const patchRemovePoints = (
 
 export const patchAddPoints = (
   lt: LineTimeline,
-  points: Coordinates[]
+  points: Line['points']
 ): Result => {
   const patch = newPatch({ type: 'ADD_POINTS', points: Object.freeze(points) });
   const timeline = {
