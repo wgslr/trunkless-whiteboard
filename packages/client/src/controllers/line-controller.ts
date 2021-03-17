@@ -1,7 +1,8 @@
 import { v4 } from 'uuid';
 import {
   makeAddPointsToLineMessage,
-  makeCreateLineMessage
+  makeCreateLineMessage,
+  makeRemovePointsFromLineMessage
 } from '../connection/messages';
 import { reqResponseService } from '../connection/ServerContext';
 import { ClientToServerMessage } from '../protocol/protocol';
@@ -20,7 +21,7 @@ export const addLine = (points: Line['points']): Readonly<Line> => {
   reqResponseService.send(body, () => {
     discardPatch(line.id, patchId);
   });
-  return {...line};
+  return { ...line };
 };
 
 export const addPointsToLine = (id: Line['id'], points: Line['points']) => {
@@ -39,5 +40,11 @@ export const removePointsFromLine = (
   points: Line['points']
 ) => {
   const patchId = localRemovePoints(id, points);
-  // TODO send to server
+  const body: ClientToServerMessage['body'] = makeRemovePointsFromLineMessage(
+    id,
+    points
+  );
+  reqResponseService.send(body, () => {
+    discardPatch(id, patchId);
+  });
 };

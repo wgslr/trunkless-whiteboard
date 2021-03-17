@@ -10,6 +10,7 @@ import {
 } from '../protocol/protocol';
 import { Result, UUID } from '../types';
 import { ClientConnection } from './client-connection';
+import fp from 'lodash/fp';
 
 export abstract class Figure {
   id: UUID;
@@ -38,6 +39,7 @@ export enum OperationType {
   FIGURE_MOVE,
   LINE_CREATE,
   LINE_ADD_POINTS,
+  LINE_REMOVE_POINTS,
   NOTE_ADD,
   NOTE_UPADTE,
   NOTE_DELETE
@@ -54,6 +56,13 @@ export type Operation =
     }
   | {
       type: OperationType.LINE_ADD_POINTS;
+      data: {
+        change: LinePatch;
+        causedBy: ClientToServerMessage['messsageId'];
+      };
+    }
+  | {
+      type: OperationType.LINE_REMOVE_POINTS;
       data: {
         change: LinePatch;
         causedBy: ClientToServerMessage['messsageId'];
@@ -83,6 +92,8 @@ class OperationError extends Error {
     super(message);
   }
 }
+
+const coordToNumber = (coord: Coordinates) => coord.x * 1000000 + coord.y;
 
 export class Whiteboard {
   MAX_WIDTH = 400;
@@ -153,6 +164,46 @@ export class Whiteboard {
           },
           causedBy
         );
+        break;
+      }
+      case OperationType.LINE_REMOVE_POINTS: {
+        const { change: patch, causedBy } = op.data;
+        const line = this.lines.get(patch.id);
+        if (!line) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.FIGURE_NOT_EXISTS
+            }),
+            causedBy
+          );
+          return;
+        }
+
+        const newLinePoints = fp.differenceBy(
+          coordToNumber,
+          line.points,
+          patch.points
+        );
+        const removedPoints = line.points.length - newLinePoints.length;
+        console.log('Removed points', removedPoints);
+        if (removedPoints > 0) {
+          line.points = newLinePoints;
+          this.sendToClients(
+            {
+              $case: 'lineCreatedOrUpdated',
+              lineCreatedOrUpdated: {
+                line: {
+                  id: encodeUUID(line.id),
+                  points: line.points
+                }
+              }
+            },
+            causedBy
+          );
+        } else {
+          // TODO maybe send error response about no-operation
+        }
         break;
       }
       case OperationType.NOTE_ADD: {

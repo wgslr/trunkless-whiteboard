@@ -6,6 +6,7 @@ const commonWhitboardMessages: ClientToServerCase[] = [
   'deleteNote',
   'createLine',
   'addPointsToLine',
+  'removePointsFromLine',
   'updateNotePosition',
   'updateNoteText'
 ];

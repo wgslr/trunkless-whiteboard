@@ -44,6 +44,19 @@ export const handleWhiteboardMessage = (
       );
       return;
     }
+    case 'removePointsFromLine': {
+      const { lineId: idRaw, points } = message.body.removePointsFromLine;
+      const id = decodeUUID(idRaw);
+
+      whiteboard.handleOperation(
+        {
+          type: OperationType.LINE_REMOVE_POINTS,
+          data: { causedBy: message.messsageId, change: { id, points } }
+        },
+        client
+      );
+      return;
+    }
     case 'createNote': {
       const body = message.body.createNote;
       const data = messageToNote(body.note!);

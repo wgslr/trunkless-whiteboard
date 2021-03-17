@@ -51,6 +51,17 @@ export const makeAddPointsToLineMessage = (
   }
 });
 
+export const makeRemovePointsFromLineMessage = (
+  lineId: Line['id'],
+  points: Line['points']
+): ClientToServerMessage['body'] => ({
+  $case: 'removePointsFromLine',
+  removePointsFromLine: {
+    lineId: encodeUUID(lineId),
+    points: [...points].map(numberToCoord)
+  }
+});
+
 // TODO deduplciate with backend code
 const encodeUUID = (id: UUID): Uint8Array => Uint8Array.from(uuid.parse(id));
 
