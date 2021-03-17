@@ -40,6 +40,7 @@ export enum OperationType {
   LINE_CREATE,
   LINE_ADD_POINTS,
   LINE_REMOVE_POINTS,
+  LINE_DELETE,
   NOTE_ADD,
   NOTE_UPADTE,
   NOTE_DELETE
@@ -65,6 +66,13 @@ export type Operation =
       type: OperationType.LINE_REMOVE_POINTS;
       data: {
         change: LinePatch;
+        causedBy: ClientToServerMessage['messsageId'];
+      };
+    }
+  | {
+      type: OperationType.LINE_DELETE;
+      data: {
+        lineId: Line['id'];
         causedBy: ClientToServerMessage['messsageId'];
       };
     }
@@ -203,6 +211,30 @@ export class Whiteboard {
           );
         } else {
           // TODO maybe send error response about no-operation
+        }
+        break;
+      }
+      case OperationType.LINE_DELETE: {
+        const { lineId, causedBy } = op.data;
+        const line = this.lines.get(lineId);
+        if (!line) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.FIGURE_NOT_EXISTS
+            }),
+            causedBy
+          );
+          return;
+        } else {
+          this.lines.delete(lineId);
+          this.sendToClients(
+            {
+              $case: 'lineDeleted',
+              lineDeleted: { lineId: encodeUUID(lineId) }
+            },
+            causedBy
+          );
         }
         break;
       }

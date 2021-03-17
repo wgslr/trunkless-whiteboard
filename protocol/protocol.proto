@@ -44,8 +44,10 @@ message RemovePointsFromLine {
   bytes line_id = 1;
   repeated Coordinates points = 2;
 }
+message DeleteLine { bytes line_id = 1; }
 
 message LineCreatedOrUpdated { Line line = 1; }
+message LineDeleted { bytes line_id = 1; }
 
 message CreateNote { Note note = 1; }
 message UpdateNotePosition {
@@ -74,6 +76,7 @@ message ClientToServerMessage {
     CreateLine create_line = 20;
     AddPointsToLine add_points_to_line = 21;
     RemovePointsFromLine remove_points_from_line = 22;
+    DeleteLine delete_line = 23;
   }
 }
 
@@ -87,6 +90,7 @@ message ServerToClientMessage {
     LineCreatedOrUpdated line_created_or_updated = 6;
     NoteCreatedOrUpdated note_created_or_updated = 8;
     NoteDeleted note_deleted = 9;
+    LineDeleted line_deleted = 10;
   }
 }
 

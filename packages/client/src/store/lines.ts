@@ -1,5 +1,4 @@
 import { updateLineStore } from '.';
-import { Coordinates } from '../protocol/protocol';
 import { Line, UUID } from '../types';
 import * as lineTimeline from './timelines/line';
 import { newLocalLineTimeline } from './timelines/line';

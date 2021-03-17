@@ -94,7 +94,11 @@ const flush = () => {
     flushEraseBuffer();
   }
 };
-const throttledFlushDrawing = lodash.throttle(flush, FLUSH_PERIOD_MS, {
+
+// Use lodash.throttle to limit frequency of flush() exeuction. This increases
+// latency of displaying the drawing locally, but reduces number of messages
+// with line segments sent to the server.
+const throttledFlush = lodash.throttle(flush, FLUSH_PERIOD_MS, {
   leading: true,
   trailing: true
 });
@@ -121,7 +125,7 @@ const onPointerDown = (position: CoordNumber, mode: Mode) => {
 const onPointerMove = (newPosition: CoordNumber) => {
   if (context.status !== 'IDLE') {
     context = deriveStateFromNewPosition(newPosition, context);
-    throttledFlushDrawing();
+    throttledFlush();
   }
 };
 
@@ -130,7 +134,7 @@ const onPointerUp = (point: CoordNumber) => {
     return;
   }
   onPointerMove(point); // add last line/erase segment
-  throttledFlushDrawing.flush();
+  throttledFlush.flush();
 
   if (context.status === 'DRAWING') {
     finishDrawing();

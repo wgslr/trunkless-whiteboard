@@ -1,6 +1,5 @@
-import { Line, UUID, CoordNumber } from '../types';
 import { addPointsToLine, deleteLine } from '../controllers/line-controller';
-import { LineStyle } from '@material-ui/icons';
+import { CoordNumber, Line, UUID } from '../types';
 
 export type Action =
   | {
