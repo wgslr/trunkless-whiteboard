@@ -6,8 +6,9 @@ import {
   addPointsToLine,
   removePointsFromLine
 } from '../controllers/line-controller';
+import { getEffectiveLines } from '../store';
 import { CoordNumber, Mode, UUID } from '../types';
-import { coordToNumber, setUnion } from '../utils';
+import { coordToNumber, setIntersection, setUnion } from '../utils';
 import { calculateErasePoints, calculateLinePoints } from './math';
 import { modeState } from './state';
 
@@ -59,7 +60,20 @@ const deriveStateFromNewPosition = (
   }
 };
 
-const flushEraseBuffer = () => {};
+const flushEraseBuffer = (contextSnapshot: Context) => {
+  if (contextSnapshot.status !== 'ERASING') return;
+
+  const lines = getEffectiveLines();
+  lines.forEach(line => {
+    const intersection = setIntersection(
+      line.points,
+      contextSnapshot.erasedPixelsBuffer
+    );
+    if (intersection.size > 0) {
+      removePointsFromLine(line.id, intersection);
+    }
+  });
+};
 
 const flush = (contextSnapshot: Context) => {
   // receives the context as arugment instead of using the global
@@ -67,9 +81,8 @@ const flush = (contextSnapshot: Context) => {
   // which caused loss of line ending segments
   if (contextSnapshot.status === 'DRAWING') {
     addPointsToLine(contextSnapshot.lineId, contextSnapshot.drawnPixelsBuffer);
-    contextSnapshot.drawnPixelsBuffer = new Set();
   } else if (context.status === 'ERASING') {
-    flushEraseBuffer();
+    flushEraseBuffer(contextSnapshot);
   }
 };
 const throttledFlushDrawing = lodash.throttle(flush, FLUSH_PERIOD_MS, {
@@ -121,7 +134,10 @@ export const useDrawing = (canvas: React.RefObject<HTMLCanvasElement>) => {
       setTemporary(prev => [new Set(), setUnion(prev[1], buffer)]);
     } else {
       setTemporary(prev =>
-        prev[0].size === 0 && prev[1].size === 0 ? prev : [new Set(), new Set()]
+        ((console.log('local buffer cleare') as unknown) as false) ||
+        (prev[0].size === 0 && prev[1].size === 0)
+          ? prev
+          : [new Set(), new Set()]
       );
     }
   };
