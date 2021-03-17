@@ -12,7 +12,7 @@ let lineListeners: React.Dispatch<
 const STATE_UPDATE_FREQUENCY_MS = 10;
 
 export const useEffectiveNotes = () => {
-  const [state, setState] = useState(getEffectiveNotes());
+  const [state, setState] = useState(getEffectiveNotes);
   useEffect(() => {
     noteListeners.push(setState);
     return () => {
@@ -24,7 +24,7 @@ export const useEffectiveNotes = () => {
 };
 
 export const useEffectiveLines = () => {
-  const [state, setState] = useState(getEffectiveLines());
+  const [state, setState] = useState(getEffectiveLines);
   useEffect(() => {
     lineListeners.push(setState);
     return () => {
