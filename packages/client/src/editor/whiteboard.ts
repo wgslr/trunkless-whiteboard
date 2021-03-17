@@ -1,10 +1,8 @@
-import { v5 } from 'uuid';
-import { lineToMessage } from '../connection/messages';
-import { reqResponseService } from '../connection/ServerContext';
-import { Action, Coordinates, Img, Line, UUID } from '../types';
-import { erasePoints, linePoints } from './math';
 import * as R from 'ramda';
 import { addLine, addPointsToLine } from '../controllers/line-controller';
+import { Action, CoordNumber, Img, Line, UUID } from '../types';
+import { numberToCoord } from '../utils';
+import { erasePoints, linePoints } from './math';
 
 export const lines: Line[] = [];
 
@@ -15,21 +13,21 @@ export const images: Img[] = [];
 let drawing = false;
 let erasing = false;
 
-let lastPos: Coordinates | null = null;
-let eraseBuffer: Coordinates[] = [];
-let erasedPixels: Map<UUID, Coordinates[]> = new Map<UUID, Coordinates[]>();
+let lastPos: CoordNumber | null = null;
+let eraseBuffer: CoordNumber[] = [];
+let erasedPixels: Map<UUID, CoordNumber[]> = new Map<UUID, CoordNumber[]>();
 
 // TODO using v5 is temporary; generate random v4 UUIDs
 const UUID_NAMESPACE = '940beed9-f057-4088-a714-a9f5f2fc6052';
 
-export const startLine = (point: Coordinates) => {
+export const startLine = (point: CoordNumber) => {
   drawing = true;
   const newLine = addLine([point]);
   lines.push(newLine);
   lastPos = point;
 };
 
-export const appendLine = (point: Coordinates) => {
+export const appendLine = (point: CoordNumber) => {
   if (!drawing) {
     return;
   }
@@ -50,16 +48,16 @@ export const finishLine = () => {
   // reqResponseService.send(lineToMessage(lines[lines.length - 1]));
 };
 
-export const startErase = (point: Coordinates) => {
+export const startErase = (point: CoordNumber) => {
   erasing = true;
   eraseBuffer = [];
-  erasedPixels = new Map<UUID, Coordinates[]>();
+  erasedPixels = new Map<UUID, CoordNumber[]>();
   //eraseIndex++;
   eraseBuffer.push(point);
   lastPos = point;
 };
 
-export const appendErase = (point: Coordinates) => {
+export const appendErase = (point: CoordNumber) => {
   if (!erasing) {
     return;
   }
@@ -77,7 +75,7 @@ const updateErase = () => {
     lines.map(line => {
       // work on a copy, so that splice doesn't break iteration
       [...line.points].forEach(point => {
-        if (coord.x == point.x && coord.y == point.y) {
+        if (coord == point) {
           const index = R.indexOf(point, line.points);
           if (index >= 0) {
             line.points.splice(index, 1);

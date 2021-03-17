@@ -18,12 +18,12 @@ export type Action =
     }
   | {
       type: 'erase';
-      lines: Map<UUID, Coordinates[]>;
+      lines: Map<UUID, CoordNumber[]>;
     };
 
 export type Line = {
   id: UUID;
-  points: Coordinates[];
+  points: CoordNumber[];
 };
 
 export type Note = {

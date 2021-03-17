@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRecoilState } from 'recoil';
 import { addNote } from '../../controllers/note-controller';
 import { useEffectiveLines } from '../../store/hooks';
+import { coordToNumber } from '../../utils';
 import render from '../render';
 import { modeState } from '../state';
 import {
@@ -33,9 +34,9 @@ const Editor = (props: { x: number; y: number }) => {
       setPointerDown(true);
       const point = { x: event.x, y: event.y };
       if (mode === 'draw') {
-        startLine(point);
+        startLine(coordToNumber(point));
       } else if (mode === 'erase') {
-        startErase(point);
+        startErase(coordToNumber(point));
       } else if (mode === 'note') {
         addNote(point);
       }
@@ -57,7 +58,7 @@ const Editor = (props: { x: number; y: number }) => {
       if (event.target !== canvas.current) {
         return;
       }
-      const point = { x: event.x, y: event.y };
+      const point = coordToNumber({ x: event.x, y: event.y });
 
       if (pointerDown) {
         if (mode === 'draw') {

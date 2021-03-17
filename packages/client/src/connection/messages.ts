@@ -5,6 +5,7 @@ import {
   Note as NoteProto
 } from '../protocol/protocol';
 import type { Line, Note, UUID } from '../types';
+import { coordToNumber, numberToCoord } from '../utils';
 
 export const makeCreateNoteMessage = (
   note: Note
@@ -46,7 +47,7 @@ export const makeAddPointsToLineMessage = (
   $case: 'addPointsToLine',
   addPointsToLine: {
     lineId: encodeUUID(lineId),
-    points: points
+    points: points.map(numberToCoord)
   }
 });
 
@@ -60,14 +61,14 @@ export function decodeLineData(data: LineProto): Line {
 
   return {
     id: decodeUUID(data.id),
-    points
+    points: data.points.map(coordToNumber)
   };
 }
 
 export function lineToMessage(line: Line): LineProto {
   return {
-    ...line,
-    id: encodeUUID(line.id)
+    id: encodeUUID(line.id),
+    points: line.points.map(numberToCoord)
   };
 }
 

@@ -2,6 +2,7 @@
 //import { isContext } from "vm";
 //import {Coordinate} from '../types';
 import { Line } from '../types';
+import { numberToCoord } from '../utils';
 
 const reset = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -22,7 +23,7 @@ const render = (
   ctx.fillStyle = '#000000';
   console.debug(`canvas render: drawing ${lines.length} lines`);
   lines.forEach(line => {
-    line.points.forEach(point => {
+    line.points.map(numberToCoord).forEach(point => {
       ctx.fillRect(
         point.x - canvas.offsetLeft,
         point.y - canvas.offsetTop,
