@@ -109,8 +109,6 @@ export class Whiteboard {
         };
         this.lines.set(line.id, sanitizedLine);
 
-        console.log(`There are ${this.lines.size} lines on the whiteboard`);
-
         this.sendToClients(
           {
             $case: 'lineCreatedOrUpdated',
@@ -170,7 +168,6 @@ export class Whiteboard {
           );
         } else {
           this.notes.set(note.id, note);
-          console.log('Added note', note);
           this.sendToClients(
             {
               $case: 'noteCreatedOrUpdated',
@@ -213,7 +210,6 @@ export class Whiteboard {
         };
 
         this.notes.set(note.id, updated);
-        console.log('Updated note', { old: note, updated });
         this.sendToClients(
           {
             $case: 'noteCreatedOrUpdated',
@@ -265,7 +261,6 @@ export class Whiteboard {
   }
 
   private areCoordsWithinBounds(coords: Coordinates): boolean {
-    console.log(coords);
     return (
       coords.x >= 0 &&
       coords.x <= this.MAX_WIDTH &&
@@ -278,7 +273,10 @@ export class Whiteboard {
     message: ServerToClientMessage['body'],
     previousMessageId?: string
   ) {
-    console.log(`Sending message to ${this.clients.length} clients:`, message);
+    console.debug(
+      `Sending message to ${this.clients.length} clients:`,
+      message?.$case
+    );
     this.clients.forEach(client => {
       client.send(message, previousMessageId);
     });
@@ -318,7 +316,3 @@ export const connectClient = (
     return { result: 'success' };
   }
 };
-
-// setInterval(() => {
-//   console.log(`There are ${countWhiteboards()} whiteboards`, whiteboards);
-// }, 2000);

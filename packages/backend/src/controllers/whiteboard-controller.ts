@@ -21,7 +21,6 @@ export const handleWhiteboardMessage = (
     case 'createLine': {
       const data = message.body.createLine;
       const decodedData = messageToLine(data.line!);
-      console.log(`Line drawn`, decodedData);
 
       whiteboard.handleOperation(
         {

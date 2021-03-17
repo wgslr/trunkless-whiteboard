@@ -17,11 +17,10 @@ const render = (
   if (ctx == null) {
     throw new Error('no ctx');
   }
-  console.log('canvas render');
   reset(ctx, canvas);
 
   ctx.fillStyle = '#000000';
-  console.debug(`bitmap render: drawing ${lines.length} lines`);
+  console.debug(`canvas render: drawing ${lines.length} lines`);
   lines.forEach(line => {
     line.points.forEach(point => {
       ctx.fillRect(
