@@ -15,7 +15,10 @@ export const handlePreWhiteboardMessage = (
     return;
   }
   if (client.status.kind != 'NO_WHITEBOARD') {
-    client.send(makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED));
+    client.send(
+      makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED),
+      message.messsageId
+    );
     return;
   }
 
