@@ -3,6 +3,7 @@ import { decodeUUID } from 'encoding';
 import { ClientConnection } from '../models/client-connection';
 import { OperationType } from '../models/whiteboard';
 import { ClientToServerMessage, ErrorReason } from '../protocol/protocol';
+import { dec } from 'ramda';
 
 export const handleWhiteboardMessage = (
   message: ClientToServerMessage,
@@ -98,6 +99,23 @@ export const handleWhiteboardMessage = (
         client
       );
       return;
+    }
+    case 'updateNotePosition': {
+      const { noteId, position } = message.body.updateNotePosition;
+
+      whiteboard.handleOperation(
+        {
+          type: OperationType.NOTE_MOVE,
+          data: {
+            causedBy: message.messsageId,
+            change: {
+              id: decodeUUID(noteId),
+              position
+            }
+          }
+        },
+        client
+      )
     }
   }
 };

@@ -42,6 +42,7 @@ export enum OperationType {
   LINE_REMOVE_POINTS,
   NOTE_ADD,
   NOTE_UPADTE,
+  NOTE_MOVE,
   NOTE_DELETE
 }
 
@@ -79,6 +80,13 @@ export type Operation =
         causedBy: ClientToServerMessage['messsageId'];
       };
     }
+  | {
+    type: OperationType.NOTE_MOVE;
+    data: {
+      change: Partial<Note> & Pick<Note, 'id'>;
+      causedBy: ClientToServerMessage['messsageId'];
+    }
+  }
   | {
       type: OperationType.NOTE_DELETE;
       data: {
@@ -256,7 +264,6 @@ export class Whiteboard {
         }
         const updated = {
           ...note,
-          position: change.position ?? note.position,
           text: change.text ?? note.text
         };
 
@@ -295,6 +302,47 @@ export class Whiteboard {
             causedBy
           );
         }
+        break;
+      }
+      case OperationType.NOTE_MOVE: {
+        const { change, causedBy } = op.data;
+        if (change.position && !this.areCoordsWithinBounds(change.position)) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
+            }),
+            causedBy
+          );
+          return;
+        }
+        const note = this.notes.get(change.id);
+        if (!note) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.FIGURE_NOT_EXISTS
+            }),
+            causedBy
+          );
+          return;
+        }
+        const updated = {
+          ...note,
+          position: change.position ?? note.position,
+        };
+
+        this.notes.set(note.id, updated);
+        this.sendToClients(
+          {
+            $case: 'noteCreatedOrUpdated',
+            noteCreatedOrUpdated: {
+              note: noteToMessage(updated)
+            }
+          },
+          causedBy
+        );
+
         break;
       }
       // case OperationType.RETURN_ALL_FIGURES: {

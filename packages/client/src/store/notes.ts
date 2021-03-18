@@ -4,6 +4,7 @@ import * as noteTimeline from './timelines/note';
 import {
   patchDeleteNote,
   patchText,
+  patchPosition,
   newCommittedNoteTimeline,
   newLocalNoteTimeline,
   setCommitted
@@ -42,6 +43,18 @@ export const localUpdateText = (id: Note['id'], newText: string): PatchId => {
     return patchId;
   });
 };
+
+export const localMoveNote = (id: Note['id'], newX: number, newY: number) => {
+  return updateNoteStore(noteTimelines => {
+    const nt = noteTimelines[id];
+    if (!nt) {
+      throw new Error('Tried moving note without NoteTimeline');
+    }
+    const {patchId, timeline, figureId} = patchPosition(nt, {x: newX, y: newY});
+    noteTimelines[figureId] = timeline;
+    return patchId;
+  });
+}
 
 export const setServerState = (id: Note['id'], state: Note | null) => {
   return updateNoteStore(noteTimelines => {

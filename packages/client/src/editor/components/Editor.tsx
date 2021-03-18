@@ -1,10 +1,12 @@
-import React from 'react';
+import { useRef } from 'react';
 import Canvas from './Canvas';
 import Stickies from './Stickies';
 import Tools from './Tools';
 import UndoTool from './UndoTool';
 
 const Editor = (props: { x: number; y: number }) => {
+  const canvRef = useRef<HTMLCanvasElement>(null);
+
   return (
     <div
       id="editor"
@@ -17,8 +19,9 @@ const Editor = (props: { x: number; y: number }) => {
         <Tools />
         <UndoTool onClick={() => {}} />
       </div>
-      <Stickies />
+      
       <Canvas {...props} />
+      <Stickies />
     </div>
   );
   // <Cursor canvas={canvas.current!}></Cursor>

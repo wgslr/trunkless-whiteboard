@@ -2,7 +2,8 @@ import { v4 } from 'uuid';
 import {
   makeCreateNoteMessage,
   makeDeleteNoteMessage,
-  makeUpdateNoteTextMessage
+  makeUpdateNoteTextMessage,
+  makeUpdateNotePositionMessage
 } from '../connection/messages';
 import { reqResponseService } from '../connection/ServerContext';
 import { ClientToServerMessage } from '../protocol/protocol';
@@ -10,7 +11,8 @@ import {
   discardPatch,
   localAddNote,
   localDeleteNote,
-  localUpdateText
+  localUpdateText,
+  localMoveNote
 } from '../store/notes';
 import type { Coordinates, Note } from '../types';
 
@@ -46,3 +48,9 @@ export const deleteNote = (figureId: Note['id']): void => {
     reqResponseService.send(body, () => discardPatch(figureId, patchId));
   }
 };
+
+export const moveNote = (figureId: Note['id'], newX: number, newY: number): void => {
+  const patchId = localMoveNote(figureId, newX, newY);
+  const body: ClientToServerMessage['body'] = makeUpdateNotePositionMessage(figureId, {x: newX, y: newY});
+  reqResponseService.send(body, () => discardPatch(figureId, patchId))
+}

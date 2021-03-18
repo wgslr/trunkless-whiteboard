@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import { UUID, Note } from '../../types';
@@ -6,11 +6,29 @@ import { UUID, Note } from '../../types';
 interface NoteProps {
   save: (id: UUID, content: string) => void;
   delete: (id: UUID) => void;
+  move: (id: UUID, x: number, y: number) => void;
   note: Note;
 }
 
 const StickyNote: React.FunctionComponent<NoteProps> = props => {
   const { note } = props;
+
+  const [mouseDown, setMouseDown] = useState(false);
+  const [pos, setPos] = useState({x: note.position.x, y: note.position.y});
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
+    }
+    props.move(note.id, pos.x, pos.y);
+  }, [pos])
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (mouseDown) {
+      setPos({x: pos.x + e.movementX, y: pos.y + e.movementY});
+    }
+  };
 
   const deleteNote = () => {
     props.delete(note.id);
@@ -22,7 +40,13 @@ const StickyNote: React.FunctionComponent<NoteProps> = props => {
   };
 
   return (
-    <div style={style} className="stickyNote">
+    <div 
+      ref={ref} 
+      style={style} 
+      className="stickyNote"
+      onMouseMove={ (e) => onMouseMove(e) }
+      onMouseDown={ () => setMouseDown(true) }
+      onMouseUp={ () => setMouseDown(false) }>
       <textarea
         onChange={e => props.save(note.id, e.target.value)}
         value={note.text}
