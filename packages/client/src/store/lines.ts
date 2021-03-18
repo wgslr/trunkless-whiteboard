@@ -1,5 +1,4 @@
 import { updateLineStore } from '.';
-import { Coordinates } from '../protocol/protocol';
 import { Line, UUID } from '../types';
 import * as lineTimeline from './timelines/line';
 import { newLocalLineTimeline } from './timelines/line';
@@ -44,6 +43,20 @@ export const localRemovePoints = (
     const { patchId, timeline, figureId } = lineTimeline.patchRemovePoints(
       oldTimeline,
       points
+    );
+    lineTimelines[figureId] = timeline;
+    return patchId;
+  });
+};
+
+export const localDeleteLine = (id: Line['id']): PatchId => {
+  return updateLineStore(lineTimelines => {
+    const oldTimeline = lineTimelines[id];
+    if (!oldTimeline) {
+      throw new Error('Tried deleting line without LineTimeline');
+    }
+    const { patchId, timeline, figureId } = lineTimeline.patchDeleteLine(
+      oldTimeline
     );
     lineTimelines[figureId] = timeline;
     return patchId;

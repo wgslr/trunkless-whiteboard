@@ -70,6 +70,15 @@ export const makeRemovePointsFromLineMessage = (
   }
 });
 
+export const makeDeleteLineMessage = (
+  lineId: Line['id']
+): ClientToServerMessage['body'] => ({
+  $case: 'deleteLine',
+  deleteLine: {
+    lineId: encodeUUID(lineId)
+  }
+});
+
 // TODO deduplciate with backend code
 const encodeUUID = (id: UUID): Uint8Array => Uint8Array.from(uuid.parse(id));
 

@@ -1,11 +1,11 @@
-import { useRef } from 'react';
+import React from 'react';
+import { undo } from '../history';
 import Canvas from './Canvas';
 import Stickies from './Stickies';
 import Tools from './Tools';
 import UndoTool from './UndoTool';
 
 const Editor = (props: { x: number; y: number }) => {
-  const canvRef = useRef<HTMLCanvasElement>(null);
 
   return (
     <div
@@ -17,7 +17,7 @@ const Editor = (props: { x: number; y: number }) => {
     >
       <div>
         <Tools />
-        <UndoTool onClick={() => {}} />
+        <UndoTool onClick={() => undo()} />
       </div>
       
       <Canvas {...props} />

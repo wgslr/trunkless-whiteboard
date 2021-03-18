@@ -9,7 +9,26 @@ import { ProtobufSocketClient } from './protobuf-client';
 type Callback = (message: ServerToClientMessage['body'] | 'timeout') => void;
 
 export class RequestResponseService {
-  constructor(private protobufClient: ProtobufSocketClient) {}
+  private messageIdToResponseHandler: Map<
+    NonNullable<ServerToClientMessage['causedBy']>,
+    Callback
+  > = new Map();
+
+  constructor(private protobufClient: ProtobufSocketClient) {
+    const callResponeHandlerIfPresent = (
+      message: ServerToClientMessage
+    ): void => {
+      const { causedBy } = message;
+      if (causedBy) {
+        const handler = this.messageIdToResponseHandler.get(causedBy);
+        if (handler) {
+          handler(message.body);
+        }
+      }
+    };
+
+    this.protobufClient.addListener('message', callResponeHandlerIfPresent);
+  }
 
   public send(body: ClientToServerMessage['body'], callback?: Callback) {
     // callback - invoked when server sends a response
@@ -23,21 +42,13 @@ export class RequestResponseService {
   }
 
   private setupResponseHandler(messageId: string, callback: Callback) {
-    let serverResponded = false;
-    const eventHandler = (serverMessage: ServerToClientMessage) => {
-      if (serverMessage.causedBy && serverMessage.causedBy == messageId) {
-        this.protobufClient.removeListener('message', eventHandler);
-        serverResponded = true;
-        callback(serverMessage.body);
-      }
-    };
-
-    this.protobufClient.addListener('message', eventHandler);
-
+    this.messageIdToResponseHandler.set(messageId, msg => {
+      this.messageIdToResponseHandler.delete(messageId);
+      callback(msg);
+    });
     setTimeout(() => {
-      if (!serverResponded) {
-        this.protobufClient.removeListener('message', eventHandler);
-        console.log('Timeout on awaiting server response');
+      if (this.messageIdToResponseHandler.delete(messageId)) {
+        console.warn('Timeout on awaiting server response');
         callback('timeout');
       }
     }, SERVER_RESPONSE_TIMEOUT);
