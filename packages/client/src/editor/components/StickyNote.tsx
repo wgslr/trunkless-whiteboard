@@ -19,12 +19,15 @@ const StickyNote: React.FunctionComponent<NoteProps> = props => {
 
   useEffect(() => {
     if (ref.current) {
-      ref.current.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
+      //ref.current.style.transform = `translate(${pos.x}px, ${pos.y}px)`; 
+      ref.current.style.setProperty('left', (note.position.x + pos.x).toString());
+      ref.current.style.setProperty('top', (note.position.y + pos.y).toString());
     }
-    props.move(note.id, pos.x, pos.y);
+    props.move(note.id, pos.x,  pos.y);
   }, [pos])
 
   const onMouseMove = (e: React.MouseEvent) => {
+    e.preventDefault();
     if (mouseDown) {
       setPos({x: pos.x + e.movementX, y: pos.y + e.movementY});
     }
