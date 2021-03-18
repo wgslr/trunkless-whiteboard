@@ -28,7 +28,7 @@ jobs:
       - name: Deploy to server
         if: ${{ success() }}
         run: |
-          curl https://${USER}:${PASSWORD}@trunkless-whiteboard.website/
+          curl https://${USER}:${PASSWORD}@trunkless-whiteboard.website/cgi-bin/deploy
         env:
           USER: ${{ secrets.DEPLOY_USER }}
           PASSWORD: ${{ secrets.DEPLOY_USER_PASSWORD }}
