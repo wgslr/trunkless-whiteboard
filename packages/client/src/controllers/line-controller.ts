@@ -2,6 +2,7 @@ import { v4 } from 'uuid';
 import {
   makeAddPointsToLineMessage,
   makeCreateLineMessage,
+  makeDeleteLineMessage,
   makeRemovePointsFromLineMessage
 } from '../connection/messages';
 import { reqResponseService } from '../connection/ServerContext';
@@ -10,6 +11,7 @@ import {
   discardPatch,
   localAddLine,
   localAddPoints,
+  localDeleteLine,
   localRemovePoints
 } from '../store/lines';
 import { Line } from '../types';
@@ -44,6 +46,14 @@ export const removePointsFromLine = (
     id,
     points
   );
+  reqResponseService.send(body, () => {
+    discardPatch(id, patchId);
+  });
+};
+
+export const deleteLine = (id: Line['id']) => {
+  const patchId = localDeleteLine(id);
+  const body: ClientToServerMessage['body'] = makeDeleteLineMessage(id);
   reqResponseService.send(body, () => {
     discardPatch(id, patchId);
   });

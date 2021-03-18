@@ -1,4 +1,5 @@
 import React from 'react';
+import { undo } from '../history';
 import Canvas from './Canvas';
 import Stickies from './Stickies';
 import Tools from './Tools';
@@ -15,7 +16,7 @@ const Editor = (props: { x: number; y: number }) => {
     >
       <div>
         <Tools />
-        <UndoTool onClick={() => {}} />
+        <UndoTool onClick={() => undo()} />
       </div>
       <Stickies />
       <Canvas {...props} />

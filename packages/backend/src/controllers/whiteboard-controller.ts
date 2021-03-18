@@ -57,6 +57,18 @@ export const handleWhiteboardMessage = (
       );
       return;
     }
+    case 'deleteLine': {
+      const { lineId } = message.body.deleteLine;
+      const id = decodeUUID(lineId);
+      whiteboard.handleOperation(
+        {
+          type: OperationType.LINE_DELETE,
+          data: { causedBy: message.messsageId, lineId: id }
+        },
+        client
+      );
+      return;
+    }
     case 'createNote': {
       const body = message.body.createNote;
       const data = messageToNote(body.note!);
@@ -98,6 +110,9 @@ export const handleWhiteboardMessage = (
         client
       );
       return;
+    }
+    default: {
+      console.warn('Unhandled message type:', message.body.$case);
     }
   }
 };

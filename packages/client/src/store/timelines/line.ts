@@ -115,6 +115,19 @@ export const patchAddPoints = (
   };
 };
 
+export const patchDeleteLine = (lt: LineTimeline): Result => {
+  const patch = newPatch({ type: 'LINE_DELETED' });
+  const timeline = {
+    ...lt,
+    patches: lt.patches.concat(patch)
+  };
+  return {
+    timeline,
+    patchId: patch.id,
+    figureId: lt.figureId
+  };
+};
+
 export const setCommitted = (
   lt: LineTimeline,
   committed: LineTimeline['committed']

@@ -1,4 +1,4 @@
-import { Coordinates, CoordNumber } from '../types';
+import { CoordNumber } from '../types';
 import { coordToNumber, numberToCoord } from '../utils';
 
 export const calculateLinePoints = (

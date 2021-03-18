@@ -13,6 +13,11 @@ export const handleMessage = (message: ServerToClientMessage): void => {
       linesStore.setServerState(lineData.id, lineData);
       break;
     }
+    case 'lineDeleted': {
+      const id = decodeUUID(message.body.lineDeleted.lineId);
+      linesStore.setServerState(id, null);
+      break;
+    }
     case 'noteCreatedOrUpdated': {
       const noteData = messageToNote(message.body.noteCreatedOrUpdated.note!);
       notesStore.setServerState(noteData.id, noteData);
@@ -21,6 +26,7 @@ export const handleMessage = (message: ServerToClientMessage): void => {
     case 'noteDeleted': {
       const id = decodeUUID(message.body.noteDeleted.noteId);
       notesStore.setServerState(id, null);
+      break;
     }
   }
 };
