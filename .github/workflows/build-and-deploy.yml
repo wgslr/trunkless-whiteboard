@@ -11,7 +11,7 @@ jobs:
     name: Push Docker image GitHub Packages
     runs-on: ubuntu-latest
     steps:
-      - name: Checkt out the repo
+      - name: Check out the repo
         uses: actions/checkout@v2
       - name: Push to GitHub Packages
         uses: docker/build-push-action@v1
