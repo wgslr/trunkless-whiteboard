@@ -1,8 +1,17 @@
 # Build
 FROM node:15.11.0-slim as builder
+
 WORKDIR /app
+
+# https://grpc.io/docs/protoc-installation/
+RUN apt-get update \
+  && apt-get --assume-yes install curl unzip \
+  && curl --location --remote-name https://github.com/protocolbuffers/protobuf/releases/download/v3.15.5/protoc-3.15.5-linux-x86_64.zip \
+  && unzip protoc-3.15.5-linux-x86_64.zip -d /usr/local/
+
 COPY . ./
 RUN yarn install --frozen-lockfile --non-interactive --silent
+RUN yarn run protoc
 RUN yarn run build:prod
 
 # Execute
