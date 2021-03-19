@@ -27,10 +27,19 @@ export const dispatch = (
     ) {
       handleWhiteboardMessage(message, client);
     } else {
-      client.send(makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED));
+      console.warn(
+        `invalid client status (${client.status.kind}) or message type ${message.body.$case}`
+      );
+      client.send(
+        makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED),
+        message.messsageId
+      );
     }
   } catch (error) {
     console.error(error);
-    client.send(makeErrorMessage(ErrorReason.INTERNAL_SERVER_ERROR));
+    client.send(
+      makeErrorMessage(ErrorReason.INTERNAL_SERVER_ERROR),
+      message.messsageId
+    );
   }
 };

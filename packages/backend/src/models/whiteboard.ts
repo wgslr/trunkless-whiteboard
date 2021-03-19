@@ -91,7 +91,7 @@ export type Operation =
   | {
     type: OperationType.NOTE_MOVE;
     data: {
-      change: Pick<Note, 'id' | 'position>;
+      change: Partial<Note> & Pick<Note, 'id'>;
       causedBy: ClientToServerMessage['messsageId'];
     }
   }
@@ -112,8 +112,8 @@ class OperationError extends Error {
 const coordToNumber = (coord: Coordinates) => coord.x * 1000000 + coord.y;
 
 export class Whiteboard {
-  MAX_WIDTH = 400;
-  MAX_HEIGHT = 400;
+  MAX_WIDTH = 800;
+  MAX_HEIGHT = 600;
   id: UUID;
   host: ClientConnection;
   clients: ClientConnection[];
@@ -387,7 +387,6 @@ export class Whiteboard {
   }
 
   private removeInvalidCoords(coordList: Coordinates[]): Coordinates[] {
-    return coordList;
     return coordList.filter(c => this.areCoordsWithinBounds(c));
   }
 
@@ -438,6 +437,7 @@ export const connectClient = (
   const board = whiteboards.get(whiteboardId);
   if (board === undefined) {
     // TODO decouple from the protobuf error format, define internal Result interface
+    console.warn(`Client tried joining unexistent whiteboard ${whiteboardId}`);
     return {
       result: 'error',
       reason: ErrorReason.WHITEBOARD_DOES_NOT_EXIST

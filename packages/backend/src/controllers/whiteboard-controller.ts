@@ -12,7 +12,13 @@ export const handleWhiteboardMessage = (
     return;
   }
   if (client.status.kind !== 'HOST' && client.status.kind !== 'USER') {
-    client.send(makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED));
+    console.warn(
+      `whiteboard-related message received from client with status ${client.status.kind}`
+    );
+    client.send(
+      makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED),
+      message.messsageId
+    );
     return;
   }
   const whiteboard = client.status.whiteboard;

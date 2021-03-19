@@ -46,10 +46,10 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     if (countWhiteboards() == 0) {
       this.status = {
         kind: 'HOST',
-        whiteboard: addWhiteboard(this, uuid.NIL)
+        whiteboard: addWhiteboard(this, '00000000-0000-0000-0000-000000000000')
       };
     } else {
-      connectClient(this, uuid.NIL);
+      connectClient(this, '00000000-0000-0000-0000-000000000000');
     }
   }
 
