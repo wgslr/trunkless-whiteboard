@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import EditIcon from '@material-ui/icons/Edit';
+import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 import DeleteIcon from '@material-ui/icons/Delete';
 import { UUID, Note } from '../../types';
 
@@ -13,24 +13,9 @@ interface NoteProps {
 const StickyNote: React.FunctionComponent<NoteProps> = props => {
   const { note } = props;
 
-  const [mouseDown, setMouseDown] = useState(false);
-  const [pos, setPos] = useState({x: note.position.x, y: note.position.y});
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (ref.current) {
-      //ref.current.style.transform = `translate(${pos.x}px, ${pos.y}px)`; 
-      ref.current.style.setProperty('left', (note.position.x + pos.x).toString());
-      ref.current.style.setProperty('top', (note.position.y + pos.y).toString());
-    }
-    props.move(note.id, pos.x,  pos.y);
-  }, [pos])
-
-  const onMouseMove = (e: React.MouseEvent) => {
+  const onMove = (e: DraggableEvent, d: DraggableData) => {
     e.preventDefault();
-    if (mouseDown) {
-      setPos({x: pos.x + e.movementX, y: pos.y + e.movementY});
-    }
+    props.move(note.id, d.x, d.y);
   };
 
   const deleteNote = () => {
@@ -43,28 +28,27 @@ const StickyNote: React.FunctionComponent<NoteProps> = props => {
   };
 
   return (
-    <div 
-      ref={ref} 
-      style={style} 
-      className="stickyNote"
-      onMouseMove={ (e) => onMouseMove(e) }
-      onMouseDown={ () => setMouseDown(true) }
-      onMouseUp={ () => setMouseDown(false) }>
-      <textarea
-        onChange={e => props.save(note.id, e.target.value)}
-        value={note.text}
-      />
-      <span
-        className="delete"
-        title="Delete"
-        onClick={e => {
-          e.preventDefault();
-          deleteNote();
-        }}
-      >
-        <DeleteIcon />
-      </span>
-    </div>
+    <Draggable 
+      position={{x: note.position.x, y: note.position.y}}
+      onDrag={(e,d) => onMove(e,d)}
+      onStop={(e,d) => onMove(e,d)}>
+      <div className="stickyNote">
+        <textarea
+          onChange={e => props.save(note.id, e.target.value)}
+          value={note.text}
+        />
+        <span
+          className="delete"
+          title="Delete"
+          onClick={e => {
+            e.preventDefault();
+            deleteNote();
+          }}
+        >
+          <DeleteIcon />
+        </span>
+      </div>
+    </Draggable>
   );
 };
 

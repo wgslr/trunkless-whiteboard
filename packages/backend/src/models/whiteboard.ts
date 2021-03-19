@@ -84,14 +84,14 @@ export type Operation =
   | {
       type: OperationType.NOTE_UPADTE;
       data: {
-        change: Partial<Note> & Pick<Note, 'id'>;
+        change: Partial<Note> & Pick<Note, 'id' | 'text'>;
         causedBy: ClientToServerMessage['messsageId'];
       };
     }
   | {
     type: OperationType.NOTE_MOVE;
     data: {
-      change: Partial<Note> & Pick<Note, 'id'>;
+      change: Partial<Note> & Pick<Note, 'id' >;
       causedBy: ClientToServerMessage['messsageId'];
     }
   }
