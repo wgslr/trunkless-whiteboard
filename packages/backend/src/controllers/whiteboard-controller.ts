@@ -112,7 +112,6 @@ export const handleWhiteboardMessage = (
       );
       return;
     }
-<<<<<<< HEAD
     case 'updateNotePosition': {
       const { noteId, position } = message.body.updateNotePosition;
 
@@ -128,11 +127,11 @@ export const handleWhiteboardMessage = (
           }
         },
         client
-      )
-=======
+      );
+      break;
+    }
     default: {
       console.warn('Unhandled message type:', message.body.$case);
->>>>>>> origin/master
     }
   }
 };
