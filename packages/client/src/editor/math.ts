@@ -29,7 +29,7 @@ export const calculateErasePoints = (
   aNum: CoordNumber,
   bNum: CoordNumber
 ): Set<CoordNumber> => {
-  const radius = 3; //px
+  const radius = 5; //px
   const radiusSq = radius ** 2;
 
   const a = numberToCoord(aNum);
