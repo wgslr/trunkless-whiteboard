@@ -91,7 +91,7 @@ export type Operation =
   | {
     type: OperationType.NOTE_MOVE;
     data: {
-      change: Partial<Note> & Pick<Note, 'id'>;
+      change: Pick<Note, 'id' | 'position>;
       causedBy: ClientToServerMessage['messsageId'];
     }
   }
