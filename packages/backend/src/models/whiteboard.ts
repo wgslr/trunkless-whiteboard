@@ -339,7 +339,6 @@ export class Whiteboard {
   }
 
   private removeInvalidCoords(coordList: Coordinates[]): Coordinates[] {
-    return coordList;
     return coordList.filter(c => this.areCoordsWithinBounds(c));
   }
 
