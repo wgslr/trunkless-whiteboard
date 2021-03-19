@@ -6,7 +6,6 @@ import Tools from './Tools';
 import UndoTool from './UndoTool';
 
 const Editor = (props: { x: number; y: number }) => {
-
   return (
     <div
       id="editor"
@@ -19,9 +18,8 @@ const Editor = (props: { x: number; y: number }) => {
         <Tools />
         <UndoTool onClick={() => undo()} />
       </div>
-      
-      <Canvas {...props} />
       <Stickies />
+      <Canvas {...props} />
     </div>
   );
   // <Cursor canvas={canvas.current!}></Cursor>
