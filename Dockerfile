@@ -9,8 +9,14 @@ RUN apt-get update \
   && curl --location --remote-name https://github.com/protocolbuffers/protobuf/releases/download/v3.15.5/protoc-3.15.5-linux-x86_64.zip \
   && unzip protoc-3.15.5-linux-x86_64.zip -d /usr/local/
 
-COPY . ./
+COPY package.json yarn.lock ./
+COPY ./packages/client/package.json ./packages/client/yarn.lock ./packages/client/
+COPY ./packages/backend/package.json ./packages/backend/
+COPY ./packages/encoding/package.json ./packages/encoding/
+
 RUN yarn install --frozen-lockfile --non-interactive --silent
+
+COPY . ./
 RUN yarn run protoc
 RUN yarn run build:prod
 
