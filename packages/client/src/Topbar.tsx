@@ -1,5 +1,4 @@
 import React, { CSSProperties } from 'react';
-import logo from './trunkless.svg';
 
 function Topbar(props: { h: number }) {
   const styles: { [key: string]: CSSProperties } = {
@@ -23,8 +22,9 @@ function Topbar(props: { h: number }) {
   };
   return (
     <div style={styles.container}>
-      <img height={props.h} src={logo} alt="logo" />
-      <span style={styles.text}>Trunkless Whiteboard</span>
+      <span style={{ ...styles.text, margin: '0 auto' }}>
+        Trunkless Whiteboard
+      </span>
       <span style={styles.text}>v0.0</span>
     </div>
   );
