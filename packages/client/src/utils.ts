@@ -1,4 +1,3 @@
-import { LabelOffTwoTone } from '@material-ui/icons';
 import { Coordinates, CoordNumber } from './types';
 
 export function isNotNullsih<TValue>(
@@ -13,7 +12,7 @@ export const removeNullish = <T>(array: (T | null | undefined)[]): T[] =>
 
 const LARGER_THAN_ANY_CANVAS = 1000000;
 export const coordToNumber = (coords: Coordinates): CoordNumber =>
-  coords.x * LARGER_THAN_ANY_CANVAS + coords.y;
+  Math.floor(coords.x) * LARGER_THAN_ANY_CANVAS + Math.floor(coords.y);
 export const numberToCoord = (num: CoordNumber): Coordinates => {
   const y = num % LARGER_THAN_ANY_CANVAS;
   const x = (num - y) / LARGER_THAN_ANY_CANVAS;
