@@ -31,6 +31,13 @@ const Canvas = (props: { x: number; y: number }) => {
       };
       c.addEventListener('pointerdown', listener);
       return () => c.removeEventListener('pointerdown', listener);
+    } else if (c !== null && mode === 'image') {
+      const listener = (event: PointerEvent) => {
+        const point = { x: event.offsetX, y: event.offsetY };
+        addImage(point);
+      };
+      c.addEventListener('pointerdown', listener);
+      return () => c.removeEventListener('pointerdown', listener);
     }
   }, [mode]);
 
