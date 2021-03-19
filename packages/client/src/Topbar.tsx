@@ -7,14 +7,18 @@ function Topbar(props: { h: number }) {
       height: props.h,
       display: 'flex',
       flexDirection: 'row',
-      backgroundColor: 'gray',
       alignItems: 'center',
       justifyContent: 'space-between', // center, space-around
       paddingLeft: 10,
-      paddingRight: 10
+      paddingRight: 10,
+      backgroundColor: 'rgb(79, 147, 234)',
+      boxShadow: '0 -10px 10px 20px #868686',
+      marginBottom: '20px'
     },
+
     text: {
-      color: '#000000'
+      color: '#000000',
+      fontSize: 20
     }
   };
   return (
