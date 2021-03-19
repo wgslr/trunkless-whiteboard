@@ -1,16 +1,12 @@
-// Topbar with react-native
-// https://jeffgukang.github.io/react-native-tutorial/docs/sample-apps/coininfo-list/05-top-bar/topbar.html
-
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { CSSProperties } from 'react';
 import logo from './trunkless.svg';
 
 function Topbar(props: { h: number }) {
-  const styles = StyleSheet.create({
+  const styles: { [key: string]: CSSProperties } = {
     container: {
-      alignSelf: 'stretch',
       height: props.h,
-      flexDirection: 'row', // row
+      display: 'flex',
+      flexDirection: 'row',
       backgroundColor: 'gray',
       alignItems: 'center',
       justifyContent: 'space-between', // center, space-around
@@ -20,13 +16,13 @@ function Topbar(props: { h: number }) {
     text: {
       color: '#000000'
     }
-  });
+  };
   return (
-    <View style={styles.container}>
+    <div style={styles.container}>
       <img height={props.h} src={logo} alt="logo" />
-      <Text style={styles.text}>Trunkless Whiteboard</Text>
-      <Text style={styles.text}>v0.0</Text>
-    </View>
+      <span style={styles.text}>Trunkless Whiteboard</span>
+      <span style={styles.text}>v0.0</span>
+    </div>
   );
 }
 
