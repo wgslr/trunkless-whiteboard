@@ -3,7 +3,6 @@ import { decodeUUID } from 'encoding';
 import { ClientConnection } from '../models/client-connection';
 import { OperationType } from '../models/whiteboard';
 import { ClientToServerMessage, ErrorReason } from '../protocol/protocol';
-import { dec } from 'ramda';
 
 export const handleWhiteboardMessage = (
   message: ClientToServerMessage,
