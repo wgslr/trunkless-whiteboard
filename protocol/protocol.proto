@@ -22,6 +22,21 @@ message Coordinates {
   int32 y = 2;
 }
 
+message Image {
+  bytes id = 1;
+  Coordinates position = 2;
+  string data = 3;
+}
+
+message CreateImage { Image image = 1; }
+message UpdateImagePosition {
+  bytes image_id = 1;
+  Coordinates position = 2;
+}
+
+// broadcasted to all
+message ImageCreatedOrUpdated { Image image = 1; }
+
 message Note {
   /* UUID in byte representation. Saves bandwidth, but more
      problematic in code */
@@ -77,6 +92,8 @@ message ClientToServerMessage {
     AddPointsToLine add_points_to_line = 21;
     RemovePointsFromLine remove_points_from_line = 22;
     DeleteLine delete_line = 23;
+    CreateImage create_image = 30;
+    UpdateImagePosition update_image_position = 31;
   }
 }
 
@@ -91,6 +108,7 @@ message ServerToClientMessage {
     NoteCreatedOrUpdated note_created_or_updated = 8;
     NoteDeleted note_deleted = 9;
     LineDeleted line_deleted = 10;
+    ImageCreatedOrUpdated image_created_or_updated = 12;
   }
 }
 
