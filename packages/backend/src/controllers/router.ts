@@ -27,6 +27,9 @@ export const dispatch = (
     ) {
       handleWhiteboardMessage(message, client);
     } else {
+      console.warn(
+        `invalid client status (${client.status.kind}) or message type ${message.body.$case}`
+      );
       client.send(
         makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED),
         message.messsageId

@@ -390,6 +390,7 @@ export const connectClient = (
   const board = whiteboards.get(whiteboardId);
   if (board === undefined) {
     // TODO decouple from the protobuf error format, define internal Result interface
+    console.warn(`Client tried joining unexistent whiteboard ${whiteboardId}`);
     return {
       result: 'error',
       reason: ErrorReason.WHITEBOARD_DOES_NOT_EXIST
