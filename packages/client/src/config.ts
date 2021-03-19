@@ -10,7 +10,7 @@ const get_ws_url = () => {
   if (is_localhost()) {
     return 'ws://127.0.0.1:3001/ws';
   } else {
-    return 'ws://trunkless-whiteboard.website/ws';
+    return 'wss://trunkless-whiteboard.website/ws';
   }
 };
 export const SERVER_URL = get_ws_url();
