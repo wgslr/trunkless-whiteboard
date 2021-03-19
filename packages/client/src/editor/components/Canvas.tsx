@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useRecoilValue } from 'recoil';
 import { addNote } from '../../controllers/note-controller';
+import { addImage } from '../../controllers/image-controller'
 import { useEffectiveLines } from '../../store/hooks';
 import { useDrawing } from '../drawing-state';
 import render from '../render';
@@ -44,6 +45,7 @@ const Canvas = (props: { x: number; y: number }) => {
   return (
     <canvas
       ref={canvas}
+      id="canvas"
       height={props.y}
       width={props.x}
       style={{ border: '1px solid black', backgroundColor: 'white' }}

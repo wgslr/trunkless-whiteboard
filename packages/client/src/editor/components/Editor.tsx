@@ -4,6 +4,7 @@ import Canvas from './Canvas';
 import Stickies from './Stickies';
 import Tools from './Tools';
 import UndoTool from './UndoTool';
+import Images from './Images'
 
 const Editor = (props: { x: number; y: number }) => {
   return (

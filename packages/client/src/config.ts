@@ -6,4 +6,4 @@ const get_ws_url = () => {
   const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
   return `${protocol}//${location.host}/ws`;
 };
-export const SERVER_URL = get_ws_url();
+export const SERVER_URL = 'ws://127.0.0.1:3001/ws';// get_ws_url();

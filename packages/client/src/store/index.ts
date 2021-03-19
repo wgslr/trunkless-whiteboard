@@ -1,11 +1,40 @@
-import type { Line, Note } from '../types';
+import type { Line, Note, Img } from '../types';
 import { removeNullish } from '../utils';
-import { sendLinesUpdate, sendNotesUpdate } from './hooks';
+import { sendLinesUpdate, sendNotesUpdate, sendImgsUpdate } from './hooks';
 import { getEffectiveLine, LineTimeline } from './timelines/line';
 import { getEffectiveNote, NoteTimeline } from './timelines/note';
+import { getEffectiveImg, ImgTimeline } from './timelines/image';
 
 const noteTimelines: { [noteId: string]: NoteTimeline } = Object.create(null);
 const lineTimelines: { [lineId: string]: LineTimeline } = Object.create(null);
+const imgTimelines: { [imgId: string]: ImgTimeline } = Object.create(null);
+
+export const updateImages = <T>(
+  callback: (nTimelines: typeof imgTimelines) => T
+): T => {
+  const result = callback(imgTimelines);
+  effectiveImgsCache = null;
+  sendImgsUpdate();
+  return result;
+};
+
+let effectiveImgsCache: Map<Img['id'], Img> | null = null;
+const calculateEffectiveImgs = (): void => {
+  const imgTimelinesArray = Object.values(imgTimelines);
+  effectiveImgsCache = new Map(
+    removeNullish(
+      imgTimelinesArray.map(it => getEffectiveImg(it))
+    ).map(img => [img.id, img])
+  );
+};
+
+export const getEffectiveImgs = (): Map<Img['id'], Img> => {
+  if (effectiveNotesCache === null) {
+    calculateEffectiveImgs();
+  }
+  return effectiveImgsCache!;
+};
+
 
 export const updateNotes = <T>(
   callback: (nTimelines: typeof noteTimelines) => T

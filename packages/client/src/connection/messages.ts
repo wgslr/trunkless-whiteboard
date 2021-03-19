@@ -2,10 +2,28 @@ import * as uuid from 'uuid';
 import {
   ClientToServerMessage,
   Line as LineProto,
-  Note as NoteProto
+  Note as NoteProto,
+  Image as ImageProto
 } from '../protocol/protocol';
-import type { Line, Note, UUID } from '../types';
+import type { Line, Note, Img, UUID } from '../types';
 import { coordToNumber, numberToCoord } from '../utils';
+
+export const makeCreateImageMessage = (
+  img: Img
+): ClientToServerMessage['body'] => ({
+  $case: 'createImage',
+  createImage: {
+    image: imageToMessage(img)
+  }
+});
+
+export const makeUpdateImagePosMessage = (
+  id: Img['id'],
+  pos: Img['position']
+): ClientToServerMessage['body'] => ({
+  $case: 'updateImagePosition',
+  updateImagePosition: { imageId: encodeUUID(id), position: pos }
+});
 
 export const makeCreateNoteMessage = (
   note: Note
@@ -105,4 +123,19 @@ export function messageToNote(noteMsg: NoteProto): Note {
     text: noteMsg.text,
     position: noteMsg.position!
   };
+}
+
+export function imageToMessage(img: Img): ImageProto {
+  return {
+    ...img,
+    id: encodeUUID(img.id)
+  };
+}
+
+export function messageToImage(imgMsg: ImageProto): Img {
+  return {
+    id: uuid.stringify(imgMsg.id),
+    data: imgMsg.data,
+    position: imgMsg.position!
+  }
 }

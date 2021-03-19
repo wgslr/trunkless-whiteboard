@@ -23,6 +23,12 @@ const render = (
   }
   reset(ctx, canvas);
 
+  var img = new Image();
+  img.addEventListener('load', function() {
+      ctx.drawImage(img, 100,100);
+  });
+  img.src = './wbicon.png';
+
   ctx.fillStyle = '#000000';
   const drawPoint = ({ x, y }: Coordinates) => {
     ctx.fillRect(x, y, 1, 1);

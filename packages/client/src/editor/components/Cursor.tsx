@@ -57,8 +57,8 @@ const Cursor = ({ canvas }: { canvas: HTMLCanvasElement }) => {
   }, []);
 
   const updateMousePos = useCallback(() => {
-    const x = position.current.x + modeToCursor(mode).offset.x;
-    const y = position.current.y + modeToCursor(mode).offset.y;
+    const x = position.current.x// + modeToCursor(mode).offset.x;
+    const y = position.current.y// + modeToCursor(mode).offset.y;
     ref.current!.style.transform = `translate(${x}px, ${y}px)`;
   }, [mode, modeToCursor]);
 
@@ -95,7 +95,7 @@ const Cursor = ({ canvas }: { canvas: HTMLCanvasElement }) => {
     };
   }, [canvas, handleMouseMove, handleMouseDown, handleMouseUp]);
 
-  const Component = modeToCursor(mode).component;
+  const Component = modeToCursor(mode)!.component;
   return (
     <div ref={ref} hidden={isHidden}>
       {mode === 'draw'}

@@ -4,6 +4,7 @@ import { useRecoilState } from 'recoil';
 import { modeState } from '../state';
 import { Mode } from '../../types';
 import NoteAddIcon from '@material-ui/icons/NoteAdd';
+import ImageIcon from '@material-ui/icons/Image';
 import Draw from '../../cursors/Draw';
 import Erase from '../../cursors/Erase';
 
@@ -29,6 +30,9 @@ export default function Tools() {
       </ToggleButton>
       <ToggleButton value="note" aria-label="add note">
         <NoteAddIcon />
+      </ToggleButton>
+      <ToggleButton value="image" aria-label="add note">
+        <ImageIcon />
       </ToggleButton>
     </ToggleButtonGroup>
   );
