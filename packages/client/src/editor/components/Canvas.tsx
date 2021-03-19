@@ -26,7 +26,7 @@ const Canvas = (props: { x: number; y: number }) => {
     const c = canvas.current;
     if (c !== null && mode === 'note') {
       const listener = (event: PointerEvent) => {
-        const point = { x: event.x, y: event.y };
+        const point = { x: event.offsetX, y: event.offsetY };
         addNote(point);
       };
       c.addEventListener('pointerdown', listener);

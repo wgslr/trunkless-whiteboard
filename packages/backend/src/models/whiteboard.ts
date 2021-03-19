@@ -104,8 +104,8 @@ class OperationError extends Error {
 const coordToNumber = (coord: Coordinates) => coord.x * 1000000 + coord.y;
 
 export class Whiteboard {
-  MAX_WIDTH = 400;
-  MAX_HEIGHT = 400;
+  MAX_WIDTH = 800;
+  MAX_HEIGHT = 600;
   id: UUID;
   host: ClientConnection;
   clients: ClientConnection[];
@@ -339,7 +339,6 @@ export class Whiteboard {
   }
 
   private removeInvalidCoords(coordList: Coordinates[]): Coordinates[] {
-    return coordList;
     return coordList.filter(c => this.areCoordsWithinBounds(c));
   }
 

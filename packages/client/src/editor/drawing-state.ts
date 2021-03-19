@@ -171,7 +171,7 @@ export const useDrawing = (
 
   const handlePointerDown = useCallback(
     (event: PointerEvent) => {
-      const point = coordToNumber({ x: event.x, y: event.y });
+      const point = coordToNumber({ x: event.offsetX, y: event.offsetY });
       onPointerDown(point, mode);
     },
     [mode]
@@ -182,7 +182,7 @@ export const useDrawing = (
       if (event.target !== canvas.current) {
         return;
       }
-      const point = coordToNumber({ x: event.x, y: event.y });
+      const point = coordToNumber({ x: event.offsetX, y: event.offsetY });
       onPointerMove(point);
     },
     [canvas]
@@ -193,7 +193,7 @@ export const useDrawing = (
       if (event.target !== canvas.current) {
         return;
       }
-      const point = coordToNumber({ x: event.x, y: event.y });
+      const point = coordToNumber({ x: event.offsetX, y: event.offsetY });
       onPointerUp(point);
     },
     [canvas]

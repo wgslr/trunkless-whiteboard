@@ -25,7 +25,7 @@ const render = (
 
   ctx.fillStyle = '#000000';
   const drawPoint = ({ x, y }: Coordinates) => {
-    ctx.fillRect(x - canvas.offsetLeft, y - canvas.offsetTop, 1, 1);
+    ctx.fillRect(x, y, 1, 1);
   };
   console.debug(`canvas render: drawing ${lines.length} lines`);
   lines.forEach(line => {
