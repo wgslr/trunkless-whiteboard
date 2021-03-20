@@ -9,7 +9,7 @@ import {
   FigureType,
   ServerToClientMessage
 } from '../protocol/protocol';
-import { Result, UUID } from '../types';
+import { UUID } from '../types';
 import { ClientConnection } from './client-connection';
 
 export abstract class Figure {
@@ -404,12 +404,10 @@ export class Whiteboard {
 
   public addClientConnection(client: ClientConnection) {
     this.clients.push(client);
-    client.setConnectedWhiteboard(this);
     console.log('Client joined whiteboard', this.id);
-    this.bootstrapClient(client);
   }
 
-  private bootstrapClient(client: ClientConnection) {
+  public bootstrapClient(client: ClientConnection) {
     for (const [, line] of this.lines) {
       client.send({
         $case: 'lineCreatedOrUpdated',
@@ -443,20 +441,5 @@ export const addWhiteboard = (host: ClientConnection, uuid?: UUID) => {
 
 export const countWhiteboards = () => whiteboards.size;
 
-export const connectClient = (
-  client: ClientConnection,
-  whiteboardId: UUID
-): Result => {
-  const board = whiteboards.get(whiteboardId);
-  if (board === undefined) {
-    // TODO decouple from the protobuf error format, define internal Result interface
-    console.warn(`Client tried joining unexistent whiteboard ${whiteboardId}`);
-    return {
-      result: 'error',
-      reason: ErrorReason.WHITEBOARD_DOES_NOT_EXIST
-    };
-  } else {
-    board.addClientConnection(client);
-    return { result: 'success' };
-  }
-};
+export const getWhiteboard = (id: Whiteboard['id']): Whiteboard | null =>
+  whiteboards.get(id) ?? null;
