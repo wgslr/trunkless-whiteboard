@@ -54,8 +54,22 @@ export const handlePreWhiteboardMessage = (
       }
       client.requestJoinWhiteboard(whiteboard);
       client.send(makeSuccessMessage(), message.messsageId);
-      // TODO maybe wait for request
-      whiteboard.bootstrapClient(client);
+      break;
+    }
+    case 'approveOrDenyJoin': {
+      const isApproved = message.body.approveOrDenyJoin.approve;
+      const clientId = decodeUUID(message.body.approveOrDenyJoin.clientId);
+
+      // TODO: check if user exists
+
+      if (isApproved) {
+        logger.info(`Host ${client.id} accepted user ${clientId}`);
+        // TODO: add user to whiteboard
+        // TODO: update user
+      } else {
+        logger.info(`Host ${client.id} denied user ${clientId}`);
+        // TODO: update user
+      }
       break;
     }
     default: {
