@@ -1,6 +1,9 @@
 import React, { CSSProperties } from 'react';
 import { useSnapshot } from 'valtio';
-import { clientState } from './store/auth';
+import { clientState, ConnectionState } from './store/auth';
+
+const shouldDisplayWhiteBoardID = ({ state }: ConnectionState) =>
+  ['WHITEBOARD_USER', 'WHITEBOARD_HOST', 'PENDING_APPROVAL'].includes(state);
 
 const Topbar = (props: { h: number }) => {
   const cState = useSnapshot(clientState);
@@ -23,16 +26,16 @@ const Topbar = (props: { h: number }) => {
       fontSize: 20
     }
   };
-  const title =
-    cState.v.state === 'WHITEBOARD_HOST' || cState.v.state === 'WHITEBOARD_USER'
-      ? `whiteboard : ${cState.v.whiteboardId}`
-      : `whiteboard`;
+  const title = shouldDisplayWhiteBoardID(cState.v)
+    // @ts-ignore: type predicating the function is icky
+    ? `whiteboard : ${cState.v.whiteboardId}`
+    : `whiteboard`;
   return (
     <div style={styles.container}>
       <span style={{ ...styles.text, margin: '0 auto' }}>{title}</span>
       <span style={styles.text}>v0.0</span>
     </div>
   );
-}
+};
 
 export default Topbar;
