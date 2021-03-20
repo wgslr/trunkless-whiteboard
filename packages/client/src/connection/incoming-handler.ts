@@ -40,6 +40,7 @@ export const handleMessage = (message: ServerToClientMessage): void => {
     case 'error': {
       const reason = errorReasonToJSON(message.body.error.reason);
       console.warn('Server responded with error:', reason);
+      break;
     }
   }
 };
