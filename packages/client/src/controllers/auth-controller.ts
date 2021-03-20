@@ -2,12 +2,12 @@ import { decodeUUID } from 'encoding';
 import {
   makeClientHelloMessage,
   makeCreateWhiteboardMessage,
-  makeJoinWhiteboardMessage
+  makeJoinWhiteboardMessage,
+  makeApproveOrDenyJoinMessage
 } from '../connection/messages';
 import { reqResponseService } from '../connection/ServerContext';
 import { clearStores } from '../store';
 import { clientState } from '../store/auth';
-import { usersState } from '../store/users';
 
 export const setUsername = (username: string) => {
   const body = makeClientHelloMessage(username);
@@ -79,4 +79,20 @@ export const createWhiteboard = () => {
     }
   });
   console.log('CreateWhiteboard sent');
+};
+
+export const approveUser = (clientId: string) => {
+  const body = makeApproveOrDenyJoinMessage(true, clientId);
+
+  reqResponseService.send(body, response => {
+    if (response === 'timeout') {
+      // TODO display the error in the gui
+      console.log('ApproveUser timeout');
+    } else if (response?.$case === '') {
+      // TODO: handle case where server answers
+    } else if (response?.$case === 'error') {
+      console.log('ApproveUser returned error', response.error);
+    }
+  });
+  console.log('ApproveUser sent');
 };
