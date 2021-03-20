@@ -22,47 +22,69 @@ declare interface ClientConnectionEvents {
   message: (decoded: ClientToServerMessage) => void;
 }
 
-type WhiteboardMembershipState =
+type ClientFSM =
   | {
-      kind: 'NO_WHITEBOARD';
+      state: 'ANONYMOUS';
     }
   | {
-      kind: 'HOST' | 'USER';
+      state: 'NO_WHITEBOARD';
+      username: string;
+    }
+  | {
+      state: 'HOST' | 'USER';
+      username: string;
       whiteboard: Whiteboard;
     };
-export type WhiteboardMembership = WhiteboardMembershipState['kind'];
+export type ClientFSMState = ClientFSM['state'];
+
+class IllegalStateTransision extends Error {
+  constructor(message?: string) {
+    super(message);
+  }
+}
 
 export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
   socket: WebSocket;
-  status: WhiteboardMembershipState = { kind: 'NO_WHITEBOARD' };
+  private _fsm: ClientFSM = { state: 'ANONYMOUS' };
+
+  get fsm(): Readonly<ClientFSM> {
+    return this._fsm;
+  }
 
   constructor(socket: WebSocket) {
     super();
     this.socket = socket;
     this.setupSocketListeners();
     this.on('message', msg => dispatch(msg, this));
-
-    // TODO do proper handshake and select whiteboard
-    if (countWhiteboards() == 0) {
-      this.status = {
-        kind: 'HOST',
-        whiteboard: addWhiteboard(this, '00000000-0000-0000-0000-000000000000')
-      };
-    } else {
-      connectClient(this, '00000000-0000-0000-0000-000000000000');
-    }
   }
 
   public get whiteboard(): Whiteboard | null {
-    if (this.status.kind == 'NO_WHITEBOARD') {
-      return null;
+    if (this._fsm.state === 'USER' || this._fsm.state === 'HOST') {
+      return this._fsm.whiteboard;
     } else {
-      return this.status.whiteboard;
+      return null;
     }
   }
 
+  public setUsername(username: string) {
+    if (this._fsm.state !== 'ANONYMOUS') {
+      throw new IllegalStateTransision();
+    }
+    this._fsm = { state: 'NO_WHITEBOARD', username };
+  }
+
   public setConnectedWhiteboard(whiteboard: Whiteboard) {
-    this.status = { kind: 'USER', whiteboard };
+    if (this._fsm.state !== 'NO_WHITEBOARD') {
+      throw new IllegalStateTransision();
+    }
+    this._fsm = { state: 'USER', whiteboard, username: this._fsm.username };
+  }
+
+  public setAsHost(whiteboard: Whiteboard) {
+    if (this._fsm.state !== 'NO_WHITEBOARD') {
+      throw new IllegalStateTransision();
+    }
+    this._fsm = { state: 'HOST', whiteboard, username: this._fsm.username };
   }
 
   private setupSocketListeners() {

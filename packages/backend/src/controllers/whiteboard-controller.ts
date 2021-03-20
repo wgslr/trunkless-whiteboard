@@ -11,9 +11,9 @@ export const handleWhiteboardMessage = (
   if (!message.body) {
     return;
   }
-  if (client.status.kind !== 'HOST' && client.status.kind !== 'USER') {
+  if (client.fsm.state !== 'HOST' && client.fsm.state !== 'USER') {
     console.warn(
-      `whiteboard-related message received from client with status ${client.status.kind}`
+      `whiteboard-related message received from client with status ${client.fsm.state}`
     );
     client.send(
       makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED),
@@ -21,7 +21,7 @@ export const handleWhiteboardMessage = (
     );
     return;
   }
-  const whiteboard = client.status.whiteboard;
+  const whiteboard = client.fsm.whiteboard;
 
   switch (message.body.$case) {
     case 'createLine': {
@@ -119,6 +119,7 @@ export const handleWhiteboardMessage = (
     }
     default: {
       console.warn('Unhandled message type:', message.body.$case);
+      client.send(makeErrorMessage(ErrorReason.INTERNAL_SERVER_ERROR));
     }
   }
 };

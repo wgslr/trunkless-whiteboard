@@ -64,6 +64,8 @@ message DeleteNote { bytes note_id = 1; }
 message NoteCreatedOrUpdated { Note note = 1; }
 message NoteDeleted { bytes note_id = 1; }
 
+message ClientHello { string username = 1; }
+
 message ClientToServerMessage {
   string messsage_id = 100;
   oneof body {
@@ -77,6 +79,7 @@ message ClientToServerMessage {
     AddPointsToLine add_points_to_line = 21;
     RemovePointsFromLine remove_points_from_line = 22;
     DeleteLine delete_line = 23;
+    ClientHello client_hello = 30;
   }
 }
 
