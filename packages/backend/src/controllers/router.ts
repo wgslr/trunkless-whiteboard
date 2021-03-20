@@ -35,7 +35,7 @@ export const dispatch = (
       handleWhiteboardMessage(message, client);
     } else {
       logger.warn(
-        `invalid client status (${client.fsm.state}) or message type ${message.body.$case}`
+        `Invalid client status (${client.fsm.state}) or message type (${message.body.$case})`
       );
       client.send(
         makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED),
