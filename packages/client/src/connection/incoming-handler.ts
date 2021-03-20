@@ -46,6 +46,18 @@ export const handleMessage = (message: ServerToClientMessage): void => {
       usersState.pending.push(user);
       break;
     }
+    case 'joinApproved': {
+      if (clientState.v.state === 'PENDING_APPROVAL') {
+        clientState.v = {
+          state: 'WHITEBOARD_USER',
+          username: clientState.v.username,
+          whiteboardId: clientState.v.whiteboardId
+        };
+      } else {
+        console.warn('Received join approval in non-pending state');
+      }
+      break;
+    }
     case 'error': {
       const reason = errorReasonToJSON(message.body.error.reason);
       console.warn('Server responded with error:', reason);

@@ -408,6 +408,27 @@ export class Whiteboard {
 
         break;
       }
+      case OperationType.APPROVE_PENDING_CLIENT: {
+        const { approvedClient } = op.data;
+        if (approvedClient.fsm.state !== 'PENDING_APPROVAL') {
+          throw new Error('Invalid client state');
+        }
+        const clientWasPending = this.pendingClients.delete(approvedClient.id);
+        if (!clientWasPending) {
+          throw new Error(
+            `Client ${approvedClient.id} was not pending for whiteboard ${this.id}`
+          );
+        }
+
+        approvedClient.joinWhiteboard(this);
+        approvedClient.send({
+          $case: 'joinApproved',
+          joinApproved: {}
+        });
+
+        // TODO: multicast client joined
+        break;
+      }
       // case OperationType.RETURN_ALL_FIGURES: {
       //   // FIXME send only to requester
       //   this.sendToClients(
