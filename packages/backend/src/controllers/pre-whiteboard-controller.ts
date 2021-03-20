@@ -56,22 +56,6 @@ export const handlePreWhiteboardMessage = (
       client.send(makeSuccessMessage(), message.messsageId);
       break;
     }
-    case 'approveOrDenyJoin': {
-      const isApproved = message.body.approveOrDenyJoin.approve;
-      const clientId = decodeUUID(message.body.approveOrDenyJoin.clientId);
-
-      // TODO: check if user exists
-
-      if (isApproved) {
-        logger.info(`Host ${client.id} accepted user ${clientId}`);
-        // TODO: add user to whiteboard
-        // TODO: update user
-      } else {
-        logger.info(`Host ${client.id} denied user ${clientId}`);
-        // TODO: update user
-      }
-      break;
-    }
     default: {
       logger.warn(`Unhandled message type: ${message.body.$case}`);
       client.send(makeErrorMessage(ErrorReason.INTERNAL_SERVER_ERROR));

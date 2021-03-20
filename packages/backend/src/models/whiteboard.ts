@@ -454,6 +454,10 @@ export class Whiteboard {
       });
     }
   }
+
+  public getPendingClient(clientId: ClientConnection['id']) {
+    return this.pendingClients.get(clientId) ?? null;
+  }
 }
 
 const whiteboards: Map<Whiteboard['id'], Whiteboard> = new Map();

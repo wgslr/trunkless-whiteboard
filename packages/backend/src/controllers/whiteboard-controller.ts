@@ -141,6 +141,31 @@ export const handleWhiteboardMessage = (
       }
       break;
     }
+    case 'approveOrDenyJoin': {
+      const clientId = decodeUUID(message.body.approveOrDenyJoin.clientId);
+      const pendingClient = whiteboard.getPendingClient(clientId);
+      if (!pendingClient) {
+        logger.warn(
+          `Host ${client.id} attempted to accept or deny non-existing user ${clientId}`
+        );
+        client.send(
+          makeErrorMessage(ErrorReason.USER_DOES_NOT_EXIST),
+          message.messsageId
+        );
+        return;
+      }
+
+      const isApproved = message.body.approveOrDenyJoin.approve;
+      if (isApproved) {
+        logger.info(`Host ${client.id} accepted user ${clientId}`);
+        // TODO: add user to whiteboard
+        // TODO: update user
+      } else {
+        logger.info(`Host ${client.id} denied user ${clientId}`);
+        // TODO: update user
+      }
+      break;
+    }
     default: {
       logger.warn(`Unhandled message type: ${message.body.$case}`);
       client.send(makeErrorMessage(ErrorReason.INTERNAL_SERVER_ERROR));
