@@ -29,8 +29,8 @@ export const dispatch = (
     ) {
       handlePreWhiteboardMessage(message, client);
     } else if (
-      (client.fsm.state === 'USER' || client.fsm.state === 'HOST') &&
-      ALLOWED_MESSAGES.USER.includes($case)
+      (client.fsm.state === 'USER' && ALLOWED_MESSAGES.USER.includes($case)) ||
+      (client.fsm.state === 'HOST' && ALLOWED_MESSAGES.HOST.includes($case))
     ) {
       handleWhiteboardMessage(message, client);
     } else {
