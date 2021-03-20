@@ -21,6 +21,7 @@ const Editor = (props: { x: number; y: number }) => {
       <Stickies />
       <Canvas {...props} />
     </div>
+    
   );
   // <Cursor canvas={canvas.current!}></Cursor>
 

@@ -7,6 +7,7 @@ import {
 import { reqResponseService } from '../connection/ServerContext';
 import { clearStores } from '../store';
 import { clientState } from '../store/auth';
+import { usersState } from '../store/users';
 
 export const setUsername = (username: string) => {
   const body = makeClientHelloMessage(username);

@@ -13,7 +13,9 @@ function App() {
       <Topbar h={topBarHeight} />
       <RecoilRoot>
         <ServerContext.Provider value={contextValue}>
-          <Lifecycle />
+          <main>
+            <Lifecycle />
+          </main>
         </ServerContext.Provider>
       </RecoilRoot>
     </div>
