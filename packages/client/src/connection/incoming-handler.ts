@@ -58,6 +58,17 @@ export const handleMessage = (message: ServerToClientMessage): void => {
       }
       break;
     }
+    case 'joinDenied': {
+      if (clientState.v.state === 'PENDING_APPROVAL') {
+        clientState.v = {
+          state: 'NO_WHITEBOARD',
+          username: clientState.v.username
+        };
+      } else {
+        console.warn('Received join denial in non-pending state');
+      }
+      break;
+    }
     case 'connectedClients': {
       const connectedClients = message.body.connectedClients.connectedClients;
       const joinedClients = connectedClients.map(connectedClient => ({
