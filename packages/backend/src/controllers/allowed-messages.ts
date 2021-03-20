@@ -1,7 +1,7 @@
 import { ClientToServerCase } from '../encoding';
 import { ClientFSMState } from '../models/client-connection';
 
-const commonWhitboardMessages: ClientToServerCase[] = [
+const commonWhiteboardMessages: ClientToServerCase[] = [
   'createNote',
   'deleteNote',
   'createLine',
@@ -18,6 +18,6 @@ export const ALLOWED_MESSAGES: {
   ANONYMOUS: ['clientHello'],
   NO_WHITEBOARD: ['joinWhiteboard', 'createWhiteboardRequest'],
   PENDING_APPROVAL: [],
-  USER: commonWhitboardMessages,
-  HOST: commonWhitboardMessages.concat(['approveOrDenyJoin'])
+  USER: commonWhiteboardMessages,
+  HOST: commonWhiteboardMessages.concat(['approveOrDenyJoin'])
 };
