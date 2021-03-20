@@ -1,5 +1,4 @@
 import { decodeUUID } from 'encoding';
-import UserList from '../editor/components/UserList';
 import { errorReasonToJSON, ServerToClientMessage } from '../protocol/protocol';
 import { clientState } from '../store/auth';
 import * as linesStore from '../store/lines';
