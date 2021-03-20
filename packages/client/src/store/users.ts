@@ -1,7 +1,7 @@
 import { proxy } from 'valtio';
 import { UUID } from '../types';
 
-type User = {
+export type User = {
   id: UUID;
   username: string;
 };
