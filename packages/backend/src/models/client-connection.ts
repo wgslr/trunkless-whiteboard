@@ -85,7 +85,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     whiteboard.handleOperation(
       {
         type: OperationType.ADD_PENDING_CLIENT,
-        data: { client: this }
+        data: { pendingClient: this }
       },
       this
     );

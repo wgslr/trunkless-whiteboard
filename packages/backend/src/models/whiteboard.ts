@@ -107,7 +107,7 @@ export type Operation =
   | {
       type: OperationType.ADD_PENDING_CLIENT;
       data: {
-        client: ClientConnection;
+        pendingClient: ClientConnection;
       };
     };
 
@@ -377,16 +377,16 @@ export class Whiteboard {
         break;
       }
       case OperationType.ADD_PENDING_CLIENT: {
-        const { client } = op.data;
-        this.pendingClients.set(client.id, client);
-        if (client.fsm.state !== 'NO_WHITEBOARD') {
+        const { pendingClient } = op.data;
+        this.pendingClients.set(pendingClient.id, pendingClient);
+        if (pendingClient.fsm.state !== 'NO_WHITEBOARD') {
           throw new Error('Invalid client state');
         }
         this.host.send({
           $case: 'clientWantsToJoin',
           clientWantsToJoin: {
-            clientId: encodeUUID(client.id),
-            username: client.fsm.username
+            clientId: encodeUUID(pendingClient.id),
+            username: pendingClient.fsm.username
           }
         });
 
