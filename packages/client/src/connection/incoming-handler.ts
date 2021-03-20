@@ -1,8 +1,17 @@
 import { decodeUUID } from 'encoding';
 import { ServerToClientMessage } from '../protocol/protocol';
+import { clientState } from '../store/auth';
 import * as linesStore from '../store/lines';
 import * as notesStore from '../store/notes';
 import { decodeLineData, messageToNote } from './messages';
+
+export const handleConnected = () => {
+  clientState.v = { state: 'ANONYMOUS' };
+};
+
+export const handleDisconnected = () => {
+  clientState.v = { state: 'DISCONNECTED' };
+};
 
 export const handleMessage = (message: ServerToClientMessage): void => {
   console.log(`Received message: ${message.body?.$case}`);

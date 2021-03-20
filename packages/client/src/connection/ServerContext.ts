@@ -1,7 +1,10 @@
 import { createContext } from 'react';
 import { SERVER_URL } from '../config';
-import { ServerToClientMessage } from '../protocol/protocol';
-import { handleMessage } from './incoming-handler';
+import {
+  handleConnected,
+  handleDisconnected,
+  handleMessage
+} from './incoming-handler';
 import { ProtobufSocketClient } from './protobuf-client';
 import { RequestResponseService } from './request-response';
 
@@ -9,9 +12,10 @@ interface IServerContext {
   reqRespService: RequestResponseService;
 }
 
-const socket = new WebSocket(SERVER_URL);
-const client = new ProtobufSocketClient(socket);
+const client = new ProtobufSocketClient(SERVER_URL);
 client.addListener('message', handleMessage);
+client.addListener('connected', handleConnected);
+client.addListener('disconnected', handleDisconnected);
 
 export const reqResponseService = new RequestResponseService(client);
 
