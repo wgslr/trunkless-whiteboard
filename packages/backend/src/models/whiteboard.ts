@@ -1,4 +1,5 @@
 import { encodeUUID } from 'encoding';
+import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
 import { noteToMessage, resultToMessage } from '../encoding';
 import {
@@ -10,7 +11,6 @@ import {
 } from '../protocol/protocol';
 import { Result, UUID } from '../types';
 import { ClientConnection } from './client-connection';
-import fp from 'lodash/fp';
 
 export abstract class Figure {
   id: UUID;
@@ -43,6 +43,7 @@ export enum OperationType {
   LINE_DELETE,
   NOTE_ADD,
   NOTE_UPADTE,
+  NOTE_MOVE,
   NOTE_DELETE
 }
 
@@ -83,7 +84,14 @@ export type Operation =
   | {
       type: OperationType.NOTE_UPADTE;
       data: {
-        change: Partial<Note> & Pick<Note, 'id'>;
+        change: Pick<Note, 'id' | 'text'>;
+        causedBy: ClientToServerMessage['messsageId'];
+      };
+    }
+  | {
+      type: OperationType.NOTE_MOVE;
+      data: {
+        change: Pick<Note, 'id' | 'position'>;
         causedBy: ClientToServerMessage['messsageId'];
       };
     }
@@ -265,16 +273,6 @@ export class Whiteboard {
       }
       case OperationType.NOTE_UPADTE: {
         const { change, causedBy } = op.data;
-        if (change.position && !this.areCoordsWithinBounds(change.position)) {
-          client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
-            }),
-            causedBy
-          );
-          return;
-        }
         const note = this.notes.get(change.id);
         if (!note) {
           client.send(
@@ -288,8 +286,7 @@ export class Whiteboard {
         }
         const updated = {
           ...note,
-          position: change.position ?? note.position,
-          text: change.text ?? note.text
+          text: change.text
         };
 
         this.notes.set(note.id, updated);
@@ -327,6 +324,47 @@ export class Whiteboard {
             causedBy
           );
         }
+        break;
+      }
+      case OperationType.NOTE_MOVE: {
+        const { change, causedBy } = op.data;
+        if (!this.areCoordsWithinBounds(change.position)) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
+            }),
+            causedBy
+          );
+          return;
+        }
+        const note = this.notes.get(change.id);
+        if (!note) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.FIGURE_NOT_EXISTS
+            }),
+            causedBy
+          );
+          return;
+        }
+        const updated = {
+          ...note,
+          position: change.position
+        };
+
+        this.notes.set(note.id, updated);
+        this.sendToClients(
+          {
+            $case: 'noteCreatedOrUpdated',
+            noteCreatedOrUpdated: {
+              note: noteToMessage(updated)
+            }
+          },
+          causedBy
+        );
+
         break;
       }
       // case OperationType.RETURN_ALL_FIGURES: {

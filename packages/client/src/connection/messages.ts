@@ -31,6 +31,14 @@ export const makeDeleteNoteMessage = (
   deleteNote: { noteId: encodeUUID(id) }
 });
 
+export const makeUpdateNotePositionMessage = (
+  id: Note['id'],
+  position: Note['position']
+): ClientToServerMessage['body'] => ({
+  $case: 'updateNotePosition',
+  updateNotePosition: {noteId: encodeUUID(id), position }
+});
+
 export const makeCreateLineMessage = (
   line: Line
 ): ClientToServerMessage['body'] => ({

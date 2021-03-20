@@ -9,6 +9,7 @@ enum ErrorReason {
   COORDINATES_OUT_OF_BOUNDS = 2;
   FIGURE_NOT_EXISTS = 3;
   INTERNAL_SERVER_ERROR = 4;
+  INVALID_MESSAGE = 5;
 }
 
 enum FigureType {
