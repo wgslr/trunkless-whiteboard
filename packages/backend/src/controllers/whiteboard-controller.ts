@@ -158,11 +158,26 @@ export const handleWhiteboardMessage = (
       const isApproved = message.body.approveOrDenyJoin.approve;
       if (isApproved) {
         logger.info(`Host ${client.id} accepted user ${clientId}`);
-        // TODO: add user to whiteboard
-        // TODO: update user
+        whiteboard.handleOperation(
+          {
+            type: OperationType.APPROVE_PENDING_CLIENT,
+            data: {
+              approvedClient: pendingClient
+            }
+          },
+          client
+        );
       } else {
         logger.info(`Host ${client.id} denied user ${clientId}`);
-        // TODO: update user
+        whiteboard.handleOperation(
+          {
+            type: OperationType.DENY_PENDING_CLIENT,
+            data: {
+              deniedClient: pendingClient
+            }
+          },
+          client
+        );
       }
       break;
     }

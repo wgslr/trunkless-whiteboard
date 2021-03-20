@@ -46,7 +46,9 @@ export enum OperationType {
   NOTE_UPADTE,
   NOTE_MOVE,
   NOTE_DELETE,
-  ADD_PENDING_CLIENT
+  ADD_PENDING_CLIENT,
+  APPROVE_PENDING_CLIENT,
+  DENY_PENDING_CLIENT
 }
 
 export type Operation =
@@ -108,6 +110,18 @@ export type Operation =
       type: OperationType.ADD_PENDING_CLIENT;
       data: {
         pendingClient: ClientConnection;
+      };
+    }
+  | {
+      type: OperationType.APPROVE_PENDING_CLIENT;
+      data: {
+        approvedClient: ClientConnection;
+      };
+    }
+  | {
+      type: OperationType.DENY_PENDING_CLIENT;
+      data: {
+        deniedClient: ClientConnection;
       };
     };
 
