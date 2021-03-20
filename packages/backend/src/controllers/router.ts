@@ -29,13 +29,13 @@ export const dispatch = (
     ) {
       handlePreWhiteboardMessage(message, client);
     } else if (
-      (client.fsm.state === 'USER' || client.fsm.state === 'HOST') &&
-      ALLOWED_MESSAGES.USER.includes($case)
+      (client.fsm.state === 'USER' && ALLOWED_MESSAGES.USER.includes($case)) ||
+      (client.fsm.state === 'HOST' && ALLOWED_MESSAGES.HOST.includes($case))
     ) {
       handleWhiteboardMessage(message, client);
     } else {
       logger.warn(
-        `invalid client status (${client.fsm.state}) or message type ${message.body.$case}`
+        `Invalid client status (${client.fsm.state}) or message type (${message.body.$case})`
       );
       client.send(
         makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED),

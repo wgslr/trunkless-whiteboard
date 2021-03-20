@@ -36,7 +36,7 @@ export const makeUpdateNotePositionMessage = (
   position: Note['position']
 ): ClientToServerMessage['body'] => ({
   $case: 'updateNotePosition',
-  updateNotePosition: {noteId: encodeUUID(id), position }
+  updateNotePosition: { noteId: encodeUUID(id), position }
 });
 
 export const makeCreateLineMessage = (
@@ -100,6 +100,17 @@ export const makeJoinWhiteboardMessage = (
 export const makeCreateWhiteboardMessage = (): ClientToServerMessage['body'] => ({
   $case: 'createWhiteboardRequest',
   createWhiteboardRequest: {}
+});
+
+export const makeApproveOrDenyJoinMessage = (
+  approved: boolean,
+  clientId: string
+): ClientToServerMessage['body'] => ({
+  $case: 'approveOrDenyJoin',
+  approveOrDenyJoin: {
+    approve: approved,
+    clientId: encodeUUID(clientId)
+  }
 });
 
 // TODO deduplciate with backend code

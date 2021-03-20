@@ -69,11 +69,27 @@ body {
   resize: none;
 }
 
-#editor {
-  margin: 0 auto;
+main {
+  display: flex;
+  justify-content: center;
 }
 
 form input {
   margin-left: 10px;
   margin-bottom: 10px;
+}
+
+.userList {
+  background-color: white;
+  background-color: white;
+  margin-top: 48px; /* Match height of editor toolbar */
+  margin-left: 20px;
+  padding: 20px;
+  height: 600px;
+  text-align: left;
+  border: 1px solid black;
+}
+
+.userList h2 {
+  margin-top: 0;
 }

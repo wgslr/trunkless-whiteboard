@@ -25,7 +25,7 @@ function Topbar(props: { h: number }) {
   };
   const title =
     cState.v.state === 'WHITEBOARD_HOST' || cState.v.state === 'WHITEBOARD_USER'
-      ? `whiteboard : ${cState.v.whitebordId}`
+      ? `whiteboard : ${cState.v.whiteboardId}`
       : `whiteboard`;
   return (
     <div style={styles.container}>

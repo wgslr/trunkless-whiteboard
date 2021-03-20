@@ -7,8 +7,9 @@ import {
   ClientToServerMessage,
   ServerToClientMessage
 } from '../protocol/protocol';
-import { addWhiteboard, Whiteboard } from './whiteboard';
+import { UUID } from '../types';
 import logger from '../lib/logger';
+import { addWhiteboard, OperationType, Whiteboard } from './whiteboard';
 
 let connections: ClientConnection[] = [];
 
@@ -27,31 +28,38 @@ type ClientFSM =
       username: string;
     }
   | {
+      state: 'PENDING_APPROVAL';
+      username: string;
+      pendingWhiteboard: Whiteboard;
+    }
+  | {
       state: 'HOST' | 'USER';
       username: string;
       whiteboard: Whiteboard;
     };
 export type ClientFSMState = ClientFSM['state'];
 
-class IllegalStateTransision extends Error {
+class IllegalStateTransition extends Error {
   constructor(message?: string) {
     super(message);
   }
 }
 
 export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
-  socket: WebSocket;
+  id: UUID = uuid.v4();
   private _fsm: ClientFSM = { state: 'ANONYMOUS' };
 
-  get fsm(): Readonly<ClientFSM> {
-    return this._fsm;
-  }
+  socket: WebSocket;
 
   constructor(socket: WebSocket) {
     super();
     this.socket = socket;
     this.setupSocketListeners();
     this.on('message', msg => dispatch(msg, this));
+  }
+
+  get fsm(): Readonly<ClientFSM> {
+    return this._fsm;
   }
 
   public get whiteboard(): Whiteboard | null {
@@ -64,15 +72,37 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
 
   public setUsername(username: string) {
     if (this._fsm.state !== 'ANONYMOUS') {
-      throw new IllegalStateTransision();
+      throw new IllegalStateTransition();
     }
     logger.info(`Client username set as: ${username}`);
     this._fsm = { state: 'NO_WHITEBOARD', username };
   }
 
-  public joinWhiteboard(whiteboard: Whiteboard): void {
+  public get username(): string | null {
+    return this._fsm.state === 'ANONYMOUS' ? null : this._fsm.username;
+  }
+
+  public requestJoinWhiteboard(whiteboard: Whiteboard): void {
     if (this._fsm.state !== 'NO_WHITEBOARD') {
-      throw new IllegalStateTransision();
+      throw new IllegalStateTransition();
+    }
+    whiteboard.handleOperation(
+      {
+        type: OperationType.ADD_PENDING_CLIENT,
+        data: { pendingClient: this }
+      },
+      this
+    );
+    this._fsm = {
+      state: 'PENDING_APPROVAL',
+      pendingWhiteboard: whiteboard,
+      username: this._fsm.username
+    };
+  }
+
+  public joinWhiteboard(whiteboard: Whiteboard): void {
+    if (this._fsm.state !== 'PENDING_APPROVAL') {
+      throw new IllegalStateTransition();
     }
     whiteboard.addClientConnection(this);
     this._fsm = { state: 'USER', whiteboard, username: this._fsm.username };
@@ -80,7 +110,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
 
   public becomeHost(): Whiteboard['id'] {
     if (this._fsm.state !== 'NO_WHITEBOARD') {
-      throw new IllegalStateTransision();
+      throw new IllegalStateTransition();
     }
     this._fsm = {
       state: 'HOST',

@@ -16,11 +16,12 @@ const Editor = (props: { x: number; y: number }) => {
     >
       <div>
         <Tools />
-        <UndoTool onClick={() => undo()} />
+        <UndoTool onClick={undo} />
       </div>
       <Stickies />
       <Canvas {...props} />
     </div>
+
   );
   // <Cursor canvas={canvas.current!}></Cursor>
 

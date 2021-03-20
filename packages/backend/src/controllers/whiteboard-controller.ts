@@ -1,5 +1,10 @@
 import { decodeUUID } from 'encoding';
-import { makeErrorMessage, messageToLine, messageToNote } from '../encoding';
+import {
+  makeErrorMessage,
+  makeSuccessMessage,
+  messageToLine,
+  messageToNote
+} from '../encoding';
 import { ClientConnection } from '../models/client-connection';
 import { OperationType } from '../models/whiteboard';
 import { ClientToServerMessage, ErrorReason } from '../protocol/protocol';
@@ -139,6 +144,48 @@ export const handleWhiteboardMessage = (
           client
         );
       }
+      break;
+    }
+    case 'approveOrDenyJoin': {
+      const clientId = decodeUUID(message.body.approveOrDenyJoin.clientId);
+      const pendingClient = whiteboard.getPendingClient(clientId);
+      if (!pendingClient) {
+        logger.warn(
+          `Host ${client.id} attempted to accept or deny non-existing user ${clientId}`
+        );
+        client.send(
+          makeErrorMessage(ErrorReason.USER_DOES_NOT_EXIST),
+          message.messsageId
+        );
+        return;
+      }
+
+      const isApproved = message.body.approveOrDenyJoin.approve;
+      if (isApproved) {
+        logger.info(`Host ${client.id} accepted user ${clientId}`);
+        whiteboard.handleOperation(
+          {
+            type: OperationType.APPROVE_PENDING_CLIENT,
+            data: {
+              approvedClient: pendingClient
+            }
+          },
+          client
+        );
+      } else {
+        logger.info(`Host ${client.id} denied user ${clientId}`);
+        whiteboard.handleOperation(
+          {
+            type: OperationType.DENY_PENDING_CLIENT,
+            data: {
+              deniedClient: pendingClient
+            }
+          },
+          client
+        );
+      }
+
+      client.send(makeSuccessMessage(), message.messsageId);
       break;
     }
     default: {

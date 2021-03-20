@@ -45,7 +45,10 @@ export enum OperationType {
   NOTE_ADD,
   NOTE_UPADTE,
   NOTE_MOVE,
-  NOTE_DELETE
+  NOTE_DELETE,
+  ADD_PENDING_CLIENT,
+  APPROVE_PENDING_CLIENT,
+  DENY_PENDING_CLIENT
 }
 
 export type Operation =
@@ -102,6 +105,24 @@ export type Operation =
         noteId: Note['id'];
         causedBy: ClientToServerMessage['messsageId'];
       };
+    }
+  | {
+      type: OperationType.ADD_PENDING_CLIENT;
+      data: {
+        pendingClient: ClientConnection;
+      };
+    }
+  | {
+      type: OperationType.APPROVE_PENDING_CLIENT;
+      data: {
+        approvedClient: ClientConnection;
+      };
+    }
+  | {
+      type: OperationType.DENY_PENDING_CLIENT;
+      data: {
+        deniedClient: ClientConnection;
+      };
     };
 
 class OperationError extends Error {
@@ -118,6 +139,7 @@ export class Whiteboard {
   id: UUID;
   host: ClientConnection;
   clients: ClientConnection[];
+  pendingClients: Map<ClientConnection['id'], ClientConnection> = new Map();
   notes: Map<Note['id'], Note> = new Map();
   lines: Map<Line['id'], Line> = new Map();
 
@@ -127,7 +149,7 @@ export class Whiteboard {
     this.clients = [host];
   }
 
-  handleOperation(op: Operation, client: ClientConnection) {
+  handleOperation(op: Operation, client: ClientConnection): void {
     switch (op.type) {
       case OperationType.LINE_CREATE: {
         const { line, causedBy } = op.data;
@@ -368,6 +390,53 @@ export class Whiteboard {
 
         break;
       }
+      case OperationType.ADD_PENDING_CLIENT: {
+        const { pendingClient } = op.data;
+        this.pendingClients.set(pendingClient.id, pendingClient);
+        if (pendingClient.fsm.state !== 'NO_WHITEBOARD') {
+          throw new Error('Invalid client state');
+        }
+        this.host.send({
+          $case: 'clientWantsToJoin',
+          clientWantsToJoin: {
+            clientId: encodeUUID(pendingClient.id),
+            username: pendingClient.fsm.username
+          }
+        });
+
+        // TODO setup timeout
+
+        break;
+      }
+      case OperationType.APPROVE_PENDING_CLIENT: {
+        const { approvedClient } = op.data;
+        if (approvedClient.fsm.state !== 'PENDING_APPROVAL') {
+          throw new Error('Invalid client state');
+        }
+        const clientWasPending = this.pendingClients.delete(approvedClient.id);
+        if (!clientWasPending) {
+          throw new Error(
+            `Client ${approvedClient.id} was not pending for whiteboard ${this.id}`
+          );
+        }
+
+        approvedClient.joinWhiteboard(this);
+        approvedClient.send({
+          $case: 'joinApproved',
+          joinApproved: {}
+        });
+
+        this.sendToClients({
+          $case: 'connectedClients',
+          connectedClients: {
+            connectedClients: this.clients.map(userClient => ({
+              username: userClient.username!,
+              clientId: encodeUUID(userClient.id)
+            }))
+          }
+        });
+        break;
+      }
       // case OperationType.RETURN_ALL_FIGURES: {
       //   // FIXME send only to requester
       //   this.sendToClients(
@@ -427,6 +496,10 @@ export class Whiteboard {
         }
       });
     }
+  }
+
+  public getPendingClient(clientId: ClientConnection['id']) {
+    return this.pendingClients.get(clientId) ?? null;
   }
 }
 

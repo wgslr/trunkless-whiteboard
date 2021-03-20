@@ -2,11 +2,13 @@ import { decodeUUID } from 'encoding';
 import {
   makeClientHelloMessage,
   makeCreateWhiteboardMessage,
-  makeJoinWhiteboardMessage
+  makeJoinWhiteboardMessage,
+  makeApproveOrDenyJoinMessage
 } from '../connection/messages';
 import { reqResponseService } from '../connection/ServerContext';
 import { clearStores } from '../store';
 import { clientState } from '../store/auth';
+import { usersState } from '../store/users';
 
 export const setUsername = (username: string) => {
   const body = makeClientHelloMessage(username);
@@ -41,11 +43,10 @@ export const joinWhiteboard = (whiteboardId: string) => {
         );
         return;
       } else {
-        clearStores(); // ensure no leftover from other whiteboard
         clientState.v = {
-          state: 'WHITEBOARD_USER',
+          state: 'PENDING_APPROVAL',
           username: clientState.v.username,
-          whitebordId: whiteboardId
+          whiteboardId
         };
       }
     } else if (response?.$case === 'error') {
@@ -73,7 +74,7 @@ export const createWhiteboard = () => {
         clientState.v = {
           state: 'WHITEBOARD_HOST',
           username: clientState.v.username,
-          whitebordId: decodeUUID(response.whiteboardCreated.whiteboardId)
+          whiteboardId: decodeUUID(response.whiteboardCreated.whiteboardId)
         };
       }
     } else if (response?.$case === 'error') {
@@ -81,4 +82,23 @@ export const createWhiteboard = () => {
     }
   });
   console.log('CreateWhiteboard sent');
+};
+
+export const approveUser = (clientId: string) => {
+  const body = makeApproveOrDenyJoinMessage(true, clientId);
+
+  reqResponseService.send(body, response => {
+    if (response === 'timeout') {
+      // TODO display the error in the gui
+      console.log('ApproveUser timeout');
+    } else if (response?.$case === 'success') {
+      usersState.pending = usersState.pending.filter(
+        user => user.id !== clientId
+      );
+      // Joined users gets updated from multicast
+    } else if (response?.$case === 'error') {
+      console.log('ApproveUser returned error', response.error);
+    }
+  });
+  console.log('ApproveUser sent');
 };
