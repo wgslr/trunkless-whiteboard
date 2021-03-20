@@ -7,7 +7,7 @@ import DenyIcon from '@material-ui/icons/Clear';
 import { approveUser } from '../../controllers/auth-controller';
 
 const UserDisplay = ({ user }: { user: User }) => (
-  <li key={user.id}>{user.username}</li>
+  <li>{user.username}</li>
 );
 
 const PendingUserDisplay = ({ user }: { user: User }) => {
@@ -33,13 +33,13 @@ const UserList = () => {
       <h2>Connected users</h2>
       <ul>
         {users.joined.map(u => (
-          <UserDisplay user={u} />
+          <UserDisplay key={u.id} user={u} />
         ))}
       </ul>
       <h2>Pending users</h2>
       <ul>
         {users.pending.map(u => (
-          <PendingUserDisplay user={u} />
+          <PendingUserDisplay key={u.id} user={u} />
         ))}
       </ul>
     </div>
