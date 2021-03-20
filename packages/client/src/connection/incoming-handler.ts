@@ -58,6 +58,15 @@ export const handleMessage = (message: ServerToClientMessage): void => {
       }
       break;
     }
+    case 'connectedClients': {
+      const connectedClients = message.body.connectedClients.connectedClients;
+      const joinedClients = connectedClients.map(connectedClient => ({
+        username: connectedClient.username,
+        id: decodeUUID(connectedClient.clientId)
+      }));
+      usersState.joined = joinedClients;
+      break;
+    }
     case 'error': {
       const reason = errorReasonToJSON(message.body.error.reason);
       console.warn('Server responded with error:', reason);
