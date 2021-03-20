@@ -102,6 +102,17 @@ export const makeCreateWhiteboardMessage = (): ClientToServerMessage['body'] => 
   createWhiteboardRequest: {}
 });
 
+export const makeApproveOrDenyJoinMessage = (
+  approved: boolean,
+  clientId: string
+): ClientToServerMessage['body'] => ({
+  $case: 'approveOrDenyJoin',
+  approveOrDenyJoin: {
+    approve: approved,
+    clientId: encodeUUID(clientId)
+  }
+});
+
 // TODO deduplciate with backend code
 const encodeUUID = (id: UUID): Uint8Array => Uint8Array.from(uuid.parse(id));
 
