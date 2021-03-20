@@ -42,11 +42,8 @@ export const joinWhiteboard = (whiteboardId: string) => {
         );
         return;
       } else {
-        clearStores(); // ensure no leftover from other whiteboard
         clientState.v = {
-          state: 'WHITEBOARD_USER',
-          username: clientState.v.username,
-          whitebordId: whiteboardId
+          state: 'PENDING_APPROVAL'
         };
       }
     } else if (response?.$case === 'error') {

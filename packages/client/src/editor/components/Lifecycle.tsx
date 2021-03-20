@@ -28,6 +28,8 @@ export const Lifecycle: React.FunctionComponent = () => {
       return <Whiteboard />;
     case 'WHITEBOARD_USER':
       return <Whiteboard />;
+    case 'PENDING_APPROVAL':
+      return <div>Pending approval from host...</div>;
   }
 };
 

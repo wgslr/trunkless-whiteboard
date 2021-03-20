@@ -53,7 +53,7 @@ export const handlePreWhiteboardMessage = (
         return;
       }
       client.requestJoinWhiteboard(whiteboard);
-      // client.send(makeSuccessMessage(), message.messsageId);
+      client.send(makeSuccessMessage(), message.messsageId);
       // TODO maybe wait for request
       whiteboard.bootstrapClient(client);
       break;

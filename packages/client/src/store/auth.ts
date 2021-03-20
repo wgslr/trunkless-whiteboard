@@ -22,6 +22,9 @@ type ConnectionState =
       whitebordId: string;
     }
   | {
+      state: 'PENDING_APPROVAL';
+    }
+  | {
       state: 'DISCONNECTED';
     };
 
