@@ -2,7 +2,7 @@ import { proxy } from 'valtio';
 
 type ConnectionState =
   | {
-      state: 'DISCONNECTED';
+      state: 'INITIALIZING';
     }
   | {
       state: 'ANONYMOUS';
@@ -15,8 +15,11 @@ type ConnectionState =
       state: 'WHITEBOARD';
       username: string;
       whitebordId: string;
+    }
+  | {
+      state: 'DISCONNECTED';
     };
 
 export const clientState = proxy<{ v: ConnectionState }>({
-  v: { state: 'DISCONNECTED' }
+  v: { state: 'INITIALIZING' }
 });

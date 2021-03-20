@@ -10,7 +10,7 @@ const canvasY = 600;
 export const Lifecycle: React.FunctionComponent = () => {
   const cState = useSnapshot(clientState);
   switch (cState.v.state) {
-    case 'DISCONNECTED': {
+    case 'INITIALIZING': {
       return <div>Connecting...</div>;
     }
     case 'ANONYMOUS': {
@@ -18,6 +18,9 @@ export const Lifecycle: React.FunctionComponent = () => {
     }
     case 'NO_WHITEBOARD': {
       return <input type="button" value="Create whiteboard" />;
+    }
+    case 'DISCONNECTED': {
+      return <div>Protocol disconnected</div>;
     }
     default:
       return <Editor x={canvasX} y={canvasY} />;
