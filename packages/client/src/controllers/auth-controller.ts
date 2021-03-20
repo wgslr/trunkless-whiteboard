@@ -71,7 +71,7 @@ export const createWhiteboard = () => {
         clientState.v = {
           state: 'WHITEBOARD_HOST',
           username: clientState.v.username,
-          whitebordId: decodeUUID(response.whiteboardCreated.whiteboardId)
+          whiteboardId: decodeUUID(response.whiteboardCreated.whiteboardId)
         };
       }
     } else if (response?.$case === 'error') {

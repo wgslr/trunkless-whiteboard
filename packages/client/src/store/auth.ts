@@ -14,12 +14,12 @@ type ConnectionState =
   | {
       state: 'WHITEBOARD_USER';
       username: string;
-      whitebordId: string;
+      whiteboardId: string;
     }
   | {
       state: 'WHITEBOARD_HOST';
       username: string;
-      whitebordId: string;
+      whiteboardId: string;
     }
   | {
       state: 'PENDING_APPROVAL';
