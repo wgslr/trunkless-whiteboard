@@ -439,12 +439,15 @@ export class Whiteboard {
       }
       case OperationType.DENY_PENDING_CLIENT: {
         const { deniedClient } = op.data;
-        const clientWasPending = this.pendingClients.delete(deniedClient.id);
-        if (!clientWasPending) {
+        const deniedClientConnection = this.pendingClients.get(deniedClient.id);
+        if (!deniedClientConnection) {
           throw new Error(
             `Client ${deniedClient.id} was not pending for whiteboard ${this.id}`
           );
         }
+        deniedClientConnection.handleJoinDenial();
+
+        this.pendingClients.delete(deniedClient.id);
         deniedClient.send({
           $case: 'joinDenied',
           joinDenied: {}
