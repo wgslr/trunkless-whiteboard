@@ -17,6 +17,7 @@ export const ALLOWED_MESSAGES: {
 } = {
   ANONYMOUS: ['clientHello'],
   NO_WHITEBOARD: ['joinWhiteboard', 'createWhiteboardRequest'],
+  PENDING_APPROVAL: [],
   USER: commonWhitboardMessages,
-  HOST: commonWhitboardMessages
+  HOST: commonWhitboardMessages.concat(['approveOrDenyJoin'])
 };

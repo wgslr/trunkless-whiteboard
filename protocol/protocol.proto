@@ -10,6 +10,7 @@ enum ErrorReason {
   FIGURE_NOT_EXISTS = 3;
   INTERNAL_SERVER_ERROR = 4;
   INVALID_MESSAGE = 5;
+  HOST_DECLINED_JOIN = 6;
 }
 
 enum FigureType {
@@ -71,6 +72,19 @@ message CreateWhiteboardRequest {}
 message JoinWhiteboard { bytes whiteboard_id = 1; }
 message WhiteboardCreated { bytes whiteboard_id = 1; }
 
+// message to the host
+message ClientWantsToJoin {
+  bytes client_id = 1;
+  string username = 2;
+}
+message CancelClientWantsToJoin { bytes client_id = 1; }
+message ApproveOrDenyJoin {
+  bool approve = 1;
+  bytes client_id = 2;
+}
+
+// TODO informing everyone of connencted clients
+
 message ClientToServerMessage {
   string messsage_id = 100;
   oneof body {
@@ -85,6 +99,7 @@ message ClientToServerMessage {
     RemovePointsFromLine remove_points_from_line = 22;
     DeleteLine delete_line = 23;
     ClientHello client_hello = 30;
+    ApproveOrDenyJoin approve_or_deny_join = 31;
   }
 }
 
@@ -99,5 +114,7 @@ message ServerToClientMessage {
     NoteCreatedOrUpdated note_created_or_updated = 8;
     NoteDeleted note_deleted = 9;
     LineDeleted line_deleted = 10;
+    ClientWantsToJoin client_wants_to_join = 30;
+    CancelClientWantsToJoin cancel_client_wants_to_join = 31;
   }
 }

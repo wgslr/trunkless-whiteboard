@@ -46,6 +46,7 @@ export enum OperationType {
   NOTE_UPADTE,
   NOTE_MOVE,
   NOTE_DELETE
+  ADD_PENDING_CLIENT
 }
 
 export type Operation =
@@ -102,6 +103,12 @@ export type Operation =
         noteId: Note['id'];
         causedBy: ClientToServerMessage['messsageId'];
       };
+    }
+  | {
+      type: OperationType.ADD_PENDING_CLIENT;
+      data: {
+        client: ClientConnection;
+      };
     };
 
 class OperationError extends Error {
@@ -118,6 +125,7 @@ export class Whiteboard {
   id: UUID;
   host: ClientConnection;
   clients: ClientConnection[];
+  pendingClients: Map<ClientConnection['id'], ClientConnection> = new Map();
   notes: Map<Note['id'], Note> = new Map();
   lines: Map<Line['id'], Line> = new Map();
 
@@ -127,7 +135,7 @@ export class Whiteboard {
     this.clients = [host];
   }
 
-  handleOperation(op: Operation, client: ClientConnection) {
+  handleOperation(op: Operation, client: ClientConnection): void {
     switch (op.type) {
       case OperationType.LINE_CREATE: {
         const { line, causedBy } = op.data;
@@ -365,6 +373,24 @@ export class Whiteboard {
           },
           causedBy
         );
+
+        break;
+      }
+      case OperationType.ADD_PENDING_CLIENT: {
+        const { client } = op.data;
+        this.pendingClients.set(client.id, client);
+        if (client.fsm.state !== 'PENDING_APPROVAL') {
+          throw new Error('Invalid client state');
+        }
+        this.host.send({
+          $case: 'clientWantsToJoin',
+          clientWantsToJoin: {
+            clientId: encodeUUID(client.id),
+            username: client.fsm.username
+          }
+        });
+
+        // TODO setup timeout
 
         break;
       }

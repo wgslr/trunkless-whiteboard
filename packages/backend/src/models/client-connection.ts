@@ -7,6 +7,7 @@ import {
   ClientToServerMessage,
   ServerToClientMessage
 } from '../protocol/protocol';
+import { UUID } from '../types';
 import { addWhiteboard, Whiteboard } from './whiteboard';
 import logger from '../lib/logger';
 
@@ -27,6 +28,11 @@ type ClientFSM =
       username: string;
     }
   | {
+      state: 'PENDING_APPROVAL';
+      username: string;
+      whiteboard: Whiteboard;
+    }
+  | {
       state: 'HOST' | 'USER';
       username: string;
       whiteboard: Whiteboard;
@@ -40,18 +46,20 @@ class IllegalStateTransision extends Error {
 }
 
 export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
-  socket: WebSocket;
+  id: UUID = uuid.v4();
   private _fsm: ClientFSM = { state: 'ANONYMOUS' };
 
-  get fsm(): Readonly<ClientFSM> {
-    return this._fsm;
-  }
+  socket: WebSocket;
 
   constructor(socket: WebSocket) {
     super();
     this.socket = socket;
     this.setupSocketListeners();
     this.on('message', msg => dispatch(msg, this));
+  }
+
+  get fsm(): Readonly<ClientFSM> {
+    return this._fsm;
   }
 
   public get whiteboard(): Whiteboard | null {
