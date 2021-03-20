@@ -71,6 +71,15 @@ export const makeDeleteLineMessage = (
   }
 });
 
+export const makeClientHelloMessage = (
+  username: string
+): ClientToServerMessage['body'] => ({
+  $case: 'clientHello',
+  clientHello: {
+    username
+  }
+});
+
 // TODO deduplciate with backend code
 const encodeUUID = (id: UUID): Uint8Array => Uint8Array.from(uuid.parse(id));
 

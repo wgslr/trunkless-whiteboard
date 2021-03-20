@@ -1,5 +1,5 @@
 import { decodeUUID } from 'encoding';
-import { ServerToClientMessage } from '../protocol/protocol';
+import { errorReasonToJSON, ServerToClientMessage } from '../protocol/protocol';
 import { clientState } from '../store/auth';
 import * as linesStore from '../store/lines';
 import * as notesStore from '../store/notes';
@@ -36,6 +36,10 @@ export const handleMessage = (message: ServerToClientMessage): void => {
       const id = decodeUUID(message.body.noteDeleted.noteId);
       notesStore.setServerState(id, null);
       break;
+    }
+    case 'error': {
+      const reason = errorReasonToJSON(message.body.error.reason);
+      console.warn('Server responded with error:', reason);
     }
   }
 };

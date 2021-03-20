@@ -72,3 +72,7 @@ body {
 #editor {
   margin: 0 auto;
 }
+
+form input {
+  margin-left: 10px;
+}
