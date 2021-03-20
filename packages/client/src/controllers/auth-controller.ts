@@ -88,7 +88,7 @@ export const approveUser = (clientId: string) => {
     if (response === 'timeout') {
       // TODO display the error in the gui
       console.log('ApproveUser timeout');
-    } else if (response?.$case === '') {
+    //} else if (response?.$case === '') {
       // TODO: handle case where server answers
     } else if (response?.$case === 'error') {
       console.log('ApproveUser returned error', response.error);
