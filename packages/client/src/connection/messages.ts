@@ -36,7 +36,7 @@ export const makeUpdateNotePositionMessage = (
   position: Note['position']
 ): ClientToServerMessage['body'] => ({
   $case: 'updateNotePosition',
-  updateNotePosition: {noteId: encodeUUID(id), position }
+  updateNotePosition: { noteId: encodeUUID(id), position }
 });
 
 export const makeCreateLineMessage = (
