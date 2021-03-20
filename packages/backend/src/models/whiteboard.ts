@@ -379,7 +379,7 @@ export class Whiteboard {
       case OperationType.ADD_PENDING_CLIENT: {
         const { client } = op.data;
         this.pendingClients.set(client.id, client);
-        if (client.fsm.state !== 'PENDING_APPROVAL') {
+        if (client.fsm.state !== 'NO_WHITEBOARD') {
           throw new Error('Invalid client state');
         }
         this.host.send({

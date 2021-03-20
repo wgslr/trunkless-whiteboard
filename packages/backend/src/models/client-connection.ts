@@ -8,8 +8,8 @@ import {
   ServerToClientMessage
 } from '../protocol/protocol';
 import { UUID } from '../types';
-import { addWhiteboard, Whiteboard } from './whiteboard';
 import logger from '../lib/logger';
+import { addWhiteboard, OperationType, Whiteboard } from './whiteboard';
 
 let connections: ClientConnection[] = [];
 
@@ -30,7 +30,7 @@ type ClientFSM =
   | {
       state: 'PENDING_APPROVAL';
       username: string;
-      whiteboard: Whiteboard;
+      pendingWhiteboard: Whiteboard;
     }
   | {
       state: 'HOST' | 'USER';
@@ -78,8 +78,26 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     this._fsm = { state: 'NO_WHITEBOARD', username };
   }
 
-  public joinWhiteboard(whiteboard: Whiteboard): void {
+  public requestJoinWhiteboard(whiteboard: Whiteboard): void {
     if (this._fsm.state !== 'NO_WHITEBOARD') {
+      throw new IllegalStateTransision();
+    }
+    whiteboard.handleOperation(
+      {
+        type: OperationType.ADD_PENDING_CLIENT,
+        data: { client: this }
+      },
+      this
+    );
+    this._fsm = {
+      state: 'PENDING_APPROVAL',
+      pendingWhiteboard: whiteboard,
+      username: this._fsm.username
+    };
+  }
+
+  public joinWhiteboard(whiteboard: Whiteboard): void {
+    if (this._fsm.state !== 'PENDING_APPROVAL') {
       throw new IllegalStateTransision();
     }
     whiteboard.addClientConnection(this);
