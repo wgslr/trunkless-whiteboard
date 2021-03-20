@@ -1,5 +1,5 @@
-import { makeErrorMessage, messageToLine, messageToNote } from '../encoding';
 import { decodeUUID } from 'encoding';
+import { makeErrorMessage, messageToLine, messageToNote } from '../encoding';
 import { ClientConnection } from '../models/client-connection';
 import { OperationType } from '../models/whiteboard';
 import { ClientToServerMessage, ErrorReason } from '../protocol/protocol';
@@ -119,20 +119,25 @@ export const handleWhiteboardMessage = (
     }
     case 'updateNotePosition': {
       const { noteId, position } = message.body.updateNotePosition;
-
-      whiteboard.handleOperation(
-        {
-          type: OperationType.NOTE_MOVE,
-          data: {
-            causedBy: message.messsageId,
-            change: {
-              id: decodeUUID(noteId),
-              position
+      if (position === undefined) {
+        // should not happen... but typing says it could, so let's be safe
+        client.send(makeErrorMessage(ErrorReason.INVALID_MESSAGE));
+        return;
+      } else {
+        whiteboard.handleOperation(
+          {
+            type: OperationType.NOTE_MOVE,
+            data: {
+              causedBy: message.messsageId,
+              change: {
+                id: decodeUUID(noteId),
+                position
+              }
             }
-          }
-        },
-        client
-      );
+          },
+          client
+        );
+      }
       break;
     }
     default: {

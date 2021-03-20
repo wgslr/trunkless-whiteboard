@@ -1,4 +1,5 @@
 import { encodeUUID } from 'encoding';
+import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
 import { noteToMessage, resultToMessage } from '../encoding';
 import {
@@ -10,7 +11,6 @@ import {
 } from '../protocol/protocol';
 import { Result, UUID } from '../types';
 import { ClientConnection } from './client-connection';
-import fp from 'lodash/fp';
 
 export abstract class Figure {
   id: UUID;
@@ -84,17 +84,17 @@ export type Operation =
   | {
       type: OperationType.NOTE_UPADTE;
       data: {
-        change: Partial<Note> & Pick<Note, 'id' | 'text'>;
+        change: Pick<Note, 'id' | 'text'>;
         causedBy: ClientToServerMessage['messsageId'];
       };
     }
   | {
-    type: OperationType.NOTE_MOVE;
-    data: {
-      change: Partial<Note> & Pick<Note, 'id' >;
-      causedBy: ClientToServerMessage['messsageId'];
+      type: OperationType.NOTE_MOVE;
+      data: {
+        change: Pick<Note, 'id' | 'position'>;
+        causedBy: ClientToServerMessage['messsageId'];
+      };
     }
-  }
   | {
       type: OperationType.NOTE_DELETE;
       data: {
@@ -273,16 +273,6 @@ export class Whiteboard {
       }
       case OperationType.NOTE_UPADTE: {
         const { change, causedBy } = op.data;
-        if (change.position && !this.areCoordsWithinBounds(change.position)) {
-          client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
-            }),
-            causedBy
-          );
-          return;
-        }
         const note = this.notes.get(change.id);
         if (!note) {
           client.send(
@@ -296,7 +286,7 @@ export class Whiteboard {
         }
         const updated = {
           ...note,
-          text: change.text ?? note.text
+          text: change.text
         };
 
         this.notes.set(note.id, updated);
@@ -338,7 +328,7 @@ export class Whiteboard {
       }
       case OperationType.NOTE_MOVE: {
         const { change, causedBy } = op.data;
-        if (change.position && !this.areCoordsWithinBounds(change.position)) {
+        if (!this.areCoordsWithinBounds(change.position)) {
           client.send(
             resultToMessage({
               result: 'error',
@@ -361,7 +351,7 @@ export class Whiteboard {
         }
         const updated = {
           ...note,
-          position: change.position ?? note.position,
+          position: change.position
         };
 
         this.notes.set(note.id, updated);
