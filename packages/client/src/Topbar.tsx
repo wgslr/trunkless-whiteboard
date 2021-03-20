@@ -2,7 +2,7 @@ import React, { CSSProperties } from 'react';
 import { useSnapshot } from 'valtio';
 import { clientState } from './store/auth';
 
-function Topbar(props: { h: number }) {
+const Topbar = (props: { h: number }) => {
   const cState = useSnapshot(clientState);
   const styles: { [key: string]: CSSProperties } = {
     container: {
