@@ -1,5 +1,10 @@
 import { decodeUUID } from 'encoding';
-import { makeErrorMessage, messageToLine, messageToNote } from '../encoding';
+import {
+  makeErrorMessage,
+  makeSuccessMessage,
+  messageToLine,
+  messageToNote
+} from '../encoding';
 import { ClientConnection } from '../models/client-connection';
 import { OperationType } from '../models/whiteboard';
 import { ClientToServerMessage, ErrorReason } from '../protocol/protocol';
@@ -179,6 +184,8 @@ export const handleWhiteboardMessage = (
           client
         );
       }
+
+      client.send(makeSuccessMessage(), message.messsageId);
       break;
     }
     default: {

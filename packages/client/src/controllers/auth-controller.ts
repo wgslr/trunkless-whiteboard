@@ -8,6 +8,7 @@ import {
 import { reqResponseService } from '../connection/ServerContext';
 import { clearStores } from '../store';
 import { clientState } from '../store/auth';
+import { usersState } from '../store/users';
 
 export const setUsername = (username: string) => {
   const body = makeClientHelloMessage(username);
@@ -90,8 +91,11 @@ export const approveUser = (clientId: string) => {
     if (response === 'timeout') {
       // TODO display the error in the gui
       console.log('ApproveUser timeout');
-    //} else if (response?.$case === '') {
-      // TODO: handle case where server answers
+    } else if (response?.$case === 'success') {
+      usersState.pending = usersState.pending.filter(
+        user => user.id !== clientId
+      );
+      // Joined users gets updated from multicast
     } else if (response?.$case === 'error') {
       console.log('ApproveUser returned error', response.error);
     }
