@@ -80,6 +80,20 @@ export const makeClientHelloMessage = (
   }
 });
 
+export const makeJoinWhiteboardMessage = (
+  whiteboardId: string
+): ClientToServerMessage['body'] => ({
+  $case: 'joinWhiteboard',
+  joinWhiteboard: {
+    whiteboardId: encodeUUID(whiteboardId)
+  }
+});
+
+export const makeCreateWhiteboardMessage = (): ClientToServerMessage['body'] => ({
+  $case: 'createWhiteboardRequest',
+  createWhiteboardRequest: {}
+});
+
 // TODO deduplciate with backend code
 const encodeUUID = (id: UUID): Uint8Array => Uint8Array.from(uuid.parse(id));
 

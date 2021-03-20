@@ -1,6 +1,9 @@
 import React, { CSSProperties } from 'react';
+import { useSnapshot } from 'valtio';
+import { clientState } from './store/auth';
 
 function Topbar(props: { h: number }) {
+  const cState = useSnapshot(clientState);
   const styles: { [key: string]: CSSProperties } = {
     container: {
       height: props.h,
@@ -20,11 +23,13 @@ function Topbar(props: { h: number }) {
       fontSize: 20
     }
   };
+  const title =
+    cState.v.state === 'WHITEBOARD_HOST' || cState.v.state === 'WHITEBOARD_USER'
+      ? `whiteboard : ${cState.v.whitebordId}`
+      : `whiteboard`;
   return (
     <div style={styles.container}>
-      <span style={{ ...styles.text, margin: '0 auto' }}>
-        Trunkless Whiteboard
-      </span>
+      <span style={{ ...styles.text, margin: '0 auto' }}>{title}</span>
       <span style={styles.text}>v0.0</span>
     </div>
   );

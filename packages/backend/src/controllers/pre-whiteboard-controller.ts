@@ -1,4 +1,4 @@
-import { decodeUUID } from 'encoding';
+import { decodeUUID, encodeUUID } from 'encoding';
 import { makeErrorMessage, makeSuccessMessage } from '../encoding';
 import { ClientConnection } from '../models/client-connection';
 import { getWhiteboard } from '../models/whiteboard';
@@ -28,8 +28,16 @@ export const handlePreWhiteboardMessage = (
   // TODO  improve handling of those messages
   switch (message.body.$case) {
     case 'createWhiteboardRequest': {
-      client.becomeHost();
-      client.send(makeSuccessMessage(), message.messsageId);
+      const whiteboardId = client.becomeHost();
+      client.send(
+        {
+          $case: 'whiteboardCreated',
+          whiteboardCreated: {
+            whiteboardId: encodeUUID(whiteboardId)
+          }
+        },
+        message.messsageId
+      );
       break;
     }
     case 'joinWhiteboard': {

@@ -77,7 +77,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     this._fsm = { state: 'USER', whiteboard, username: this._fsm.username };
   }
 
-  public becomeHost() {
+  public becomeHost(): Whiteboard['id'] {
     if (this._fsm.state !== 'NO_WHITEBOARD') {
       throw new IllegalStateTransision();
     }
@@ -86,6 +86,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
       whiteboard: addWhiteboard(this),
       username: this._fsm.username
     };
+    return this._fsm.whiteboard.id;
   }
 
   private setupSocketListeners() {

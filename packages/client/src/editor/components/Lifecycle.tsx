@@ -3,6 +3,7 @@ import { useSnapshot } from 'valtio';
 import { clientState } from '../../store/auth';
 import Editor from './Editor';
 import UsernamePrompt from './UsernamePrompt';
+import WhiteboardPrompt from './WhiteboardPrompt';
 
 const canvasX = 800;
 const canvasY = 600;
@@ -17,12 +18,14 @@ export const Lifecycle: React.FunctionComponent = () => {
       return <UsernamePrompt />;
     }
     case 'NO_WHITEBOARD': {
-      return <input type="button" value="Create whiteboard" />;
+      return <WhiteboardPrompt />;
     }
     case 'DISCONNECTED': {
       return <div>Protocol disconnected</div>;
     }
-    default:
+    case 'WHITEBOARD_HOST':
+      return <Editor x={canvasX} y={canvasY} />;
+    case 'WHITEBOARD_USER':
       return <Editor x={canvasX} y={canvasY} />;
   }
 };

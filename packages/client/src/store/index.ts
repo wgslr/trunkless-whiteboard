@@ -7,6 +7,16 @@ import { getEffectiveNote, NoteTimeline } from './timelines/note';
 const noteTimelines: { [noteId: string]: NoteTimeline } = Object.create(null);
 const lineTimelines: { [lineId: string]: LineTimeline } = Object.create(null);
 
+const clearObj = (o: any): void => {
+  for (const key of Object.keys(o)) {
+    delete o[key];
+  }
+};
+export const clearStores = () => {
+  updateNotes(clearObj);
+  updateLineStore(clearObj);
+};
+
 export const updateNotes = <T>(
   callback: (nTimelines: typeof noteTimelines) => T
 ): T => {

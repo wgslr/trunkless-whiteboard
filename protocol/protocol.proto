@@ -66,6 +66,10 @@ message NoteDeleted { bytes note_id = 1; }
 
 message ClientHello { string username = 1; }
 
+message CreateWhiteboardRequest {}
+message JoinWhiteboard { bytes whiteboard_id = 1; }
+message WhiteboardCreated { bytes whiteboard_id = 1; }
+
 message ClientToServerMessage {
   string messsage_id = 100;
   oneof body {
@@ -96,11 +100,3 @@ message ServerToClientMessage {
     LineDeleted line_deleted = 10;
   }
 }
-
-// --- TODO ---
-
-message CreateWhiteboardRequest {}
-message WhiteboardCreated { string whiteboard_id = 1; }
-
-// Client sends this message to request joining a whiteboard
-message JoinWhiteboard { bytes whiteboard_id = 1; }

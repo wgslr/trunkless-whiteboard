@@ -12,7 +12,12 @@ type ConnectionState =
       username: string;
     }
   | {
-      state: 'WHITEBOARD';
+      state: 'WHITEBOARD_USER';
+      username: string;
+      whitebordId: string;
+    }
+  | {
+      state: 'WHITEBOARD_HOST';
       username: string;
       whitebordId: string;
     }
