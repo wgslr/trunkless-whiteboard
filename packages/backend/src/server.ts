@@ -3,6 +3,7 @@ import * as WebSocket from 'ws';
 import { registerClient } from './models/client-connection';
 import * as http from 'http';
 import * as path from 'path';
+import logger from './lib/logger';
 
 const app = express();
 // Static is relative to where node is executed
@@ -12,10 +13,10 @@ const server = http.createServer(app);
 const wsserver = new WebSocket.Server({ server, path: '/ws' });
 
 wsserver.on('connection', (websocket: WebSocket) => {
-  console.log('Incoming websocket connection');
+  logger.info('Incoming websocket connection');
 
   registerClient(websocket);
-  console.log('Connection registered');
+  logger.info('Connection registered');
 });
 
 export default server;

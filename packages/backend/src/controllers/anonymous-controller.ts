@@ -1,6 +1,7 @@
 import { makeErrorMessage, makeSuccessMessage } from '../encoding';
 import { ClientConnection } from '../models/client-connection';
 import { ClientToServerMessage, ErrorReason } from '../protocol/protocol';
+import logger from '../lib/logger';
 
 /**
  * Handles messages exchanged when the client is not assigned to a whiteboard.
@@ -13,7 +14,7 @@ export const handleNobodyMessage = (
     return;
   }
   if (client.fsm.state != 'ANONYMOUS') {
-    console.warn(
+    logger.warn(
       `Hanshake message received from client with status ${client.fsm.state}`
     );
     client.send(
@@ -30,7 +31,7 @@ export const handleNobodyMessage = (
       break;
     }
     default: {
-      console.warn('Unhandled message type:', message.body.$case);
+      logger.warn(`Unhandled message type: ${message.body.$case}`);
       client.send(
         makeErrorMessage(ErrorReason.INTERNAL_SERVER_ERROR),
         message.messsageId

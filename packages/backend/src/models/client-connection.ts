@@ -8,6 +8,7 @@ import {
   ServerToClientMessage
 } from '../protocol/protocol';
 import { addWhiteboard, Whiteboard } from './whiteboard';
+import logger from '../lib/logger';
 
 let connections: ClientConnection[] = [];
 
@@ -65,7 +66,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     if (this._fsm.state !== 'ANONYMOUS') {
       throw new IllegalStateTransision();
     }
-    console.log('Client username set as ', username);
+    logger.info(`Client username set as: ${username}`);
     this._fsm = { state: 'NO_WHITEBOARD', username };
   }
 
@@ -95,15 +96,15 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
       let decoded;
       try {
         decoded = ClientToServerMessage.decode(Reader.create(message));
-        console.debug(`Decoded message:`, decoded.body?.$case);
+        logger.debug(`Decoded message: ${decoded.body?.$case}`);
       } catch (error) {
-        console.warn('Error decoding message', error);
+        logger.warn(`Error decoding message: ${error}`, error);
         return;
       }
       this.emit('message', decoded);
     });
     this.socket.on('close', () => {
-      console.log('Client connection closed');
+      logger.info('Client connection closed');
       this.emit('disconnect');
     });
   }

@@ -11,6 +11,7 @@ import {
 } from '../protocol/protocol';
 import { UUID } from '../types';
 import { ClientConnection } from './client-connection';
+import logger from '../lib/logger';
 
 export abstract class Figure {
   id: UUID;
@@ -202,7 +203,7 @@ export class Whiteboard {
           patch.points
         );
         const removedPoints = line.points.length - newLinePoints.length;
-        console.log('Removed points', removedPoints);
+        logger.info(`Removed points: ${removedPoints}`);
         if (removedPoints > 0) {
           line.points = newLinePoints;
           this.sendToClients(
@@ -393,9 +394,8 @@ export class Whiteboard {
     message: ServerToClientMessage['body'],
     previousMessageId?: string
   ) {
-    console.debug(
-      `Sending message to ${this.clients.length} clients:`,
-      message?.$case
+    logger.debug(
+      `Sending message to ${this.clients.length} clients: ${message?.$case}`
     );
     this.clients.forEach(client => {
       client.send(message, previousMessageId);
@@ -404,7 +404,7 @@ export class Whiteboard {
 
   public addClientConnection(client: ClientConnection) {
     this.clients.push(client);
-    console.log('Client joined whiteboard', this.id);
+    logger.info(`Client joined whiteboard: ${this.id}`);
   }
 
   public bootstrapClient(client: ClientConnection) {
@@ -435,7 +435,7 @@ const whiteboards: Map<Whiteboard['id'], Whiteboard> = new Map();
 export const addWhiteboard = (host: ClientConnection, uuid?: UUID) => {
   const board = new Whiteboard(host, uuid);
   whiteboards.set(board.id, board);
-  console.log('Whiteboard created', board);
+  logger.info(`Whiteboard created: ${board.id}`);
   return board;
 };
 

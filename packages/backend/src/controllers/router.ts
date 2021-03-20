@@ -5,6 +5,7 @@ import { ALLOWED_MESSAGES } from './allowed-messages';
 import { handleNobodyMessage as handleHandshakeMessage } from './anonymous-controller';
 import { handlePreWhiteboardMessage } from './pre-whiteboard-controller';
 import { handleWhiteboardMessage } from './whiteboard-controller';
+import logger from '../lib/logger';
 
 export const dispatch = (
   message: ClientToServerMessage,
@@ -33,7 +34,7 @@ export const dispatch = (
     ) {
       handleWhiteboardMessage(message, client);
     } else {
-      console.warn(
+      logger.warn(
         `invalid client status (${client.fsm.state}) or message type ${message.body.$case}`
       );
       client.send(
@@ -42,7 +43,7 @@ export const dispatch = (
       );
     }
   } catch (error) {
-    console.error(error);
+    logger.error(`Dispatch caught error: ${error}`, error);
     client.send(
       makeErrorMessage(ErrorReason.INTERNAL_SERVER_ERROR),
       message.messsageId

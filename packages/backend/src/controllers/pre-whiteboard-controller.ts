@@ -3,6 +3,7 @@ import { makeErrorMessage, makeSuccessMessage } from '../encoding';
 import { ClientConnection } from '../models/client-connection';
 import { getWhiteboard } from '../models/whiteboard';
 import { ClientToServerMessage, ErrorReason } from '../protocol/protocol';
+import logger from '../lib/logger';
 
 /**
  * Handles messages exchanged when the client is not assigned to a whiteboard.
@@ -15,7 +16,7 @@ export const handlePreWhiteboardMessage = (
     return;
   }
   if (client.fsm.state != 'NO_WHITEBOARD') {
-    console.warn(
+    logger.warn(
       `whiteboard-related message received from client with status ${client.fsm.state}`
     );
     client.send(
@@ -42,7 +43,7 @@ export const handlePreWhiteboardMessage = (
     }
     case 'joinWhiteboard': {
       const whiteboardId = decodeUUID(message.body.joinWhiteboard.whiteboardId);
-      console.log(`Client wants to join whiteboard ${whiteboardId}`);
+      logger.info(`Client wants to join whiteboard ${whiteboardId}`);
       const whiteboard = getWhiteboard(whiteboardId);
       if (!whiteboard) {
         client.send(
@@ -58,7 +59,7 @@ export const handlePreWhiteboardMessage = (
       break;
     }
     default: {
-      console.warn('Unhandled message type:', message.body.$case);
+      logger.warn(`Unhandled message type: ${message.body.$case}`);
       client.send(makeErrorMessage(ErrorReason.INTERNAL_SERVER_ERROR));
     }
   }
