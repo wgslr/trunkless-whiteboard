@@ -5,10 +5,14 @@ import Button from '@material-ui/core/Button';
 import AcceptIcon from '@material-ui/icons/Done';
 import DenyIcon from '@material-ui/icons/Clear';
 
+const UserDisplay = ({ user }: { user: User }) => (
+  <li key={user.id}>{user.username}</li>
+);
+
 const PendingUser = ({ user }: { user: User }) => {
   return (
     <>
-      <li key={user.id}>{user.username}</li>
+      <UserDisplay user={user} />
       <Button onClick={() => console.log('CLICKED')} variant="contained">
         <AcceptIcon />
       </Button>
@@ -26,7 +30,7 @@ const UserList = () => {
       <h2>Connected users</h2>
       <ul>
         {users.joined.map(u => (
-          <li key={u.id}>{u.username}</li>
+          <UserDisplay user={u} />
         ))}
       </ul>
       <h2>Pending users</h2>
