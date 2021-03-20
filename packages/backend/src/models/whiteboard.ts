@@ -45,7 +45,7 @@ export enum OperationType {
   NOTE_ADD,
   NOTE_UPADTE,
   NOTE_MOVE,
-  NOTE_DELETE
+  NOTE_DELETE,
   ADD_PENDING_CLIENT
 }
 

@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import { decodeUUID, encodeUUID } from 'encoding';
-=======
-import { decodeUUID } from 'encoding';
->>>>>>> 28a7549 (backend: Check client FSM before creating/joining a whiteboard)
 import { makeErrorMessage, makeSuccessMessage } from '../encoding';
 import { ClientConnection } from '../models/client-connection';
 import { getWhiteboard } from '../models/whiteboard';
