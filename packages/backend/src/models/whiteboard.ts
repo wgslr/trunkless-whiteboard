@@ -437,6 +437,20 @@ export class Whiteboard {
         });
         break;
       }
+      case OperationType.DENY_PENDING_CLIENT: {
+        const { deniedClient } = op.data;
+        const clientWasPending = this.pendingClients.delete(deniedClient.id);
+        if (!clientWasPending) {
+          throw new Error(
+            `Client ${deniedClient.id} was not pending for whiteboard ${this.id}`
+          );
+        }
+        deniedClient.send({
+          $case: 'joinDenied',
+          joinDenied: {}
+        });
+        break;
+      }
       // case OperationType.RETURN_ALL_FIGURES: {
       //   // FIXME send only to requester
       //   this.sendToClients(
