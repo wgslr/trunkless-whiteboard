@@ -3,7 +3,7 @@ import type { Img, Coordinates, UUID } from '../../types';
 
 // TODO functions below should probably validate
 // that after 'deleted' there can't be newer patches
-type Diff = Partial<Omit<Img, 'id' | 'data'>>;
+type Diff = Partial<Omit<Img, 'id'>>;
 
 type Patch = {
   id: UUID;

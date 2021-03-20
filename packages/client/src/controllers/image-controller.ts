@@ -15,7 +15,7 @@ import {
 } from '../store/images';
 import type { Coordinates, Img } from '../types';
 
-export const addImage = (position: Coordinates, data: string = 'a new note') => {
+export const addImage = (position: Coordinates, data: string) => {
     const image = { id: v4(), position, data };
     const patchId = localAddImage(image);
     const body: ClientToServerMessage['body'] = makeCreateImageMessage(image);

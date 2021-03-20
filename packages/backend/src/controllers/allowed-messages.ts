@@ -9,7 +9,9 @@ const commonWhitboardMessages: ClientToServerCase[] = [
   'removePointsFromLine',
   'deleteLine',
   'updateNotePosition',
-  'updateNoteText'
+  'updateNoteText',
+  'createImage',
+  'updateImagePosition'
 ];
 
 export const ALLOWED_MESSAGES: {

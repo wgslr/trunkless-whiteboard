@@ -1,6 +1,6 @@
 import { encodeUUID } from 'encoding';
 import { v4 as uuidv4 } from 'uuid';
-import { noteToMessage, resultToMessage } from '../encoding';
+import { noteToMessage, resultToMessage, imageToMessage } from '../encoding';
 import {
   ClientToServerMessage,
   Coordinates,
@@ -28,6 +28,12 @@ export type Note = {
   text: string;
 };
 
+export type Img = {
+  id: UUID;
+  position: Coordinates;
+  data: string;
+};
+
 export type Line = {
   id: UUID;
   points: Coordinates[];
@@ -43,7 +49,9 @@ export enum OperationType {
   LINE_DELETE,
   NOTE_ADD,
   NOTE_UPADTE,
-  NOTE_DELETE
+  NOTE_DELETE,
+  IMG_ADD,
+  IMG_MOVE
 }
 
 export type Operation =
@@ -93,7 +101,21 @@ export type Operation =
         noteId: Note['id'];
         causedBy: ClientToServerMessage['messsageId'];
       };
+    }
+  | {
+      type: OperationType.IMG_ADD;
+      data: {
+        img: Img;
+        causedBy: ClientToServerMessage['messsageId'];
+      };
+    }
+  | {
+    type: OperationType.IMG_MOVE;
+    data: {
+      change: Pick<Img, 'id' | 'position'>;
+      causedBy: ClientToServerMessage['messsageId'];
     };
+  }
 
 class OperationError extends Error {
   constructor(message?: string) {
@@ -111,6 +133,7 @@ export class Whiteboard {
   clients: ClientConnection[];
   notes: Map<Note['id'], Note> = new Map();
   lines: Map<Line['id'], Line> = new Map();
+  images: Map<Img['id'], Img> = new Map();
 
   constructor(host: ClientConnection, id?: UUID) {
     this.id = id ?? uuidv4();
@@ -328,6 +351,60 @@ export class Whiteboard {
           );
         }
         break;
+      }
+      case OperationType.IMG_ADD: {
+        const { img, causedBy } = op.data;
+        if (!this.areCoordsWithinBounds(img.position)) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
+            }),
+            causedBy
+          );
+        } else {
+          this.images.set(img.id, img);
+          this.sendToClients(
+            {
+              $case: 'imageCreatedOrUpdated',
+              imageCreatedOrUpdated: {
+                image: imageToMessage(img)
+              }
+            },
+            causedBy
+          );
+        }
+        break;
+      }
+      case OperationType.IMG_MOVE: {
+        const { change, causedBy } = op.data;
+        if (!this.areCoordsWithinBounds(change.position)) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
+            }),
+            causedBy
+          );
+          return;
+        }  
+        const img = this.images.get(change.id);
+        if (!img) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.FIGURE_NOT_EXISTS
+            }),
+            causedBy
+          );
+          return;
+        }
+        const updated = {
+          ...img,
+          position: change.position
+        };
+
+        this.images.set(img.id, updated);
       }
       // case OperationType.RETURN_ALL_FIGURES: {
       //   // FIXME send only to requester

@@ -1,7 +1,8 @@
 import React from 'react';
 import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab';
+import Button from '@material-ui/core/Button';
 import { useRecoilState } from 'recoil';
-import { modeState } from '../state';
+import { modeState, imgState } from '../state';
 import { Mode } from '../../types';
 import NoteAddIcon from '@material-ui/icons/NoteAdd';
 import ImageIcon from '@material-ui/icons/Image';
@@ -10,10 +11,23 @@ import Erase from '../../cursors/Erase';
 
 export default function Tools() {
   const [mode, setMode] = useRecoilState(modeState);
+  const [imgData, setImgData] = useRecoilState(imgState);
 
   const handleMode = (event: React.MouseEvent<HTMLElement>, newMode: Mode) => {
-    setMode(newMode);
-  };
+    if (newMode !== null) setMode(newMode);
+  }; 
+
+  const onClick = (event: React.ChangeEvent<HTMLInputElement>) => {
+    //setMode('image');
+    if (event.target.files && event.target.files[0]) {
+        let image = event.target.files[0];
+        let reader = new FileReader();
+        reader.readAsText(image);
+        reader.onload = () => {
+            setImgData(reader.result as string)
+        }
+    }
+  }   
 
   return (
     <ToggleButtonGroup
@@ -31,8 +45,16 @@ export default function Tools() {
       <ToggleButton value="note" aria-label="add note">
         <NoteAddIcon />
       </ToggleButton>
-      <ToggleButton value="image" aria-label="add note">
-        <ImageIcon />
+      <ToggleButton value="image" aria-label="add image">
+        <input
+            type="file"
+            accept="image/*" 
+            onChange={ e => onClick(e) } 
+            id="file-button"
+            hidden/>
+        <label htmlFor="file-button">          
+            <ImageIcon />          
+        </label>
       </ToggleButton>
     </ToggleButtonGroup>
   );

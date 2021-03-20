@@ -1,4 +1,4 @@
-import { makeErrorMessage, messageToLine, messageToNote } from '../encoding';
+import { makeErrorMessage, messageToLine, messageToNote, messageToImage } from '../encoding';
 import { decodeUUID } from 'encoding';
 import { ClientConnection } from '../models/client-connection';
 import { OperationType } from '../models/whiteboard';
@@ -115,6 +115,40 @@ export const handleWhiteboardMessage = (
         },
         client
       );
+      return;
+    }
+    case 'createImage': {
+      const body = message.body.createImage;
+      const data = messageToImage(body.image!);
+      whiteboard.handleOperation(
+        {
+          type: OperationType.IMG_ADD,
+          data: { img: data, causedBy: message.messsageId}
+
+        },
+        client
+      );
+      return;
+    }
+    case 'updateImagePosition': {
+      const { imageId, position } = message.body.updateImagePosition;
+      if (position === undefined) {
+        client.send(makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED)); // CHANGE TO: ErrorReason.INVALID_MESSAGE
+      } else {
+        whiteboard.handleOperation(
+          {
+            type: OperationType.IMG_MOVE,
+            data: {
+              causedBy: message.messsageId,
+              change: {
+                id: decodeUUID(imageId),
+                position
+              }
+            }
+          },
+          client
+        )
+      }
       return;
     }
     default: {
