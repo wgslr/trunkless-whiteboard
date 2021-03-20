@@ -3,6 +3,7 @@ import { makeErrorMessage, messageToLine, messageToNote } from '../encoding';
 import { ClientConnection } from '../models/client-connection';
 import { OperationType } from '../models/whiteboard';
 import { ClientToServerMessage, ErrorReason } from '../protocol/protocol';
+import logger from '../lib/logger';
 
 export const handleWhiteboardMessage = (
   message: ClientToServerMessage,
@@ -12,7 +13,7 @@ export const handleWhiteboardMessage = (
     return;
   }
   if (client.fsm.state !== 'HOST' && client.fsm.state !== 'USER') {
-    console.warn(
+    logger.warn(
       `whiteboard-related message received from client with status ${client.fsm.state}`
     );
     client.send(
@@ -141,7 +142,7 @@ export const handleWhiteboardMessage = (
       break;
     }
     default: {
-      console.warn('Unhandled message type:', message.body.$case);
+      logger.warn(`Unhandled message type: ${message.body.$case}`);
       client.send(makeErrorMessage(ErrorReason.INTERNAL_SERVER_ERROR));
     }
   }
