@@ -78,6 +78,10 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     this._fsm = { state: 'NO_WHITEBOARD', username };
   }
 
+  public get username(): string | null {
+    return this._fsm.state === 'ANONYMOUS' ? null : this._fsm.username;
+  }
+
   public requestJoinWhiteboard(whiteboard: Whiteboard): void {
     if (this._fsm.state !== 'NO_WHITEBOARD') {
       throw new IllegalStateTransision();

@@ -426,7 +426,15 @@ export class Whiteboard {
           joinApproved: {}
         });
 
-        // TODO: multicast client joined
+        this.sendToClients({
+          $case: 'connectedClients',
+          connectedClients: {
+            connectedClients: this.clients.map(userClient => ({
+              username: userClient.username!,
+              clientId: encodeUUID(userClient.id)
+            }))
+          }
+        });
         break;
       }
       // case OperationType.RETURN_ALL_FIGURES: {

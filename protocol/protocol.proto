@@ -73,6 +73,14 @@ message CreateWhiteboardRequest {}
 message JoinWhiteboard { bytes whiteboard_id = 1; }
 message WhiteboardCreated { bytes whiteboard_id = 1; }
 
+message ConnectedClient {
+  bytes client_id = 1;
+  string username = 2;
+}
+message ConnectedClients {
+  repeated ConnectedClient connected_clients = 1;
+}
+
 // message to the host
 message ClientWantsToJoin {
   bytes client_id = 1;
@@ -87,8 +95,6 @@ message ApproveOrDenyJoin {
 // client approved or denied
 message JoinApproved {}
 message JoinDenied {}
-
-// TODO informing everyone of connencted clients
 
 message ClientToServerMessage {
   string messsage_id = 100;
@@ -123,5 +129,6 @@ message ServerToClientMessage {
     CancelClientWantsToJoin cancel_client_wants_to_join = 31;
     JoinApproved join_approved = 32;
     JoinDenied join_denied = 33;
+    ConnectedClients connected_clients = 34;
   }
 }
