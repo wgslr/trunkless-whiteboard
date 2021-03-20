@@ -43,7 +43,9 @@ export const joinWhiteboard = (whiteboardId: string) => {
         return;
       } else {
         clientState.v = {
-          state: 'PENDING_APPROVAL'
+          state: 'PENDING_APPROVAL',
+          username: clientState.v.username,
+          whiteboardId
         };
       }
     } else if (response?.$case === 'error') {

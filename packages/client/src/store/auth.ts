@@ -23,6 +23,8 @@ type ConnectionState =
     }
   | {
       state: 'PENDING_APPROVAL';
+      username: string;
+      whiteboardId: string;
     }
   | {
       state: 'DISCONNECTED';
