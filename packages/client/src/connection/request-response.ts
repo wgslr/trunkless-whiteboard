@@ -30,18 +30,26 @@ export class RequestResponseService {
     this.protobufClient.addListener('message', callResponeHandlerIfPresent);
   }
 
-  public send(body: ClientToServerMessage['body'], callback?: Callback) {
+  public send(
+    body: ClientToServerMessage['body'],
+    callback?: Callback,
+    timeout: number = SERVER_RESPONSE_TIMEOUT
+  ) {
     // callback - invoked when server sends a response
 
     const message = { messsageId: uuid.v4(), body };
     this.protobufClient.send(message);
 
     if (callback) {
-      this.setupResponseHandler(message.messsageId, callback);
+      this.setupResponseHandler(message.messsageId, callback, timeout);
     }
   }
 
-  private setupResponseHandler(messageId: string, callback: Callback) {
+  private setupResponseHandler(
+    messageId: string,
+    callback: Callback,
+    timeout: number = SERVER_RESPONSE_TIMEOUT
+  ) {
     this.messageIdToResponseHandler.set(messageId, msg => {
       this.messageIdToResponseHandler.delete(messageId);
       callback(msg);
@@ -51,6 +59,6 @@ export class RequestResponseService {
         console.warn('Timeout on awaiting server response');
         callback('timeout');
       }
-    }, SERVER_RESPONSE_TIMEOUT);
+    }, timeout);
   }
 }
