@@ -4,7 +4,7 @@ import { usersState, User } from '../../store/users';
 import Button from '@material-ui/core/Button';
 import AcceptIcon from '@material-ui/icons/Done';
 import DenyIcon from '@material-ui/icons/Clear';
-import { approveUser } from '../../controllers/auth-controller';
+import { approveUser, denyUser } from '../../controllers/auth-controller';
 
 const UserDisplay = ({ user }: { user: User }) => (
   <li>{user.username}</li>
@@ -12,7 +12,7 @@ const UserDisplay = ({ user }: { user: User }) => (
 
 const PendingUserDisplay = ({ user }: { user: User }) => {
   const handleApprove = () => approveUser(user.id);
-  const handleDeny = () => console.log('DENY');
+  const handleDeny = () => denyUser(user.id);
   return (
     <>
       <UserDisplay user={user} />
