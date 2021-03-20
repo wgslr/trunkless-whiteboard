@@ -39,7 +39,7 @@ type ClientFSM =
     };
 export type ClientFSMState = ClientFSM['state'];
 
-class IllegalStateTransision extends Error {
+class IllegalStateTransition extends Error {
   constructor(message?: string) {
     super(message);
   }
@@ -72,7 +72,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
 
   public setUsername(username: string) {
     if (this._fsm.state !== 'ANONYMOUS') {
-      throw new IllegalStateTransision();
+      throw new IllegalStateTransition();
     }
     logger.info(`Client username set as: ${username}`);
     this._fsm = { state: 'NO_WHITEBOARD', username };
@@ -84,7 +84,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
 
   public requestJoinWhiteboard(whiteboard: Whiteboard): void {
     if (this._fsm.state !== 'NO_WHITEBOARD') {
-      throw new IllegalStateTransision();
+      throw new IllegalStateTransition();
     }
     whiteboard.handleOperation(
       {
@@ -102,7 +102,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
 
   public joinWhiteboard(whiteboard: Whiteboard): void {
     if (this._fsm.state !== 'PENDING_APPROVAL') {
-      throw new IllegalStateTransision();
+      throw new IllegalStateTransition();
     }
     whiteboard.addClientConnection(this);
     this._fsm = { state: 'USER', whiteboard, username: this._fsm.username };
@@ -110,7 +110,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
 
   public becomeHost(): Whiteboard['id'] {
     if (this._fsm.state !== 'NO_WHITEBOARD') {
-      throw new IllegalStateTransision();
+      throw new IllegalStateTransition();
     }
     this._fsm = {
       state: 'HOST',
