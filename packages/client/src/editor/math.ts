@@ -51,10 +51,13 @@ export const calculateErasePoints = (
     };
 
     // check all points in a square whether they fit in a circle
-    for (let x = center.x - radius; x <= center.x + radius; ++x) {
-      for (let y = center.y - radius; y <= center.y + radius; ++y) {
-        if ((x - center.x) ** 2 + (y - center.y) ** 2 <= radiusSq) {
-          coordList.push({ x, y });
+    for (let dx = 0; dx <= radius; ++dx) {
+      for (let dy = 0; dy <= radius; ++dy) {
+        if (dx ** 2 + dy ** 2 <= radiusSq) {
+          coordList.push({ x: center.x + dx, y: center.y + dy });
+          coordList.push({ x: center.x + dx, y: center.y - dy });
+          coordList.push({ x: center.x - dx, y: center.y + dy });
+          coordList.push({ x: center.x - dx, y: center.y - dy });
         }
       }
     }
