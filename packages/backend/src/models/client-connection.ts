@@ -7,12 +7,7 @@ import {
   ClientToServerMessage,
   ServerToClientMessage
 } from '../protocol/protocol';
-import {
-  addWhiteboard,
-  connectClient,
-  countWhiteboards,
-  Whiteboard
-} from './whiteboard';
+import { addWhiteboard, Whiteboard } from './whiteboard';
 
 let connections: ClientConnection[] = [];
 
@@ -70,21 +65,27 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     if (this._fsm.state !== 'ANONYMOUS') {
       throw new IllegalStateTransision();
     }
+    console.log('Client username set as ', username);
     this._fsm = { state: 'NO_WHITEBOARD', username };
   }
 
-  public setConnectedWhiteboard(whiteboard: Whiteboard) {
+  public joinWhiteboard(whiteboard: Whiteboard): void {
     if (this._fsm.state !== 'NO_WHITEBOARD') {
       throw new IllegalStateTransision();
     }
+    whiteboard.addClientConnection(this);
     this._fsm = { state: 'USER', whiteboard, username: this._fsm.username };
   }
 
-  public setAsHost(whiteboard: Whiteboard) {
+  public becomeHost() {
     if (this._fsm.state !== 'NO_WHITEBOARD') {
       throw new IllegalStateTransision();
     }
-    this._fsm = { state: 'HOST', whiteboard, username: this._fsm.username };
+    this._fsm = {
+      state: 'HOST',
+      whiteboard: addWhiteboard(this),
+      username: this._fsm.username
+    };
   }
 
   private setupSocketListeners() {

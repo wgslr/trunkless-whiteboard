@@ -1,14 +1,14 @@
-import * as uuid from 'uuid';
-import { Note, Line } from './models/whiteboard';
-import {
-  Line as LineProto,
-  ServerToClientMessage,
-  Note as NoteProto,
-  ErrorReason,
-  ClientToServerMessage
-} from './protocol/protocol';
-import type { Result, UUID } from './types';
 import { decodeUUID } from 'encoding';
+import * as uuid from 'uuid';
+import { Line, Note } from './models/whiteboard';
+import {
+  ClientToServerMessage,
+  ErrorReason,
+  Line as LineProto,
+  Note as NoteProto,
+  ServerToClientMessage
+} from './protocol/protocol';
+import type { Result } from './types';
 
 export type ClientToServerCase = NonNullable<
   ClientToServerMessage['body']
@@ -18,14 +18,16 @@ export const resultToMessage = (
   result: Result
 ): ServerToClientMessage['body'] => {
   if (result.result === 'success') {
-    return {
-      $case: 'success',
-      success: {}
-    };
+    return makeSuccessMessage();
   } else {
     return makeErrorMessage(result.reason);
   }
 };
+
+export const makeSuccessMessage = (): ServerToClientMessage['body'] => ({
+  $case: 'success',
+  success: {}
+});
 
 export const makeErrorMessage = (
   reason: ErrorReason

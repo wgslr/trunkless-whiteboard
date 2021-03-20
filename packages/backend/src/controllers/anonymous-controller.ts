@@ -1,4 +1,4 @@
-import { makeErrorMessage } from '../encoding';
+import { makeErrorMessage, makeSuccessMessage } from '../encoding';
 import { ClientConnection } from '../models/client-connection';
 import { ClientToServerMessage, ErrorReason } from '../protocol/protocol';
 
@@ -26,11 +26,15 @@ export const handleNobodyMessage = (
   switch (message.body.$case) {
     case 'clientHello': {
       client.setUsername(message.body.clientHello.username);
+      client.send(makeSuccessMessage(), message.messsageId);
       break;
     }
     default: {
       console.warn('Unhandled message type:', message.body.$case);
-      client.send(makeErrorMessage(ErrorReason.INTERNAL_SERVER_ERROR));
+      client.send(
+        makeErrorMessage(ErrorReason.INTERNAL_SERVER_ERROR),
+        message.messsageId
+      );
     }
   }
 };

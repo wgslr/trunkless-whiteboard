@@ -1,7 +1,7 @@
-import { makeErrorMessage, resultToMessage } from '../encoding';
 import { decodeUUID } from 'encoding';
+import { makeErrorMessage, makeSuccessMessage } from '../encoding';
 import { ClientConnection } from '../models/client-connection';
-import { addWhiteboard, connectClient } from '../models/whiteboard';
+import { getWhiteboard } from '../models/whiteboard';
 import { ClientToServerMessage, ErrorReason } from '../protocol/protocol';
 
 /**
@@ -28,18 +28,25 @@ export const handlePreWhiteboardMessage = (
   // TODO  improve handling of those messages
   switch (message.body.$case) {
     case 'createWhiteboardRequest': {
-      client.setAsHost(addWhiteboard(client));
-      const response = resultToMessage({ result: 'success' });
-      client.send(response, message.messsageId);
+      client.becomeHost();
+      client.send(makeSuccessMessage(), message.messsageId);
       break;
     }
     case 'joinWhiteboard': {
       const whiteboardId = decodeUUID(message.body.joinWhiteboard.whiteboardId);
       console.log(`Client wants to join whiteboard ${whiteboardId}`);
-      const result = connectClient(client, whiteboardId);
-
-      const response = resultToMessage(result);
-      client.send(response, message.messsageId);
+      const whiteboard = getWhiteboard(whiteboardId);
+      if (!whiteboard) {
+        client.send(
+          makeErrorMessage(ErrorReason.WHITEBOARD_DOES_NOT_EXIST),
+          message.messsageId
+        );
+        return;
+      }
+      client.joinWhiteboard(whiteboard);
+      client.send(makeSuccessMessage(), message.messsageId);
+      // TODO maybe wait for request
+      whiteboard.bootstrapClient(client);
       break;
     }
     default: {
