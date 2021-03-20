@@ -108,6 +108,13 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     this._fsm = { state: 'USER', whiteboard, username: this._fsm.username };
   }
 
+  public handleJoinDenial(): void {
+    if (this._fsm.state !== 'PENDING_APPROVAL') {
+      throw new IllegalStateTransition();
+    }
+    this._fsm = { state: 'NO_WHITEBOARD', username: this._fsm.username };
+  }
+
   public becomeHost(): Whiteboard['id'] {
     if (this._fsm.state !== 'NO_WHITEBOARD') {
       throw new IllegalStateTransition();

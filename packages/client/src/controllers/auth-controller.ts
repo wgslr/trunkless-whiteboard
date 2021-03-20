@@ -102,3 +102,21 @@ export const approveUser = (clientId: string) => {
   });
   console.log('ApproveUser sent');
 };
+
+export const denyUser = (clientId: string) => {
+  const body = makeApproveOrDenyJoinMessage(false, clientId);
+
+  reqResponseService.send(body, response => {
+    if (response === 'timeout') {
+      // TODO display the error in the gui
+      console.log('DenyUser timeout');
+    } else if (response?.$case === 'success') {
+      usersState.pending = usersState.pending.filter(
+        user => user.id !== clientId
+      );
+    } else if (response?.$case === 'error') {
+      console.log('DenyUser returned error', response.error);
+    }
+  });
+  console.log('DenyUser sent');
+};
