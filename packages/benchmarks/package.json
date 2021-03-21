@@ -4,7 +4,8 @@
   "homepage": "https://github.com/wgslr/trunkless-whiteboard#readme",
   "scripts": {
     "build": "tsc --build tsconfig.json",
-    "clean": "rm --recursive --force ./dist"
+    "clean": "rm --recursive --force ./dist",
+    "benchmark": "yarn build && node dist/index.js"
   },
   "devDependencies": {
     "@types/express": "^4.17.11",
