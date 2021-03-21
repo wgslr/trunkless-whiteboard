@@ -63,7 +63,7 @@ const Canvas = (props: { x: number; y: number }) => {
     });
     }
     
-  }, [effectiveLines]);
+  }, [effectiveLines, effectiveImages]);
 
   useEffect(() => {
     const c = canvas1.current;
@@ -85,7 +85,7 @@ const Canvas = (props: { x: number; y: number }) => {
       c.addEventListener('pointerdown', listener);
       return () => c.removeEventListener('pointerdown', listener);
     }
-  }, [mode]);
+  }, [mode, imgData]);
 
   return (
     <div
