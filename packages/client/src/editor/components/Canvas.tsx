@@ -40,8 +40,8 @@ const Canvas = (props: { x: number; y: number }) => {
   useEffect(() => {
     // eslint-disable-next-line array-callback-return
     Array.from(effectiveImages.values()).map(image => {
-      let img = new Image();
-      var blob = new Blob([image.data], { type: 'application/octet-binary' });
+      const img = new Image();
+      const blob = new Blob([image.data], { type: 'application/octet-binary' });
       img.src = URL.createObjectURL(blob);
       img.addEventListener('load', function () {
         getCtx(2)!.drawImage(img, image.position.x, image.position.y);
