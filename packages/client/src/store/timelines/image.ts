@@ -28,7 +28,7 @@ const newPatch = (diff: Diff): Patch => ({
 });
 
 export const getEffectiveImg = (it: ImgTimeline): Img | null => {
-  // Flattens information about the note, going from newest patch to oldest
+  // Flattens information about the image, going from newest patch to oldest
 
   const current: Partial<Img> = { id: it.figureId };
   const patchesReverse = [...it.patches.map(p => p.diff)].reverse();
