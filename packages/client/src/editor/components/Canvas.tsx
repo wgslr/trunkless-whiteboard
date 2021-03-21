@@ -38,8 +38,7 @@ const Canvas = (props: { x: number; y: number }) => {
   }, [effectiveLines]);
 
   useEffect(() => {
-    // eslint-disable-next-line array-callback-return
-    Array.from(effectiveImages.values()).map(image => {
+    Array.from(effectiveImages.values()).forEach(image => {
       const img = new Image();
       const blob = new Blob([image.data], { type: 'application/octet-binary' });
       img.src = URL.createObjectURL(blob);
