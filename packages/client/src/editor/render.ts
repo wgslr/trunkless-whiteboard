@@ -1,6 +1,3 @@
-//import React, { useCallback, useEffect, useRef} from "react";
-//import { isContext } from "vm";
-//import {Coordinate} from '../types';
 import { Coordinates } from '../protocol/protocol';
 import { CoordNumber, Line } from '../types';
 import { numberToCoord } from '../utils';
