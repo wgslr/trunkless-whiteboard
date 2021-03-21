@@ -7,8 +7,6 @@ import { useDrawing } from '../drawing-state';
 import render from '../render';
 import { modeState, imgState } from '../state';
 
-import logo from './wbicon.png'
-
 const Canvas = (props: { x: number; y: number }) => {
   const effectiveLines = useEffectiveLines();
   const effectiveImages = useEffectiveImages();
