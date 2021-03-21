@@ -132,46 +132,34 @@ export const makeApproveOrDenyJoinMessage = (
   }
 });
 
-export function decodeLineData(data: LineProto): Line {
-  return {
-    id: decodeUUID(data.id),
-    points: new Set(data.points.map(coordToNumber))
-  };
-}
+export const decodeLineData = (data: LineProto): Line => ({
+  id: decodeUUID(data.id),
+  points: new Set(data.points.map(coordToNumber))
+});
 
-export function lineToMessage(line: Line): LineProto {
-  return {
-    id: encodeUUID(line.id),
-    points: [...line.points].map(numberToCoord)
-  };
-}
+export const lineToMessage = (line: Line): LineProto => ({
+  id: encodeUUID(line.id),
+  points: [...line.points].map(numberToCoord)
+});
 
-export function noteToMessage(note: Note): NoteProto {
-  return {
-    ...note,
-    id: encodeUUID(note.id)
-  };
-}
+export const noteToMessage = (note: Note): NoteProto => ({
+  ...note,
+  id: encodeUUID(note.id)
+});
 
-export function messageToNote(noteMsg: NoteProto): Note {
-  return {
-    id: uuid.stringify(noteMsg.id),
-    text: noteMsg.text,
-    position: noteMsg.position!
-  };
-}
+export const messageToNote = (noteMsg: NoteProto): Note => ({
+  id: uuid.stringify(noteMsg.id),
+  text: noteMsg.text,
+  position: noteMsg.position!
+});
 
-export function imageToMessage(img: Img): ImageProto {
-  return {
-    ...img,
-    id: encodeUUID(img.id)
-  };
-}
+export const imageToMessage = (img: Img): ImageProto => ({
+  ...img,
+  id: encodeUUID(img.id)
+});
 
-export function messageToImage(imgMsg: ImageProto): Img {
-  return {
-    id: uuid.stringify(imgMsg.id),
-    data: imgMsg.data,
-    position: imgMsg.position!
-  }
-}
+export const messageToImage = (imgMsg: ImageProto): Img => ({
+  id: uuid.stringify(imgMsg.id),
+  data: imgMsg.data,
+  position: imgMsg.position!
+});
