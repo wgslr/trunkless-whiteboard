@@ -9,6 +9,9 @@ enum ErrorReason {
   COORDINATES_OUT_OF_BOUNDS = 2;
   FIGURE_NOT_EXISTS = 3;
   INTERNAL_SERVER_ERROR = 4;
+  INVALID_MESSAGE = 5;
+  HOST_DECLINED_JOIN = 6;
+  USER_DOES_NOT_EXIST = 7;
 }
 
 enum FigureType {
@@ -79,8 +82,35 @@ message DeleteNote { bytes note_id = 1; }
 message NoteCreatedOrUpdated { Note note = 1; }
 message NoteDeleted { bytes note_id = 1; }
 
+message ClientHello { string username = 1; }
+
+message CreateWhiteboardRequest {}
+message JoinWhiteboard { bytes whiteboard_id = 1; }
+message WhiteboardCreated { bytes whiteboard_id = 1; }
+
+message ConnectedClient {
+  bytes client_id = 1;
+  string username = 2;
+}
+message ConnectedClients { repeated ConnectedClient connected_clients = 1; }
+
+// message to the host
+message ClientWantsToJoin {
+  bytes client_id = 1;
+  string username = 2;
+}
+message CancelClientWantsToJoin { bytes client_id = 1; }
+message ApproveOrDenyJoin {
+  bool approve = 1;
+  bytes client_id = 2;
+}
+
+// client approved or denied
+message JoinApproved {}
+message JoinDenied {}
+
 message ClientToServerMessage {
-  string messsage_id = 100;
+  string message_id = 100;
   oneof body {
     CreateWhiteboardRequest create_whiteboard_request = 1;
     JoinWhiteboard join_whiteboard = 2;
@@ -92,13 +122,15 @@ message ClientToServerMessage {
     AddPointsToLine add_points_to_line = 21;
     RemovePointsFromLine remove_points_from_line = 22;
     DeleteLine delete_line = 23;
-    CreateImage create_image = 30;
-    UpdateImagePosition update_image_position = 31;
+    ClientHello client_hello = 30;
+    ApproveOrDenyJoin approve_or_deny_join = 31;
+    CreateImage create_image = 40;
+    UpdateImagePosition update_image_position = 41;
   }
 }
 
 message ServerToClientMessage {
-  string messsage_id = 100;
+  string message_id = 100;
   optional string caused_by = 101;
   oneof body {
     ResultError error = 1;
@@ -109,13 +141,10 @@ message ServerToClientMessage {
     NoteDeleted note_deleted = 9;
     LineDeleted line_deleted = 10;
     ImageCreatedOrUpdated image_created_or_updated = 12;
+    ClientWantsToJoin client_wants_to_join = 30;
+    CancelClientWantsToJoin cancel_client_wants_to_join = 31;
+    JoinApproved join_approved = 32;
+    JoinDenied join_denied = 33;
+    ConnectedClients connected_clients = 34;
   }
 }
-
-// --- TODO ---
-
-message CreateWhiteboardRequest {}
-message WhiteboardCreated { string whiteboard_id = 1; }
-
-// Client sends this message to request joining a whiteboard
-message JoinWhiteboard { bytes whiteboard_id = 1; }

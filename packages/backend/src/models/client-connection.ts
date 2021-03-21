@@ -7,12 +7,9 @@ import {
   ClientToServerMessage,
   ServerToClientMessage
 } from '../protocol/protocol';
-import {
-  addWhiteboard,
-  connectClient,
-  countWhiteboards,
-  Whiteboard
-} from './whiteboard';
+import { UUID } from '../types';
+import logger from '../lib/logger';
+import { addWhiteboard, OperationType, Whiteboard } from './whiteboard';
 
 let connections: ClientConnection[] = [];
 
@@ -22,47 +19,112 @@ declare interface ClientConnectionEvents {
   message: (decoded: ClientToServerMessage) => void;
 }
 
-type WhiteboardMembershipState =
+type ClientFSM =
   | {
-      kind: 'NO_WHITEBOARD';
+      state: 'ANONYMOUS';
     }
   | {
-      kind: 'HOST' | 'USER';
+      state: 'NO_WHITEBOARD';
+      username: string;
+    }
+  | {
+      state: 'PENDING_APPROVAL';
+      username: string;
+      pendingWhiteboard: Whiteboard;
+    }
+  | {
+      state: 'HOST' | 'USER';
+      username: string;
       whiteboard: Whiteboard;
     };
-export type WhiteboardMembership = WhiteboardMembershipState['kind'];
+export type ClientFSMState = ClientFSM['state'];
+
+class IllegalStateTransition extends Error {
+  constructor(message?: string) {
+    super(message);
+  }
+}
 
 export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
+  id: UUID = uuid.v4();
+  private _fsm: ClientFSM = { state: 'ANONYMOUS' };
+
   socket: WebSocket;
-  status: WhiteboardMembershipState = { kind: 'NO_WHITEBOARD' };
 
   constructor(socket: WebSocket) {
     super();
     this.socket = socket;
     this.setupSocketListeners();
     this.on('message', msg => dispatch(msg, this));
+  }
 
-    // TODO do proper handshake and select whiteboard
-    if (countWhiteboards() == 0) {
-      this.status = {
-        kind: 'HOST',
-        whiteboard: addWhiteboard(this, '00000000-0000-0000-0000-000000000000')
-      };
-    } else {
-      connectClient(this, '00000000-0000-0000-0000-000000000000');
-    }
+  get fsm(): Readonly<ClientFSM> {
+    return this._fsm;
   }
 
   public get whiteboard(): Whiteboard | null {
-    if (this.status.kind == 'NO_WHITEBOARD') {
-      return null;
+    if (this._fsm.state === 'USER' || this._fsm.state === 'HOST') {
+      return this._fsm.whiteboard;
     } else {
-      return this.status.whiteboard;
+      return null;
     }
   }
 
-  public setConnectedWhiteboard(whiteboard: Whiteboard) {
-    this.status = { kind: 'USER', whiteboard };
+  public setUsername(username: string) {
+    if (this._fsm.state !== 'ANONYMOUS') {
+      throw new IllegalStateTransition();
+    }
+    logger.info(`Client username set as: ${username}`);
+    this._fsm = { state: 'NO_WHITEBOARD', username };
+  }
+
+  public get username(): string | null {
+    return this._fsm.state === 'ANONYMOUS' ? null : this._fsm.username;
+  }
+
+  public requestJoinWhiteboard(whiteboard: Whiteboard): void {
+    if (this._fsm.state !== 'NO_WHITEBOARD') {
+      throw new IllegalStateTransition();
+    }
+    whiteboard.handleOperation(
+      {
+        type: OperationType.ADD_PENDING_CLIENT,
+        data: { pendingClient: this }
+      },
+      this
+    );
+    this._fsm = {
+      state: 'PENDING_APPROVAL',
+      pendingWhiteboard: whiteboard,
+      username: this._fsm.username
+    };
+  }
+
+  public joinWhiteboard(whiteboard: Whiteboard): void {
+    if (this._fsm.state !== 'PENDING_APPROVAL') {
+      throw new IllegalStateTransition();
+    }
+    whiteboard.addClientConnection(this);
+    this._fsm = { state: 'USER', whiteboard, username: this._fsm.username };
+  }
+
+  public handleJoinDenial(): void {
+    if (this._fsm.state !== 'PENDING_APPROVAL') {
+      throw new IllegalStateTransition();
+    }
+    this._fsm = { state: 'NO_WHITEBOARD', username: this._fsm.username };
+  }
+
+  public becomeHost(): Whiteboard['id'] {
+    if (this._fsm.state !== 'NO_WHITEBOARD') {
+      throw new IllegalStateTransition();
+    }
+    this._fsm = {
+      state: 'HOST',
+      whiteboard: addWhiteboard(this),
+      username: this._fsm.username
+    };
+    return this._fsm.whiteboard.id;
   }
 
   private setupSocketListeners() {
@@ -71,15 +133,15 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
       let decoded;
       try {
         decoded = ClientToServerMessage.decode(Reader.create(message));
-        console.debug(`Decoded message:`, decoded.body?.$case);
+        logger.debug(`Decoded message: ${decoded.body?.$case}`);
       } catch (error) {
-        console.warn('Error decoding message', error);
+        logger.warn(`Error decoding message: ${error}`, error);
         return;
       }
       this.emit('message', decoded);
     });
     this.socket.on('close', () => {
-      console.log('Client connection closed');
+      logger.info('Client connection closed');
       this.emit('disconnect');
     });
   }
@@ -89,7 +151,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     previousMessageId?: string
   ): void {
     const message: ServerToClientMessage = {
-      messsageId: uuid.v4(),
+      messageId: uuid.v4(),
       body
     };
     if (previousMessageId) {

@@ -1,4 +1,5 @@
 import { encodeUUID } from 'encoding';
+import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
 import { noteToMessage, resultToMessage, imageToMessage } from '../encoding';
 import {
@@ -8,9 +9,9 @@ import {
   FigureType,
   ServerToClientMessage
 } from '../protocol/protocol';
-import { Result, UUID } from '../types';
+import { UUID } from '../types';
 import { ClientConnection } from './client-connection';
-import fp from 'lodash/fp';
+import logger from '../lib/logger';
 
 export abstract class Figure {
   id: UUID;
@@ -49,9 +50,13 @@ export enum OperationType {
   LINE_DELETE,
   NOTE_ADD,
   NOTE_UPADTE,
+  NOTE_MOVE,
   NOTE_DELETE,
   IMG_ADD,
-  IMG_MOVE
+  IMG_MOVE,
+  ADD_PENDING_CLIENT,
+  APPROVE_PENDING_CLIENT,
+  DENY_PENDING_CLIENT
 }
 
 export type Operation =
@@ -61,59 +66,84 @@ export type Operation =
     }
   | {
       type: OperationType.LINE_CREATE;
-      data: { line: Line; causedBy: ClientToServerMessage['messsageId'] };
+      data: { line: Line; causedBy: ClientToServerMessage['messageId'] };
     }
   | {
       type: OperationType.LINE_ADD_POINTS;
       data: {
         change: LinePatch;
-        causedBy: ClientToServerMessage['messsageId'];
+        causedBy: ClientToServerMessage['messageId'];
       };
     }
   | {
       type: OperationType.LINE_REMOVE_POINTS;
       data: {
         change: LinePatch;
-        causedBy: ClientToServerMessage['messsageId'];
+        causedBy: ClientToServerMessage['messageId'];
       };
     }
   | {
       type: OperationType.LINE_DELETE;
       data: {
         lineId: Line['id'];
-        causedBy: ClientToServerMessage['messsageId'];
+        causedBy: ClientToServerMessage['messageId'];
       };
     }
   | {
       type: OperationType.NOTE_ADD;
-      data: { note: Note; causedBy: ClientToServerMessage['messsageId'] };
+      data: { note: Note; causedBy: ClientToServerMessage['messageId'] };
     }
   | {
       type: OperationType.NOTE_UPADTE;
       data: {
-        change: Partial<Note> & Pick<Note, 'id'>;
-        causedBy: ClientToServerMessage['messsageId'];
+        change: Pick<Note, 'id' | 'text'>;
+        causedBy: ClientToServerMessage['messageId'];
+      };
+    }
+  | {
+      type: OperationType.NOTE_MOVE;
+      data: {
+        change: Pick<Note, 'id' | 'position'>;
+        causedBy: ClientToServerMessage['messageId'];
       };
     }
   | {
       type: OperationType.NOTE_DELETE;
       data: {
         noteId: Note['id'];
-        causedBy: ClientToServerMessage['messsageId'];
+        causedBy: ClientToServerMessage['messageId'];
+      };
+    }
+  | {
+      type: OperationType.ADD_PENDING_CLIENT;
+      data: {
+        pendingClient: ClientConnection;
+      };
+    }
+  | {
+      type: OperationType.APPROVE_PENDING_CLIENT;
+      data: {
+        approvedClient: ClientConnection;
+      };
+    }
+  | {
+      type: OperationType.DENY_PENDING_CLIENT;
+      data: {
+        deniedClient: ClientConnection;
       };
     }
   | {
       type: OperationType.IMG_ADD;
       data: {
         img: Img;
-        causedBy: ClientToServerMessage['messsageId'];
+        causedBy: ClientToServerMessage['messageId'];
       };
     }
   | {
     type: OperationType.IMG_MOVE;
     data: {
       change: Pick<Img, 'id' | 'position'>;
-      causedBy: ClientToServerMessage['messsageId'];
+      causedBy: ClientToServerMessage['messageId'];
     };
   }
 
@@ -131,6 +161,7 @@ export class Whiteboard {
   id: UUID;
   host: ClientConnection;
   clients: ClientConnection[];
+  pendingClients: Map<ClientConnection['id'], ClientConnection> = new Map();
   notes: Map<Note['id'], Note> = new Map();
   lines: Map<Line['id'], Line> = new Map();
   images: Map<Img['id'], Img> = new Map();
@@ -141,7 +172,7 @@ export class Whiteboard {
     this.clients = [host];
   }
 
-  handleOperation(op: Operation, client: ClientConnection) {
+  handleOperation(op: Operation, client: ClientConnection): void {
     switch (op.type) {
       case OperationType.LINE_CREATE: {
         const { line, causedBy } = op.data;
@@ -217,7 +248,7 @@ export class Whiteboard {
           patch.points
         );
         const removedPoints = line.points.length - newLinePoints.length;
-        console.log('Removed points', removedPoints);
+        logger.info(`Removed points: ${removedPoints}`);
         if (removedPoints > 0) {
           line.points = newLinePoints;
           this.sendToClients(
@@ -288,16 +319,6 @@ export class Whiteboard {
       }
       case OperationType.NOTE_UPADTE: {
         const { change, causedBy } = op.data;
-        if (change.position && !this.areCoordsWithinBounds(change.position)) {
-          client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
-            }),
-            causedBy
-          );
-          return;
-        }
         const note = this.notes.get(change.id);
         if (!note) {
           client.send(
@@ -311,8 +332,7 @@ export class Whiteboard {
         }
         const updated = {
           ...note,
-          position: change.position ?? note.position,
-          text: change.text ?? note.text
+          text: change.text
         };
 
         this.notes.set(note.id, updated);
@@ -405,6 +425,71 @@ export class Whiteboard {
         };
 
         this.images.set(img.id, updated);
+        break;
+      }
+      case OperationType.ADD_PENDING_CLIENT: {
+        const { pendingClient } = op.data;
+        this.pendingClients.set(pendingClient.id, pendingClient);
+        if (pendingClient.fsm.state !== 'NO_WHITEBOARD') {
+          throw new Error('Invalid client state');
+        }
+        this.host.send({
+          $case: 'clientWantsToJoin',
+          clientWantsToJoin: {
+            clientId: encodeUUID(pendingClient.id),
+            username: pendingClient.fsm.username
+          }
+        });
+
+        // TODO setup timeout
+
+        break;
+      }
+      case OperationType.APPROVE_PENDING_CLIENT: {
+        const { approvedClient } = op.data;
+        if (approvedClient.fsm.state !== 'PENDING_APPROVAL') {
+          throw new Error('Invalid client state');
+        }
+        const clientWasPending = this.pendingClients.delete(approvedClient.id);
+        if (!clientWasPending) {
+          throw new Error(
+            `Client ${approvedClient.id} was not pending for whiteboard ${this.id}`
+          );
+        }
+
+        approvedClient.joinWhiteboard(this);
+        approvedClient.send({
+          $case: 'joinApproved',
+          joinApproved: {}
+        });
+
+        this.sendToClients({
+          $case: 'connectedClients',
+          connectedClients: {
+            connectedClients: this.clients.map(userClient => ({
+              username: userClient.username!,
+              clientId: encodeUUID(userClient.id)
+            }))
+          }
+        });
+        break;
+      }
+      case OperationType.DENY_PENDING_CLIENT: {
+        const { deniedClient } = op.data;
+        const deniedClientConnection = this.pendingClients.get(deniedClient.id);
+        if (!deniedClientConnection) {
+          throw new Error(
+            `Client ${deniedClient.id} was not pending for whiteboard ${this.id}`
+          );
+        }
+        deniedClientConnection.handleJoinDenial();
+
+        this.pendingClients.delete(deniedClient.id);
+        deniedClient.send({
+          $case: 'joinDenied',
+          joinDenied: {}
+        });
+        break;
       }
       // case OperationType.RETURN_ALL_FIGURES: {
       //   // FIXME send only to requester
@@ -432,9 +517,8 @@ export class Whiteboard {
     message: ServerToClientMessage['body'],
     previousMessageId?: string
   ) {
-    console.debug(
-      `Sending message to ${this.clients.length} clients:`,
-      message?.$case
+    logger.debug(
+      `Sending message to ${this.clients.length} clients: ${message?.$case}`
     );
     this.clients.forEach(client => {
       client.send(message, previousMessageId);
@@ -443,8 +527,33 @@ export class Whiteboard {
 
   public addClientConnection(client: ClientConnection) {
     this.clients.push(client);
-    client.setConnectedWhiteboard(this);
-    console.log('Client joined whiteboard', this.id);
+    logger.info(`Client joined whiteboard: ${this.id}`);
+  }
+
+  public bootstrapClient(client: ClientConnection) {
+    for (const [, line] of this.lines) {
+      client.send({
+        $case: 'lineCreatedOrUpdated',
+        lineCreatedOrUpdated: {
+          line: {
+            id: encodeUUID(line.id),
+            points: line.points
+          }
+        }
+      });
+    }
+    for (const [, note] of this.notes) {
+      client.send({
+        $case: 'noteCreatedOrUpdated',
+        noteCreatedOrUpdated: {
+          note: noteToMessage(note)
+        }
+      });
+    }
+  }
+
+  public getPendingClient(clientId: ClientConnection['id']) {
+    return this.pendingClients.get(clientId) ?? null;
   }
 }
 
@@ -453,26 +562,11 @@ const whiteboards: Map<Whiteboard['id'], Whiteboard> = new Map();
 export const addWhiteboard = (host: ClientConnection, uuid?: UUID) => {
   const board = new Whiteboard(host, uuid);
   whiteboards.set(board.id, board);
-  console.log('Whiteboard created', board);
+  logger.info(`Whiteboard created: ${board.id}`);
   return board;
 };
 
 export const countWhiteboards = () => whiteboards.size;
 
-export const connectClient = (
-  client: ClientConnection,
-  whiteboardId: UUID
-): Result => {
-  const board = whiteboards.get(whiteboardId);
-  if (board === undefined) {
-    // TODO decouple from the protobuf error format, define internal Result interface
-    console.warn(`Client tried joining unexistent whiteboard ${whiteboardId}`);
-    return {
-      result: 'error',
-      reason: ErrorReason.WHITEBOARD_DOES_NOT_EXIST
-    };
-  } else {
-    board.addClientConnection(client);
-    return { result: 'success' };
-  }
-};
+export const getWhiteboard = (id: Whiteboard['id']): Whiteboard | null =>
+  whiteboards.get(id) ?? null;

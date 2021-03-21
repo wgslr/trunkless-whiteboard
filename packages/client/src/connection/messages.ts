@@ -49,6 +49,14 @@ export const makeDeleteNoteMessage = (
   deleteNote: { noteId: encodeUUID(id) }
 });
 
+export const makeUpdateNotePositionMessage = (
+  id: Note['id'],
+  position: Note['position']
+): ClientToServerMessage['body'] => ({
+  $case: 'updateNotePosition',
+  updateNotePosition: { noteId: encodeUUID(id), position }
+});
+
 export const makeCreateLineMessage = (
   line: Line
 ): ClientToServerMessage['body'] => ({
@@ -86,6 +94,40 @@ export const makeDeleteLineMessage = (
   $case: 'deleteLine',
   deleteLine: {
     lineId: encodeUUID(lineId)
+  }
+});
+
+export const makeClientHelloMessage = (
+  username: string
+): ClientToServerMessage['body'] => ({
+  $case: 'clientHello',
+  clientHello: {
+    username
+  }
+});
+
+export const makeJoinWhiteboardMessage = (
+  whiteboardId: string
+): ClientToServerMessage['body'] => ({
+  $case: 'joinWhiteboard',
+  joinWhiteboard: {
+    whiteboardId: encodeUUID(whiteboardId)
+  }
+});
+
+export const makeCreateWhiteboardMessage = (): ClientToServerMessage['body'] => ({
+  $case: 'createWhiteboardRequest',
+  createWhiteboardRequest: {}
+});
+
+export const makeApproveOrDenyJoinMessage = (
+  approved: boolean,
+  clientId: string
+): ClientToServerMessage['body'] => ({
+  $case: 'approveOrDenyJoin',
+  approveOrDenyJoin: {
+    approve: approved,
+    clientId: encodeUUID(clientId)
   }
 });
 

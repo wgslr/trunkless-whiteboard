@@ -95,10 +95,16 @@ export const patchText = (nt: NoteTimeline, newText: string): Result => {
 export const patchPosition = (
   nt: NoteTimeline,
   newPosition: Coordinates
-): NoteTimeline => {
-  return {
+): Result => {
+  const patch = newPatch({ position: newPosition});
+  const timeline = {
     ...nt,
-    patches: nt.patches.concat(newPatch({ position: newPosition }))
+    patches: nt.patches.concat(patch)
+  }
+  return {
+    timeline,
+    figureId: nt.figureId,
+    patchId: patch.id
   };
 };
 

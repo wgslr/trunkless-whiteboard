@@ -1,15 +1,15 @@
+import { decodeUUID } from 'encoding';
 import * as uuid from 'uuid';
 import { Note, Line, Img } from './models/whiteboard';
 import {
+  ClientToServerMessage,
+  ErrorReason,
   Line as LineProto,
-  ServerToClientMessage,
   Note as NoteProto,
   Image as ImageProto,
-  ErrorReason,
-  ClientToServerMessage
+  ServerToClientMessage
 } from './protocol/protocol';
-import type { Result, UUID } from './types';
-import { decodeUUID } from 'encoding';
+import type { Result } from './types';
 
 export type ClientToServerCase = NonNullable<
   ClientToServerMessage['body']
@@ -19,14 +19,16 @@ export const resultToMessage = (
   result: Result
 ): ServerToClientMessage['body'] => {
   if (result.result === 'success') {
-    return {
-      $case: 'success',
-      success: {}
-    };
+    return makeSuccessMessage();
   } else {
     return makeErrorMessage(result.reason);
   }
 };
+
+export const makeSuccessMessage = (): ServerToClientMessage['body'] => ({
+  $case: 'success',
+  success: {}
+});
 
 export const makeErrorMessage = (
   reason: ErrorReason
@@ -65,6 +67,6 @@ export const messageToImage = (imgMsg: ImageProto): Img => ({
 export const newServerToClientMessage = (
   body: ServerToClientMessage['body']
 ): ServerToClientMessage => ({
-  messsageId: uuid.v4(),
+  messageId: uuid.v4(),
   body
 });

@@ -11,15 +11,16 @@ const decode = (message: Uint8Array) => ServerToClientMessage.decode(message);
 
 interface Events {
   message: (decoded: ServerToClientMessage) => void;
-  disconnect: () => void;
+  disconnected: () => void;
+  connected: () => void;
 }
 
 export class ProtobufSocketClient extends TypedEmitter<Events> {
   socket: WebSocket;
 
-  constructor(socket: WebSocket) {
+  constructor(socketUrl: string) {
     super();
-    this.socket = socket;
+    this.socket = new WebSocket(socketUrl);
     this.socket.binaryType = 'arraybuffer';
 
     this.socket.addEventListener('message', event => {
@@ -27,7 +28,13 @@ export class ProtobufSocketClient extends TypedEmitter<Events> {
       this.emit('message', decode(array));
     });
     this.socket.addEventListener('close', () => {
-      this.emit('disconnect');
+      this.emit('disconnected');
+    });
+    this.socket.addEventListener('open', () => {
+      this.emit('connected');
+    });
+    this.socket.addEventListener('error', event => {
+      console.error('Websocket reported error:', event);
     });
   }
 

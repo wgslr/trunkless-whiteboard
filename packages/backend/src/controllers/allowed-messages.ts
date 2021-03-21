@@ -1,7 +1,7 @@
 import { ClientToServerCase } from '../encoding';
-import { WhiteboardMembership } from '../models/client-connection';
+import { ClientFSMState } from '../models/client-connection';
 
-const commonWhitboardMessages: ClientToServerCase[] = [
+const commonWhiteboardMessages: ClientToServerCase[] = [
   'createNote',
   'deleteNote',
   'createLine',
@@ -15,9 +15,11 @@ const commonWhitboardMessages: ClientToServerCase[] = [
 ];
 
 export const ALLOWED_MESSAGES: {
-  [key in WhiteboardMembership]: ClientToServerCase[];
+  [key in ClientFSMState]: ClientToServerCase[];
 } = {
+  ANONYMOUS: ['clientHello'],
   NO_WHITEBOARD: ['joinWhiteboard', 'createWhiteboardRequest'],
-  USER: commonWhitboardMessages,
-  HOST: commonWhitboardMessages
+  PENDING_APPROVAL: [],
+  USER: commonWhiteboardMessages,
+  HOST: commonWhiteboardMessages.concat(['approveOrDenyJoin'])
 };
