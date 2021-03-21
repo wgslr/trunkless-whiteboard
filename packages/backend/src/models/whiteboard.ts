@@ -1,4 +1,3 @@
-/* eslint-disable no-shadow */
 /* eslint-disable no-unused-vars */
 import { encodeUUID } from 'encoding';
 import fp from 'lodash/fp';
@@ -44,6 +43,7 @@ export type Line = {
 
 export type LinePatch = Line;
 
+/* eslint-disable-next-line no-shadow */
 export enum OperationType {
   FIGURE_MOVE,
   LINE_CREATE,
