@@ -6,6 +6,7 @@ import lodash, { isError } from 'lodash';
 import fp from 'lodash/fp';
 import { send } from 'node:process';
 import { removeNullish } from './utils';
+import { sentMessages } from './message-log';
 
 // const client = new Client();
 
@@ -104,34 +105,36 @@ const runTest = async () => {
         }
       })
     );
-    await sleep(50); // frequency of draw buffer flush
+    // await sleep(50); // frequency of draw buffer flush
   }
   console.log('waiting for acks');
   await Promise.all(promises);
   await sleep(1000); // give some time for all clients to receive
 
-  const lineUpdateMessagesPerClient = clients
-    .map(c => c.receivedMessages)
-    .map(messageArray =>
-      messageArray
-        .filter(([_time, msg]) => msg.body?.$case === 'lineCreatedOrUpdated')
-        .slice(1) // drop the first one, which is the result of line creation and not update
-        .map(([time, _msg]) => time)
-    );
+  console.log(sentMessages.slice(980));
 
-  const iterations = lodash
-    .zip(...lineUpdateMessagesPerClient)
-    .map(x => removeNullish(x));
-  const latencies = lodash
-    .zip(sendTimestamps, iterations)
-    .filter(x => x[0] !== undefined && x[1] !== undefined)
-    .map(x => processIteration(x[0]!, removeNullish(x[1]!))); // a lot of forcing undefined out of types
+  // const lineUpdateMessagesPerClient = clients
+  //   .map(c => c.receivedMessages)
+  //   .map(messageArray =>
+  //     messageArray
+  //       .filter(([_time, msg]) => msg.body?.$case === 'lineCreatedOrUpdated')
+  //       .slice(1) // drop the first one, which is the result of line creation and not update
+  //       .map(([time, _msg]) => time)
+  //   );
+
+  // const iterations = lodash
+  //   .zip(...lineUpdateMessagesPerClient)
+  //   .map(x => removeNullish(x));
+  // const latencies = lodash
+  //   .zip(sendTimestamps, iterations)
+  //   .filter(x => x[0] !== undefined && x[1] !== undefined)
+  //   .map(x => processIteration(x[0]!, removeNullish(x[1]!))); // a lot of forcing undefined out of types
 
   console.log('min;max;avg;');
-  latencies.forEach(l => {
-    // convert ns to us
-    console.log([l.min, l.max, l.mean].map(x => x / 1000n).join(';'));
-  });
+  // latencies.forEach(l => {
+  //   // convert ns to us
+  //   console.log([l.min, l.max, l.mean].map(x => x / 1000n).join(';'));
+  // });
 
   clients.forEach(c => c.socket.close());
   process.exit(0);

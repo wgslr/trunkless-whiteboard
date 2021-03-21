@@ -2,6 +2,7 @@ import { TypedEmitter } from 'tiny-typed-emitter';
 import { v4 } from 'uuid';
 import WebSocket from 'ws';
 import { CLIENT_TIMEOUT, TARGET_ADDR } from './config';
+import { receivedMessages, sentMessages } from './message-log';
 import {
   ClientToServerMessage,
   ServerToClientMessage
@@ -23,6 +24,7 @@ const encode = (message: ClientToServerMessage) =>
 const decode = (message: Uint8Array) => ServerToClientMessage.decode(message);
 
 export class ProtobufSocketClient extends TypedEmitter<Events> {
+  name: string;
   socket: WebSocket;
 
   constructor(socketUrl: string) {
@@ -31,8 +33,15 @@ export class ProtobufSocketClient extends TypedEmitter<Events> {
     this.socket.binaryType = 'arraybuffer';
 
     this.socket.addEventListener('message', event => {
+      const timestamp = process.hrtime.bigint();
       let array = new Uint8Array(event.data);
-      this.emit('message', decode(array));
+      const message = decode(array);
+      receivedMessages.push({
+        timestamp,
+        message,
+        clientName: this.name
+      });
+      this.emit('message', message);
     });
     this.socket.addEventListener('close', () => {
       this.emit('disconnected');
@@ -47,14 +56,17 @@ export class ProtobufSocketClient extends TypedEmitter<Events> {
 
   public _send(message: ClientToServerMessage) {
     const encoded = encode(message);
+    sentMessages.push({
+      bufferBeforeSending: this.socket.bufferedAmount,
+      clientName: this.name,
+      message: message,
+      timestamp: process.hrtime.bigint()
+    });
     this.socket.send(encoded);
   }
 }
 
 export class Client extends ProtobufSocketClient {
-  name: string;
-  receivedMessages: [time: bigint, msg: ServerToClientMessage][] = [];
-
   private messageIdToResponseHandler: Map<
     NonNullable<ServerToClientMessage['causedBy']>,
     CallbackInternal
@@ -66,7 +78,6 @@ export class Client extends ProtobufSocketClient {
     this.name = 'client' + clientCount.toString().padStart(6, '0');
 
     this.on('message', msg => {
-      this.receivedMessages.push([process.hrtime.bigint(), msg]);
       if (msg.causedBy) {
         const handler = this.messageIdToResponseHandler.get(msg.causedBy);
         if (handler) {
