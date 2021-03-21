@@ -22,9 +22,10 @@ let effectiveImgsCache: Map<Img['id'], Img> | null = null;
 const calculateEffectiveImgs = (): void => {
   const imgTimelinesArray = Object.values(imgTimelines);
   effectiveImgsCache = new Map(
-    removeNullish(
-      imgTimelinesArray.map(it => getEffectiveImg(it))
-    ).map(img => [img.id, img])
+    removeNullish(imgTimelinesArray.map(it => getEffectiveImg(it))).map(img => [
+      img.id,
+      img
+    ])
   );
 };
 
@@ -34,7 +35,6 @@ export const getEffectiveImgs = (): Map<Img['id'], Img> => {
   }
   return effectiveImgsCache!;
 };
-
 
 const clearObj = (o: any): void => {
   for (const key of Object.keys(o)) {
