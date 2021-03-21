@@ -475,6 +475,7 @@ export class Whiteboard {
             }))
           }
         });
+        this.bootstrapClient(approvedClient);
         break;
       }
       case OperationType.DENY_PENDING_CLIENT: {
@@ -550,6 +551,14 @@ export class Whiteboard {
         $case: 'noteCreatedOrUpdated',
         noteCreatedOrUpdated: {
           note: noteToMessage(note)
+        }
+      });
+    }
+    for (const [, img] of this.images) {
+      client.send({
+        $case: 'imageCreatedOrUpdated',
+        imageCreatedOrUpdated: {
+          image: imageToMessage(img)
         }
       });
     }
