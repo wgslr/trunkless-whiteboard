@@ -37,11 +37,11 @@ export class RequestResponseService {
   ) {
     // callback - invoked when server sends a response
 
-    const message = { messsageId: uuid.v4(), body };
+    const message = { messageId: uuid.v4(), body };
     this.protobufClient.send(message);
 
     if (callback) {
-      this.setupResponseHandler(message.messsageId, callback, timeout);
+      this.setupResponseHandler(message.messageId, callback, timeout);
     }
   }
 

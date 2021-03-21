@@ -23,7 +23,7 @@ export const handleWhiteboardMessage = (
     );
     client.send(
       makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED),
-      message.messsageId
+      message.messageId
     );
     return;
   }
@@ -37,7 +37,7 @@ export const handleWhiteboardMessage = (
       whiteboard.handleOperation(
         {
           type: OperationType.LINE_CREATE,
-          data: { line: decodedData, causedBy: message.messsageId }
+          data: { line: decodedData, causedBy: message.messageId }
         },
         client
       );
@@ -50,7 +50,7 @@ export const handleWhiteboardMessage = (
       whiteboard.handleOperation(
         {
           type: OperationType.LINE_ADD_POINTS,
-          data: { causedBy: message.messsageId, change: { id, points } }
+          data: { causedBy: message.messageId, change: { id, points } }
         },
         client
       );
@@ -63,7 +63,7 @@ export const handleWhiteboardMessage = (
       whiteboard.handleOperation(
         {
           type: OperationType.LINE_REMOVE_POINTS,
-          data: { causedBy: message.messsageId, change: { id, points } }
+          data: { causedBy: message.messageId, change: { id, points } }
         },
         client
       );
@@ -75,7 +75,7 @@ export const handleWhiteboardMessage = (
       whiteboard.handleOperation(
         {
           type: OperationType.LINE_DELETE,
-          data: { causedBy: message.messsageId, lineId: id }
+          data: { causedBy: message.messageId, lineId: id }
         },
         client
       );
@@ -88,7 +88,7 @@ export const handleWhiteboardMessage = (
       whiteboard.handleOperation(
         {
           type: OperationType.NOTE_ADD,
-          data: { note: data, causedBy: message.messsageId }
+          data: { note: data, causedBy: message.messageId }
         },
         client
       );
@@ -101,7 +101,7 @@ export const handleWhiteboardMessage = (
         {
           type: OperationType.NOTE_UPADTE,
           data: {
-            causedBy: message.messsageId,
+            causedBy: message.messageId,
             change: {
               id: decodeUUID(noteId),
               text
@@ -117,7 +117,7 @@ export const handleWhiteboardMessage = (
       whiteboard.handleOperation(
         {
           type: OperationType.NOTE_DELETE,
-          data: { causedBy: message.messsageId, noteId: decodeUUID(noteId) }
+          data: { causedBy: message.messageId, noteId: decodeUUID(noteId) }
         },
         client
       );
@@ -134,7 +134,7 @@ export const handleWhiteboardMessage = (
           {
             type: OperationType.NOTE_MOVE,
             data: {
-              causedBy: message.messsageId,
+              causedBy: message.messageId,
               change: {
                 id: decodeUUID(noteId),
                 position
@@ -155,7 +155,7 @@ export const handleWhiteboardMessage = (
         );
         client.send(
           makeErrorMessage(ErrorReason.USER_DOES_NOT_EXIST),
-          message.messsageId
+          message.messageId
         );
         return;
       }
@@ -185,7 +185,7 @@ export const handleWhiteboardMessage = (
         );
       }
 
-      client.send(makeSuccessMessage(), message.messsageId);
+      client.send(makeSuccessMessage(), message.messageId);
       break;
     }
     default: {

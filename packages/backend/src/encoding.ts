@@ -55,6 +55,6 @@ export const messageToNote = (noteMsg: NoteProto): Note => ({
 export const newServerToClientMessage = (
   body: ServerToClientMessage['body']
 ): ServerToClientMessage => ({
-  messsageId: uuid.v4(),
+  messageId: uuid.v4(),
   body
 });

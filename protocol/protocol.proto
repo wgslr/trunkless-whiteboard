@@ -77,9 +77,7 @@ message ConnectedClient {
   bytes client_id = 1;
   string username = 2;
 }
-message ConnectedClients {
-  repeated ConnectedClient connected_clients = 1;
-}
+message ConnectedClients { repeated ConnectedClient connected_clients = 1; }
 
 // message to the host
 message ClientWantsToJoin {
@@ -97,7 +95,7 @@ message JoinApproved {}
 message JoinDenied {}
 
 message ClientToServerMessage {
-  string messsage_id = 100;
+  string message_id = 100;
   oneof body {
     CreateWhiteboardRequest create_whiteboard_request = 1;
     JoinWhiteboard join_whiteboard = 2;
@@ -115,7 +113,7 @@ message ClientToServerMessage {
 }
 
 message ServerToClientMessage {
-  string messsage_id = 100;
+  string message_id = 100;
   optional string caused_by = 101;
   oneof body {
     ResultError error = 1;

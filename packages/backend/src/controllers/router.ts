@@ -39,14 +39,14 @@ export const dispatch = (
       );
       client.send(
         makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED),
-        message.messsageId
+        message.messageId
       );
     }
   } catch (error) {
     logger.error(`Dispatch caught error: ${error}`, error);
     client.send(
       makeErrorMessage(ErrorReason.INTERNAL_SERVER_ERROR),
-      message.messsageId
+      message.messageId
     );
   }
 };

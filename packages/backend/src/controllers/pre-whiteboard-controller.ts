@@ -21,7 +21,7 @@ export const handlePreWhiteboardMessage = (
     );
     client.send(
       makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED),
-      message.messsageId
+      message.messageId
     );
     return;
   }
@@ -37,7 +37,7 @@ export const handlePreWhiteboardMessage = (
             whiteboardId: encodeUUID(whiteboardId)
           }
         },
-        message.messsageId
+        message.messageId
       );
       break;
     }
@@ -48,12 +48,12 @@ export const handlePreWhiteboardMessage = (
       if (!whiteboard) {
         client.send(
           makeErrorMessage(ErrorReason.WHITEBOARD_DOES_NOT_EXIST),
-          message.messsageId
+          message.messageId
         );
         return;
       }
       client.requestJoinWhiteboard(whiteboard);
-      client.send(makeSuccessMessage(), message.messsageId);
+      client.send(makeSuccessMessage(), message.messageId);
       break;
     }
     default: {

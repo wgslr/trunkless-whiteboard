@@ -19,7 +19,7 @@ export const handleNobodyMessage = (
     );
     client.send(
       makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED),
-      message.messsageId
+      message.messageId
     );
     return;
   }
@@ -27,14 +27,14 @@ export const handleNobodyMessage = (
   switch (message.body.$case) {
     case 'clientHello': {
       client.setUsername(message.body.clientHello.username);
-      client.send(makeSuccessMessage(), message.messsageId);
+      client.send(makeSuccessMessage(), message.messageId);
       break;
     }
     default: {
       logger.warn(`Unhandled message type: ${message.body.$case}`);
       client.send(
         makeErrorMessage(ErrorReason.INTERNAL_SERVER_ERROR),
-        message.messsageId
+        message.messageId
       );
     }
   }

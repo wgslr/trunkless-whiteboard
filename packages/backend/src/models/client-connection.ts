@@ -151,7 +151,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     previousMessageId?: string
   ): void {
     const message: ServerToClientMessage = {
-      messsageId: uuid.v4(),
+      messageId: uuid.v4(),
       body
     };
     if (previousMessageId) {

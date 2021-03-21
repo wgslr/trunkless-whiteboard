@@ -58,52 +58,52 @@ export type Operation =
     }
   | {
       type: OperationType.LINE_CREATE;
-      data: { line: Line; causedBy: ClientToServerMessage['messsageId'] };
+      data: { line: Line; causedBy: ClientToServerMessage['messageId'] };
     }
   | {
       type: OperationType.LINE_ADD_POINTS;
       data: {
         change: LinePatch;
-        causedBy: ClientToServerMessage['messsageId'];
+        causedBy: ClientToServerMessage['messageId'];
       };
     }
   | {
       type: OperationType.LINE_REMOVE_POINTS;
       data: {
         change: LinePatch;
-        causedBy: ClientToServerMessage['messsageId'];
+        causedBy: ClientToServerMessage['messageId'];
       };
     }
   | {
       type: OperationType.LINE_DELETE;
       data: {
         lineId: Line['id'];
-        causedBy: ClientToServerMessage['messsageId'];
+        causedBy: ClientToServerMessage['messageId'];
       };
     }
   | {
       type: OperationType.NOTE_ADD;
-      data: { note: Note; causedBy: ClientToServerMessage['messsageId'] };
+      data: { note: Note; causedBy: ClientToServerMessage['messageId'] };
     }
   | {
       type: OperationType.NOTE_UPADTE;
       data: {
         change: Pick<Note, 'id' | 'text'>;
-        causedBy: ClientToServerMessage['messsageId'];
+        causedBy: ClientToServerMessage['messageId'];
       };
     }
   | {
       type: OperationType.NOTE_MOVE;
       data: {
         change: Pick<Note, 'id' | 'position'>;
-        causedBy: ClientToServerMessage['messsageId'];
+        causedBy: ClientToServerMessage['messageId'];
       };
     }
   | {
       type: OperationType.NOTE_DELETE;
       data: {
         noteId: Note['id'];
-        causedBy: ClientToServerMessage['messsageId'];
+        causedBy: ClientToServerMessage['messageId'];
       };
     }
   | {
