@@ -36,34 +36,16 @@ const Canvas = (props: { x: number; y: number }) => {
     render(getCtx(1)!, canvas1.current!, [...effectiveLines.values()]);
   }, [effectiveLines]);
 
-  /*
-    ---- NOTE ----
-    effectiveImages currently always result in null
-    once it is updated correctly the if-else statement can be removed and
-    the useEffect hook below can be set to update on effectiveImages
-    instead of effectiveLines..
-    --------------
-  */
   useEffect(() => {
-    if (effectiveImages) {
-      Array.from(effectiveImages.values()).map( image => {
-        console.log("Drawing img..")
-        let img = new Image()
-        var blob = new Blob([image.data], {type: 'application/octet-binary'} )
-        img.src = URL.createObjectURL(blob);
-        img.addEventListener('load', function() {
-          getCtx(2)!.drawImage(img, image.position.x, image.position.y);
-        });
-
-      });
-    } else {
+    // eslint-disable-next-line array-callback-return
+    Array.from(effectiveImages.values()).map( image => {
       let img = new Image()
-      img.src = logo;
+      var blob = new Blob([image.data], {type: 'application/octet-binary'} )
+      img.src = URL.createObjectURL(blob);
       img.addEventListener('load', function() {
-      getCtx(2)!.drawImage(img, 100, 100);
+        getCtx(2)!.drawImage(img, image.position.x, image.position.y);
+      });
     });
-    }
-
   }, [effectiveImages]);
 
   useEffect(() => {
@@ -75,11 +57,10 @@ const Canvas = (props: { x: number; y: number }) => {
       };
       c.addEventListener('pointerdown', listener);
       return () => c.removeEventListener('pointerdown', listener);
-    } else if (c !== null && mode === 'image') { // If imgData is empty string image can't be added
+    } else if (c !== null && mode === 'image') { 
       const listener = (event: PointerEvent) => {
         const point = { x: event.offsetX, y: event.offsetY };
-        if (imgData.length !== 0) {
-          console.log('added img')
+        if (imgData.length !== 0) { // If imgData is empty string image can't be added
           addImage(point, imgData);
         }
       };

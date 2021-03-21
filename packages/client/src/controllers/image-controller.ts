@@ -19,7 +19,6 @@ export const addImage = (position: Coordinates, data: Uint8Array) => {
     const image = { id: v4(), position, data };
     const patchId = localAddImage(image);
     const body: ClientToServerMessage['body'] = makeCreateImageMessage(image);
-    console.log('sending img message...')
     reqResponseService.send(body, () => {
         // No need to check the response.
         // If success - the change is already incorporated into

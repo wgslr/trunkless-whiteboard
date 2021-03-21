@@ -20,7 +20,7 @@ export const localAddImage = (img: Img) => {
 };
 
 export const localUpdatePos = (id: Img['id'], newPos: Coordinates): PatchId => {
-  return updateImgStore(imgTimelines => { // Continue HERERERERERE
+  return updateImgStore(imgTimelines => {
     const oldTimeline = imgTimelines[id];
     if (!oldTimeline) {
       throw new Error('Tried updating pos of an img without a ImgTimeline');
