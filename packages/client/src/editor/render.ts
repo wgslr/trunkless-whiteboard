@@ -7,8 +7,7 @@ import { numberToCoord } from '../utils';
 
 const reset = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
 
 const render = (

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { useRecoilValue, useRecoilState } from 'recoil';
+import { useRecoilValue, useRecoilState, constSelector } from 'recoil';
 import { addNote } from '../../controllers/note-controller';
 import { addImage } from '../../controllers/image-controller'
 import { useEffectiveLines, useEffectiveImages } from '../../store/hooks';
@@ -7,38 +7,66 @@ import { useDrawing } from '../drawing-state';
 import render from '../render';
 import { modeState, imgState } from '../state';
 
+import logo from './wbicon.png'
+
 const Canvas = (props: { x: number; y: number }) => {
   const effectiveLines = useEffectiveLines();
   const effectiveImages = useEffectiveImages();
-  const canvas = useRef<HTMLCanvasElement>(null);
+  const canvas1 = useRef<HTMLCanvasElement>(null);
+  const canvas2 = useRef<HTMLCanvasElement>(null);
   const mode = useRecoilValue(modeState);
   const [imgData, setImgData] = useRecoilState(imgState)
 
-  const getCtx = () => {
-    return canvas.current !== null ? canvas.current.getContext('2d') : null;
+  const getCtx = (layer: number) => {
+    switch (layer) {
+      case 1: {
+        return canvas1.current !== null ? canvas1.current.getContext('2d') : null;
+      }
+      case 2: {
+        return canvas2.current !== null ? canvas2.current.getContext('2d') : null;
+      }
+    }
+    
   };
 
-  useDrawing(canvas);
+  useDrawing(canvas1);
 
   // Main render function
   useEffect(() => {
-    render(getCtx()!, canvas.current!, [...effectiveLines.values()]);
+    render(getCtx(1)!, canvas1.current!, [...effectiveLines.values()]);
   }, [effectiveLines]);
 
+  /* 
+    ---- NOTE ----
+    effectiveImages currently always result in null
+    once it is updated correctly the if-else statement can be removed and
+    the useEffect hook below can be set to update on effectiveImages
+    instead of effectiveLines..
+    --------------
+  */
   useEffect(() => {
     if (effectiveImages) {
       Array.from(effectiveImages.values()).map( image => {
+        console.log("Drawing img..")
         let img = new Image()
         img.src = image.data;
         img.addEventListener('load', function() {
-          getCtx()!.drawImage(img, image.position.x, image.position.y);
+          getCtx(2)!.globalCompositeOperation = 'destination-over';
+          getCtx(2)!.drawImage(img, image.position.x, image.position.y);
         });
       });
+    } else {
+      let img = new Image()
+      img.src = logo;
+      img.addEventListener('load', function() {
+      getCtx(2)!.drawImage(img, 100, 100);
+    });
     }
-  }, [effectiveImages]);
+    
+  }, [effectiveLines]);
 
   useEffect(() => {
-    const c = canvas.current;
+    const c = canvas1.current;
     if (c !== null && mode === 'note') {
       const listener = (event: PointerEvent) => {
         const point = { x: event.offsetX, y: event.offsetY };
@@ -46,11 +74,13 @@ const Canvas = (props: { x: number; y: number }) => {
       };
       c.addEventListener('pointerdown', listener);
       return () => c.removeEventListener('pointerdown', listener);
-    } else if (c !== null && mode === 'image' && imgData.length !== 0) { // If imgData is empty string image can't be added
+    } else if (c !== null && mode === 'image') { // If imgData is empty string image can't be added
       const listener = (event: PointerEvent) => {
         const point = { x: event.offsetX, y: event.offsetY };
-        addImage(point, imgData);
-        setImgData(''); // Once image has been added set imgData recoil state to empty string
+        if (imgData.length !== 0) {
+          console.log('added img')
+          addImage(point, imgData);
+        }
       };
       c.addEventListener('pointerdown', listener);
       return () => c.removeEventListener('pointerdown', listener);
@@ -58,13 +88,35 @@ const Canvas = (props: { x: number; y: number }) => {
   }, [mode]);
 
   return (
-    <canvas
-      ref={canvas}
-      id="canvas"
-      height={props.y}
-      width={props.x}
-      style={{ border: '1px solid black', backgroundColor: 'white' }}
-    ></canvas>
+    <div
+      style={{position: 'relative', 
+              width: props.x, 
+              height: props.y}}> 
+      <canvas
+        ref={canvas1}
+        id="canvas"
+        height={props.y}
+        width={props.x}
+        style={{ border: '1px solid black', 
+                zIndex: 0, 
+                position: 'absolute',
+                left: '0px',
+                top: '0px' }}
+      ></canvas>
+      <canvas
+        ref={canvas2}
+        id="canvas"
+        height={props.y}
+        width={props.x}
+        style={{ border: '1px solid black', 
+                backgroundColor: 'white',
+                zIndex: -1, 
+                position: 'absolute',
+                left: '0px',
+                top: '0px' }}
+      ></canvas>
+    </div>
+    
   );
   // Layered canvas
   // https://github.com/federicojacobi/layeredCanvas

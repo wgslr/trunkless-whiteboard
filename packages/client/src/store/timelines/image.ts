@@ -37,12 +37,15 @@ export const getEffectiveImg = (it: ImgTimeline): Img | null => {
   }
 
   for (const diff of patchesReverse) {
+    if (diff.data !== undefined && current.data === undefined) {
+      current.data = diff.data
+    }
 
     if (diff.position !== undefined && current.position === undefined) {
       current.position = diff.position;
     }
 
-    if (current.position !== undefined) {
+    if (current.position !== undefined && current.data !== undefined) {
       console.debug(
         `Processed image '${current.id}' timeline with ${
           it.committed ? 'non-null' : 'null'

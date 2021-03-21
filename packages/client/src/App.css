@@ -47,6 +47,7 @@ body {
 
 .stickersRoot {
   position: relative;
+  z-index: 1;
 }
 
 .stickyNote {
