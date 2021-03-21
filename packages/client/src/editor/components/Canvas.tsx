@@ -10,31 +10,31 @@ import { modeState, imgState } from '../state';
 const Canvas = (props: { x: number; y: number }) => {
   const effectiveLines = useEffectiveLines();
   const effectiveImages = useEffectiveImages();
-  const canvas1 = useRef<HTMLCanvasElement>(null);
-  const canvas2 = useRef<HTMLCanvasElement>(null);
+  const whiteboardCanvas = useRef<HTMLCanvasElement>(null);
+  const imageCanvas = useRef<HTMLCanvasElement>(null);
   const mode = useRecoilValue(modeState);
   const imgData = useRecoilValue(imgState);
 
   const getCtx = (layer: number) => {
     switch (layer) {
       case 1: {
-        return canvas1.current !== null
-          ? canvas1.current.getContext('2d')
+        return whiteboardCanvas.current !== null
+          ? whiteboardCanvas.current.getContext('2d')
           : null;
       }
       case 2: {
-        return canvas2.current !== null
-          ? canvas2.current.getContext('2d')
+        return imageCanvas.current !== null
+          ? imageCanvas.current.getContext('2d')
           : null;
       }
     }
   };
 
-  useDrawing(canvas1);
+  useDrawing(whiteboardCanvas);
 
   // Main render function
   useEffect(() => {
-    render(getCtx(1)!, canvas1.current!, [...effectiveLines.values()]);
+    render(getCtx(1)!, whiteboardCanvas.current!, [...effectiveLines.values()]);
   }, [effectiveLines]);
 
   useEffect(() => {
@@ -50,7 +50,7 @@ const Canvas = (props: { x: number; y: number }) => {
   }, [effectiveImages]);
 
   useEffect(() => {
-    const c = canvas1.current;
+    const c = whiteboardCanvas.current;
     if (c !== null && mode === 'note') {
       const listener = (event: PointerEvent) => {
         const point = { x: event.offsetX, y: event.offsetY };
@@ -74,7 +74,7 @@ const Canvas = (props: { x: number; y: number }) => {
   return (
     <div style={{ position: 'relative', width: props.x, height: props.y }}>
       <canvas
-        ref={canvas1}
+        ref={whiteboardCanvas}
         id="canvas"
         height={props.y}
         width={props.x}
@@ -87,7 +87,7 @@ const Canvas = (props: { x: number; y: number }) => {
         }}
       ></canvas>
       <canvas
-        ref={canvas2}
+        ref={imageCanvas}
         id="canvas"
         height={props.y}
         width={props.x}
