@@ -5,8 +5,9 @@ import {
   Note as NoteProto,
   Image as ImageProto
 } from '../protocol/protocol';
-import type { Line, Note, Img, UUID } from '../types';
+import type { Line, Note, Img } from '../types';
 import { coordToNumber, numberToCoord } from '../utils';
+import { encodeUUID, decodeUUID } from 'encoding';
 
 export const makeCreateImageMessage = (
   img: Img
@@ -130,11 +131,6 @@ export const makeApproveOrDenyJoinMessage = (
     clientId: encodeUUID(clientId)
   }
 });
-
-// TODO deduplciate with backend code
-const encodeUUID = (id: UUID): Uint8Array => Uint8Array.from(uuid.parse(id));
-
-const decodeUUID = (id: Uint8Array): UUID => uuid.stringify(id);
 
 export function decodeLineData(data: LineProto): Line {
   const points = data.points;
