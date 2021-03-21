@@ -12,7 +12,6 @@ let imgListeners: React.Dispatch<
   React.SetStateAction<ReturnType<typeof getEffectiveImgs>>
 >[] = [];
 
-
 const STATE_UPDATE_FREQUENCY_MS = 5;
 
 export const useEffectiveNotes = () => {
@@ -44,11 +43,11 @@ export const useEffectiveImages = () => {
   useEffect(() => {
     imgListeners.push(setState);
     return () => {
-      imgListeners = imgListeners.filter(l => l !== setState)
-    }
+      imgListeners = imgListeners.filter(l => l !== setState);
+    };
   }, []);
   return state;
-}
+};
 
 export const sendNotesUpdate = lodash.throttle(
   () => {
@@ -81,4 +80,4 @@ export const sendImgsUpdate = lodash.throttle(
   },
   STATE_UPDATE_FREQUENCY_MS,
   { leading: true, trailing: true }
-)
+);
