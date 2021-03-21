@@ -38,7 +38,7 @@ export const getEffectiveImg = (it: ImgTimeline): Img | null => {
 
   for (const diff of patchesReverse) {
     if (diff.data !== undefined && current.data === undefined) {
-      current.data = diff.data
+      current.data = diff.data;
     }
 
     if (diff.position !== undefined && current.position === undefined) {
