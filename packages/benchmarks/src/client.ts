@@ -1,15 +1,13 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { v4 } from 'uuid';
 import WebSocket from 'ws';
-import { TARGET_ADDR } from './config';
+import { CLIENT_TIMEOUT, TARGET_ADDR } from './config';
 import {
   ClientToServerMessage,
   ServerToClientMessage
 } from './protocol/protocol';
 
 let clientCount = 0;
-
-const CLIENT_TIMEOUT = 10_000;
 
 type CallbackInternal = (message: ServerToClientMessage['body']) => void;
 
@@ -55,7 +53,7 @@ export class ProtobufSocketClient extends TypedEmitter<Events> {
 
 export class Client extends ProtobufSocketClient {
   name: string;
-  receivedMessages: ServerToClientMessage[] = [];
+  receivedMessages: [time: bigint, msg: ServerToClientMessage][] = [];
 
   private messageIdToResponseHandler: Map<
     NonNullable<ServerToClientMessage['causedBy']>,
@@ -68,7 +66,7 @@ export class Client extends ProtobufSocketClient {
     this.name = 'client' + clientCount.toString().padStart(6, '0');
 
     this.on('message', msg => {
-      this.receivedMessages.push(msg);
+      this.receivedMessages.push([process.hrtime.bigint(), msg]);
       if (msg.causedBy) {
         const handler = this.messageIdToResponseHandler.get(msg.causedBy);
         if (handler) {
