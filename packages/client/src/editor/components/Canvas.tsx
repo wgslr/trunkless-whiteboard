@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { useRecoilValue, useRecoilState, constSelector } from 'recoil';
+import { useRecoilValue } from 'recoil';
 import { addNote } from '../../controllers/note-controller';
 import { addImage } from '../../controllers/image-controller'
 import { useEffectiveLines, useEffectiveImages } from '../../store/hooks';
@@ -15,7 +15,7 @@ const Canvas = (props: { x: number; y: number }) => {
   const canvas1 = useRef<HTMLCanvasElement>(null);
   const canvas2 = useRef<HTMLCanvasElement>(null);
   const mode = useRecoilValue(modeState);
-  const [imgData, setImgData] = useRecoilState(imgState)
+  const imgData = useRecoilValue(imgState)
 
   const getCtx = (layer: number) => {
     switch (layer) {
@@ -49,11 +49,12 @@ const Canvas = (props: { x: number; y: number }) => {
       Array.from(effectiveImages.values()).map( image => {
         console.log("Drawing img..")
         let img = new Image()
-        img.src = image.data;
+        var blob = new Blob([image.data], {type: 'application/octet-binary'} )
+        img.src = URL.createObjectURL(blob);
         img.addEventListener('load', function() {
-          getCtx(2)!.globalCompositeOperation = 'destination-over';
           getCtx(2)!.drawImage(img, image.position.x, image.position.y);
         });
+
       });
     } else {
       let img = new Image()

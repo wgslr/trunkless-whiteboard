@@ -1,3 +1,5 @@
+/* eslint-disable no-shadow */
+/* eslint-disable no-unused-vars */
 import { encodeUUID } from 'encoding';
 import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
@@ -32,7 +34,7 @@ export type Note = {
 export type Img = {
   id: UUID;
   position: Coordinates;
-  data: string;
+  data: Uint8Array;
 };
 
 export type Line = {
@@ -140,13 +142,14 @@ export type Operation =
       };
     }
   | {
-    type: OperationType.IMG_MOVE;
-    data: {
-      change: Pick<Img, 'id' | 'position'>;
-      causedBy: ClientToServerMessage['messageId'];
+      type: OperationType.IMG_MOVE;
+      data: {
+        change: Pick<Img, 'id' | 'position'>;
+        causedBy: ClientToServerMessage['messageId'];
+      };
     };
-  }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 class OperationError extends Error {
   constructor(message?: string) {
     super(message);
@@ -407,7 +410,7 @@ export class Whiteboard {
             causedBy
           );
           return;
-        }  
+        }
         const img = this.images.get(change.id);
         if (!img) {
           client.send(

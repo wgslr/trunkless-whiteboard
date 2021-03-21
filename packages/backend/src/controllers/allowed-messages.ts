@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { ClientToServerCase } from '../encoding';
 import { ClientFSMState } from '../models/client-connection';
 

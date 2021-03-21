@@ -28,7 +28,7 @@ message Coordinates {
 message Image {
   bytes id = 1;
   Coordinates position = 2;
-  string data = 3;
+  bytes data = 3;
 }
 
 message CreateImage { Image image = 1; }

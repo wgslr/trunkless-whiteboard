@@ -22,9 +22,9 @@ export default function Tools() {
     if (event.target.files && event.target.files[0]) {
         let image = event.target.files[0];
         let reader = new FileReader();
-        reader.readAsText(image);
+        reader.readAsArrayBuffer(image);
         reader.onload = () => {
-            setImgData(reader.result as string)
+            setImgData(new Uint8Array(reader.result as ArrayBuffer))
         }
     }
   }   

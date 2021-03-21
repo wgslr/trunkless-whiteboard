@@ -25,7 +25,7 @@ export type Note = {
 export type Img = {
   id: UUID;
   position: Coordinates;
-  data: string; // ts img object?
+  data: Uint8Array; // ts img object?
 };
 
 export enum MessageCode {

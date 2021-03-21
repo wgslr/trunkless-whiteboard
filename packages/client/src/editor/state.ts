@@ -8,5 +8,5 @@ export const modeState = atom<Mode>({
 
 export const imgState = atom<Img['data']>({
   key: 'imgData',
-  default: ''
+  default: new Uint8Array()
 });
