@@ -133,8 +133,6 @@ export const makeApproveOrDenyJoinMessage = (
 });
 
 export function decodeLineData(data: LineProto): Line {
-  const points = data.points;
-
   return {
     id: decodeUUID(data.id),
     points: new Set(data.points.map(coordToNumber))
