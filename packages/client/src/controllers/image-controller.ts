@@ -1,6 +1,3 @@
-// Requirements done: add image, move image
-// TODO add comment to image
-
 import { v4 } from 'uuid';
 import {
   makeCreateImageMessage,
