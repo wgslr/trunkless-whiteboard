@@ -74,7 +74,7 @@ const Canvas = (props: { x: number; y: number }) => {
     <div style={{ position: 'relative', width: props.x, height: props.y }}>
       <canvas
         ref={whiteboardCanvas}
-        id="canvas"
+        id="whiteboard-canvas"
         height={props.y}
         width={props.x}
         style={{
@@ -87,7 +87,7 @@ const Canvas = (props: { x: number; y: number }) => {
       ></canvas>
       <canvas
         ref={imageCanvas}
-        id="canvas"
+        id="image-canvas"
         height={props.y}
         width={props.x}
         style={{
