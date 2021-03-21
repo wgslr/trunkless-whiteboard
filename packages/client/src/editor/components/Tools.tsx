@@ -15,7 +15,7 @@ export default function Tools() {
 
   const handleMode = (event: React.MouseEvent<HTMLElement>, newMode: Mode) => {
     if (newMode === 'image') {
-      // @ts-ignore
+      // @ts-ignore: type definition is optional null, but it's set in the input below
       imageUpload.current.click();
       setMode('image');
     } else if (newMode != null) {
