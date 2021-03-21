@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { ClientToServerCase } from '../encoding';
 import { ClientFSMState } from '../models/client-connection';
 
@@ -16,6 +15,7 @@ const commonWhiteboardMessages: ClientToServerCase[] = [
 ];
 
 export const ALLOWED_MESSAGES: {
+  /* eslint-disable-next-line no-unused-vars */
   [key in ClientFSMState]: ClientToServerCase[];
 } = {
   ANONYMOUS: ['clientHello'],
