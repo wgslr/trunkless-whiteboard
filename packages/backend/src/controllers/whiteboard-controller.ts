@@ -130,8 +130,7 @@ export const handleWhiteboardMessage = (
       whiteboard.handleOperation(
         {
           type: OperationType.IMG_ADD,
-          data: { img: data, causedBy: message.messageId}
-
+          data: { img: data, causedBy: message.messageId }
         },
         client
       );
@@ -155,8 +154,8 @@ export const handleWhiteboardMessage = (
           },
           client
         );
-        }
-        return;
+      }
+      return;
     }
     case 'updateNotePosition': {
       const { noteId, position } = message.body.updateNotePosition;
