@@ -42,9 +42,9 @@ const Canvas = (props: { x: number; y: number }) => {
       const img = new Image();
       const blob = new Blob([image.data], { type: 'application/octet-binary' });
       img.src = URL.createObjectURL(blob);
-      img.addEventListener('load', function () {
-        getCtx(2)!.drawImage(img, image.position.x, image.position.y);
-      });
+      img.addEventListener('load', () =>
+        getCtx(2)!.drawImage(img, image.position.x, image.position.y)
+      );
     });
   }, [effectiveImages]);
 
