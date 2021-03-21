@@ -23,7 +23,7 @@ export default function Tools() {
     }
   };
 
-  const onClick = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const onImageUploadClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       let image = event.target.files[0];
       let reader = new FileReader();
@@ -54,7 +54,7 @@ export default function Tools() {
         <input
           type="file"
           accept="image/*"
-          onChange={e => onClick(e)}
+          onChange={onImageUploadClick}
           id="file-button"
           ref={imageUpload}
           hidden
