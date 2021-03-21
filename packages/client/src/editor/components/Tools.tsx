@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab';
-import Button from '@material-ui/core/Button';
 import { useRecoilState } from 'recoil';
 import { modeState, imgState } from '../state';
 import { Mode } from '../../types';
@@ -11,23 +10,29 @@ import Erase from '../../cursors/Erase';
 
 export default function Tools() {
   const [mode, setMode] = useRecoilState(modeState);
-  const [imgData, setImgData] = useRecoilState(imgState);
+  const [, setImgData] = useRecoilState(imgState);
+  const imageUpload = useRef(null);
 
   const handleMode = (event: React.MouseEvent<HTMLElement>, newMode: Mode) => {
-    if (newMode !== null) setMode(newMode);
-  }; 
+    if (newMode === 'image') {
+      // @ts-ignore
+      imageUpload.current.click();
+      setMode('image');
+    } else if (newMode != null) {
+      setMode(newMode);
+    }
+  };
 
   const onClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //setMode('image');
     if (event.target.files && event.target.files[0]) {
-        let image = event.target.files[0];
-        let reader = new FileReader();
-        reader.readAsArrayBuffer(image);
-        reader.onload = () => {
-            setImgData(new Uint8Array(reader.result as ArrayBuffer))
-        }
+      let image = event.target.files[0];
+      let reader = new FileReader();
+      reader.readAsArrayBuffer(image);
+      reader.onload = () => {
+        setImgData(new Uint8Array(reader.result as ArrayBuffer));
+      };
     }
-  }   
+  };
 
   return (
     <ToggleButtonGroup
@@ -47,14 +52,14 @@ export default function Tools() {
       </ToggleButton>
       <ToggleButton value="image" aria-label="add image">
         <input
-            type="file"
-            accept="image/*" 
-            onChange={ e => onClick(e) } 
-            id="file-button"
-            hidden/>
-        <label htmlFor="file-button">          
-            <ImageIcon />          
-        </label>
+          type="file"
+          accept="image/*"
+          onChange={e => onClick(e)}
+          id="file-button"
+          ref={imageUpload}
+          hidden
+        />
+        <ImageIcon />
       </ToggleButton>
     </ToggleButtonGroup>
   );

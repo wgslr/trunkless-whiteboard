@@ -29,7 +29,7 @@ const calculateEffectiveImgs = (): void => {
 };
 
 export const getEffectiveImgs = (): Map<Img['id'], Img> => {
-  if (effectiveNotesCache === null) {
+  if (effectiveImgsCache === null) {
     calculateEffectiveImgs();
   }
   return effectiveImgsCache!;

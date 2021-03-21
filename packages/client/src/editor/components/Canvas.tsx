@@ -26,7 +26,7 @@ const Canvas = (props: { x: number; y: number }) => {
         return canvas2.current !== null ? canvas2.current.getContext('2d') : null;
       }
     }
-    
+
   };
 
   useDrawing(canvas1);
@@ -36,7 +36,7 @@ const Canvas = (props: { x: number; y: number }) => {
     render(getCtx(1)!, canvas1.current!, [...effectiveLines.values()]);
   }, [effectiveLines]);
 
-  /* 
+  /*
     ---- NOTE ----
     effectiveImages currently always result in null
     once it is updated correctly the if-else statement can be removed and
@@ -63,8 +63,8 @@ const Canvas = (props: { x: number; y: number }) => {
       getCtx(2)!.drawImage(img, 100, 100);
     });
     }
-    
-  }, [effectiveLines, effectiveImages]);
+
+  }, [effectiveImages]);
 
   useEffect(() => {
     const c = canvas1.current;
@@ -90,16 +90,16 @@ const Canvas = (props: { x: number; y: number }) => {
 
   return (
     <div
-      style={{position: 'relative', 
-              width: props.x, 
-              height: props.y}}> 
+      style={{position: 'relative',
+              width: props.x,
+              height: props.y}}>
       <canvas
         ref={canvas1}
         id="canvas"
         height={props.y}
         width={props.x}
-        style={{ border: '1px solid black', 
-                zIndex: 0, 
+        style={{ border: '1px solid black',
+                zIndex: 0,
                 position: 'absolute',
                 left: '0px',
                 top: '0px' }}
@@ -109,15 +109,15 @@ const Canvas = (props: { x: number; y: number }) => {
         id="canvas"
         height={props.y}
         width={props.x}
-        style={{ border: '1px solid black', 
+        style={{ border: '1px solid black',
                 backgroundColor: 'white',
-                zIndex: -1, 
+                zIndex: -1,
                 position: 'absolute',
                 left: '0px',
                 top: '0px' }}
       ></canvas>
     </div>
-    
+
   );
   // Layered canvas
   // https://github.com/federicojacobi/layeredCanvas

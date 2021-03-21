@@ -98,7 +98,6 @@ const Cursor = ({ canvas }: { canvas: HTMLCanvasElement }) => {
   const Component = modeToCursor(mode)!.component;
   return (
     <div ref={ref} hidden={isHidden}>
-      {mode === 'draw'}
       <Component />
     </div>
   );
