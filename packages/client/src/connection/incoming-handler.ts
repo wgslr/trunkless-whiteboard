@@ -4,6 +4,7 @@ import { clientState } from '../store/auth';
 import * as linesStore from '../store/lines';
 import * as notesStore from '../store/notes';
 import { usersState } from '../store/users';
+import { actions as alertsActions } from '../store/alerts';
 import { decodeLineData, messageToNote } from './messages';
 
 export const handleConnected = () => {
@@ -64,6 +65,11 @@ export const handleMessage = (message: ServerToClientMessage): void => {
           state: 'NO_WHITEBOARD',
           username: clientState.v.username
         };
+        alertsActions.addAlert({
+          title: 'Entry denied',
+          message: 'The host denied your entry to the whiteboard',
+          level: 'warning'
+        });
       } else {
         console.warn('Received join denial in non-pending state');
       }
