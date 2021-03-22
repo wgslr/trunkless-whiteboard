@@ -3,7 +3,7 @@
 
 Digraph G {
   labelloc="t";
-  label="Line create";
+  label="Line create and update";
 
   subgraph cluster_u1 {
     label="client u1"

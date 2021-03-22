@@ -1,0 +1,36 @@
+
+# deeppink = message from server
+# blue = message to server
+
+Digraph G2 {
+    labelloc="t";
+    label="Lifecycle of a client becoming a whiteboard host";
+
+    "client: INITIALIZING"
+    -> "client: ANONYMOUS\nserver: ANONYMOUS"
+    [label = "connect websocket"]
+
+    "client: ANONYMOUS\nserver: ANONYMOUS"
+    -> "client: ANONYMOUS\nserver: NO_WHITEBOARD"
+    [label = "ClientHello", color = "deeppinK"]
+
+    "client: ANONYMOUS\nserver: NO_WHITEBOARD"
+    -> "client: NO_WHITEBOARD\nserver: NO_WHITEBOARD"
+    [label = "ResultSuccess", color = "blue"]
+
+    "client: NO_WHITEBOARD\nserver: NO_WHITEBOARD"
+    -> "client: NO_WHITEBOARD\nserver: HOST"
+    [label = "CreateWhiteboardRequest", color = "deeppink"]
+
+    "client: NO_WHITEBOARD\nserver: HOST"
+    -> "client: HOST\nserver: HOST"
+    [label = "ResultSuccess", color = "blue"]
+
+    "client: HOST\nserver: HOST"
+    -> "client: HOST\nserver: HOST"
+    [label = "participate in the whiteboard", style="dashed"]
+
+    "client: HOST\nserver: HOST"
+    -> "client: disconnected\nserver: disconnected"
+    [label = "disconnect"]
+}

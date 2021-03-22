@@ -1,0 +1,67 @@
+# deeppink = message from server
+# blue = message to server
+
+Digraph G2 {
+    labelloc="t";
+    label="Lifecycle of a client joining a whiteboard";
+
+    join_error [label = "client: NO_WHITEBOARD\nserver: NO_WHITEBOARD"]
+
+    "client: INITIALIZING"
+    -> "client: ANONYMOUS\nserver: ANONYMOUS"
+    [label = "connect websocket"]
+
+    "client: ANONYMOUS\nserver: ANONYMOUS"
+    -> "client: ANONYMOUS\nserver: NO_WHITEBOARD"
+    [label = "ClientHello", color = "deeppinK"]
+
+    "client: ANONYMOUS\nserver: NO_WHITEBOARD"
+    -> "client: NO_WHITEBOARD\nserver: NO_WHITEBOARD"
+    [label = "ResultSuccess", color = "blue"]
+
+    "client: NO_WHITEBOARD\nserver: NO_WHITEBOARD"
+    -> "client: NO_WHITEBOARD\nserver: PENDING_APPROVAL"
+    [label = "JoinWhiteboard", color = "deeppink"]
+
+
+    "client: NO_WHITEBOARD\nserver: NO_WHITEBOARD"
+    -> join_error // "client: NO_WHITEBOARD\nserver: NO_WHITEBOARD"
+    [label = "JoinWhiteboard", color = "deeppink"]
+
+    join_error
+    -> "client: NO_WHITEBOARD\nserver: NO_WHITEBOARD" // "client: NO_WHITEBOARD\nserver: NO_WHITEBOARD"
+    [label = "ErrorResponse", color = "blue"]
+
+    "client: NO_WHITEBOARD\nserver: PENDING_APPROVAL"
+    -> "client: PENDING_APPROVAL\nserver: PENDING_APPROVAL"
+    [label = "ResultSuccess", color="blue"]
+    
+    "client: NO_WHITEBOARD\nserver: PENDING_APPROVAL"
+    -> "client: PENDING_APPROVAL\nserver: PENDING_APPROVAL"
+    [label = "to host: ClientWantsToJoin", color="grey"]
+
+    "client: PENDING_APPROVAL\nserver: PENDING_APPROVAL"
+    -> "client: PENDING_APPROVAL\nserver: USER"
+    [label = "from host: ApproveOrDenyJoin(true)", color="grey"]
+
+    "client: PENDING_APPROVAL\nserver: USER"
+    -> "client: USER\nserver: USER"
+    [label = "JoinApproved", color="blue"]
+
+    "client: PENDING_APPROVAL\nserver: PENDING_APPROVAL"
+    -> "client: PENDING_APPROVAL\nserver: NO_WHITEBOARD"
+    [label = "from host: ApproveOrDenyJoin(false)", color="grey"]
+
+    "client: PENDING_APPROVAL\nserver: NO_WHITEBOARD"
+    -> "client: NO_WHITEBOARD\nserver: NO_WHITEBOARD"
+    [label = "JoinDenied", color="blue"]
+
+
+    "client: USER\nserver: USER"
+    -> "client: USER\nserver: USER"
+    [label = "participate in the whiteboard", style="dashed"]
+
+    "client: USER\nserver: USER"
+    -> "client: disconnected\nserver: disconnected"
+    [label = "disconnect"]
+}
