@@ -4,22 +4,48 @@ import Canvas from './Canvas';
 import Stickies from './Stickies';
 import Tools from './Tools';
 import UndoTool from './UndoTool';
+import * as htmlToImage from 'html-to-image';
+import download from 'downloadjs';
+import { actions as alertActions } from '../../store/alerts';
+import SaveTool from './SaveTool';
 
-const Editor = (props: { x: number; y: number }) => (
-  <div
-    id="editor"
-    style={{
-      height: props.y,
-      width: props.x
-    }}
-  >
-    <div>
-      <Tools />
-      <UndoTool onClick={undo} />
+const EDITOR_FIELD_ID = 'editor-field';
+
+const Editor = (props: { x: number; y: number }) => {
+  const handleSave = () => {
+    const filenameSafeDate = (new Date()).toISOString().replace(/:/g, '-');
+    const filename = `${filenameSafeDate}-whiteboard.png`;
+    htmlToImage
+      .toPng(document.getElementById(EDITOR_FIELD_ID)!)
+      .then((dataUrl: string) => download(dataUrl, filename))
+      .catch((error: Error) =>
+        alertActions.addAlert({
+          title: 'Could not save whiteboard as image.',
+          message: error.message,
+          level: 'error'
+        })
+      );
+  };
+
+  return (
+    <div
+      id="editor"
+      style={{
+        height: props.y,
+        width: props.x
+      }}
+    >
+      <div>
+        <Tools />
+        <SaveTool onClick={handleSave} />
+        <UndoTool onClick={undo} />
+      </div>
+      <div id={EDITOR_FIELD_ID}>
+        <Stickies />
+        <Canvas {...props} />
+      </div>
     </div>
-    <Stickies />
-    <Canvas {...props} />
-  </div>
-);
+  );
+};
 
 export default Editor;
