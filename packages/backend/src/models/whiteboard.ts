@@ -56,7 +56,6 @@ export enum OperationType {
   NOTE_MOVE,
   NOTE_DELETE,
   IMG_ADD,
-  IMG_MOVE,
   ADD_PENDING_CLIENT,
   APPROVE_PENDING_CLIENT,
   DENY_PENDING_CLIENT
@@ -139,13 +138,6 @@ export type Operation =
       type: OperationType.IMG_ADD;
       data: {
         img: Img;
-        causedBy: ClientToServerMessage['messageId'];
-      };
-    }
-  | {
-      type: OperationType.IMG_MOVE;
-      data: {
-        change: Pick<Img, 'id' | 'position'>;
         causedBy: ClientToServerMessage['messageId'];
       };
     };
@@ -376,6 +368,47 @@ export class Whiteboard {
         }
         break;
       }
+      case OperationType.NOTE_MOVE: {
+        const { change, causedBy } = op.data;
+        if (change.position && !this.areCoordsWithinBounds(change.position)) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
+            }),
+            causedBy
+          );
+          return;
+        }
+        const note = this.notes.get(change.id);
+        if (!note) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.FIGURE_NOT_EXISTS
+            }),
+            causedBy
+          );
+          return;
+        }
+        const updated = {
+          ...note,
+          position: change.position ?? note.position
+        };
+
+        this.notes.set(note.id, updated);
+        this.sendToClients(
+          {
+            $case: 'noteCreatedOrUpdated',
+            noteCreatedOrUpdated: {
+              note: noteToMessage(updated)
+            }
+          },
+          causedBy
+        );
+
+        break;
+      }
       case OperationType.IMG_ADD: {
         const { img: imgData, causedBy } = op.data;
         const img: Img = {
@@ -402,37 +435,6 @@ export class Whiteboard {
             causedBy
           );
         }
-        break;
-      }
-      case OperationType.IMG_MOVE: {
-        const { change, causedBy } = op.data;
-        if (!this.areCoordsWithinBounds(change.position)) {
-          client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
-            }),
-            causedBy
-          );
-          return;
-        }
-        const img = this.images.get(change.id);
-        if (!img) {
-          client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.FIGURE_NOT_EXISTS
-            }),
-            causedBy
-          );
-          return;
-        }
-        const updated = {
-          ...img,
-          position: change.position
-        };
-
-        this.images.set(img.id, updated);
         break;
       }
       case OperationType.ADD_PENDING_CLIENT: {
