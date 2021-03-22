@@ -61,7 +61,8 @@ export const imageToMessage = (img: Img): ImageProto => ({
 export const messageToImage = (imgMsg: ImageProto): Img => ({
   id: uuid.stringify(imgMsg.id),
   data: imgMsg.data,
-  position: imgMsg.position!
+  position: imgMsg.position!,
+  zIndex: imgMsg.zIndex
 });
 
 export const newServerToClientMessage = (

@@ -34,6 +34,7 @@ export type Img = {
   id: UUID;
   position: Coordinates;
   data: Uint8Array;
+  zIndex: number;
 };
 
 export type Line = {
@@ -376,7 +377,11 @@ export class Whiteboard {
         break;
       }
       case OperationType.IMG_ADD: {
-        const { img, causedBy } = op.data;
+        const { img: imgData, causedBy } = op.data;
+        const img: Img = {
+          ...imgData,
+          zIndex: this.images.size
+        };
         if (!this.areCoordsWithinBounds(img.position)) {
           client.send(
             resultToMessage({

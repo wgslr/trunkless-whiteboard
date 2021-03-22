@@ -29,6 +29,7 @@ message Image {
   bytes id = 1;
   Coordinates position = 2;
   bytes data = 3;
+  int32 z_index = 4;
 }
 
 message CreateImage { Image image = 1; }

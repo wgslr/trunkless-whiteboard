@@ -26,6 +26,7 @@ export type Img = {
   id: UUID;
   position: Coordinates;
   data: Uint8Array; // ts img object?
+  zIndex: number;
 };
 
 export enum MessageCode {

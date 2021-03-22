@@ -45,7 +45,15 @@ export const getEffectiveImg = (it: ImgTimeline): Img | null => {
       current.position = diff.position;
     }
 
-    if (current.position !== undefined && current.data !== undefined) {
+    if (diff.zIndex !== undefined && current.zIndex === undefined) {
+      current.zIndex = diff.zIndex;
+    }
+
+    if (
+      current.position !== undefined &&
+      current.data !== undefined &&
+      current.zIndex !== undefined
+    ) {
       console.debug(
         `Processed image '${current.id}' timeline with ${
           it.committed ? 'non-null' : 'null'

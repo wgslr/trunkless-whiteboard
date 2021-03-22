@@ -4,7 +4,7 @@ import { addNote } from '../../controllers/note-controller';
 import { addImage } from '../../controllers/image-controller';
 import { useEffectiveLines, useEffectiveImages } from '../../store/hooks';
 import { useDrawing } from '../drawing-state';
-import render from '../render';
+import { renderLines, renderImages } from '../render';
 import { modeState, imgState } from '../state';
 
 const Canvas = (props: { x: number; y: number }) => {
@@ -34,18 +34,13 @@ const Canvas = (props: { x: number; y: number }) => {
 
   // Main render function
   useEffect(() => {
-    render(getCtx(1)!, whiteboardCanvas.current!, [...effectiveLines.values()]);
+    renderLines(getCtx(1)!, whiteboardCanvas.current!, [
+      ...effectiveLines.values()
+    ]);
   }, [effectiveLines]);
 
   useEffect(() => {
-    Array.from(effectiveImages.values()).forEach(image => {
-      const img = new Image();
-      const blob = new Blob([image.data], { type: 'application/octet-binary' });
-      img.src = URL.createObjectURL(blob);
-      img.addEventListener('load', () =>
-        getCtx(2)!.drawImage(img, image.position.x, image.position.y)
-      );
-    });
+    renderImages(getCtx(2)!, effectiveImages);
   }, [effectiveImages]);
 
   useEffect(() => {
