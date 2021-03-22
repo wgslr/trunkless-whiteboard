@@ -18,14 +18,6 @@ export const makeCreateImageMessage = (
   }
 });
 
-export const makeUpdateImagePosMessage = (
-  id: Img['id'],
-  pos: Img['position']
-): ClientToServerMessage['body'] => ({
-  $case: 'updateImagePosition',
-  updateImagePosition: { imageId: encodeUUID(id), position: pos }
-});
-
 export const makeCreateNoteMessage = (
   note: Note
 ): ClientToServerMessage['body'] => ({

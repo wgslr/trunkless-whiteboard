@@ -40,8 +40,8 @@ export const handleMessage = (message: ServerToClientMessage): void => {
       notesStore.setServerState(id, null);
       break;
     }
-    case 'imageCreatedOrUpdated': {
-      const imgData = messageToImage(message.body.imageCreatedOrUpdated.image!);
+    case 'imageCreated': {
+      const imgData = messageToImage(message.body.imageCreated.image!);
       imagesStore.setServerState(imgData.id, imgData);
       break;
     }

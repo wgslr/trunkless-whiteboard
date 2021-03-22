@@ -394,8 +394,8 @@ export class Whiteboard {
           this.images.set(img.id, img);
           this.sendToClients(
             {
-              $case: 'imageCreatedOrUpdated',
-              imageCreatedOrUpdated: {
+              $case: 'imageCreated',
+              imageCreated: {
                 image: imageToMessage(img)
               }
             },
@@ -561,8 +561,8 @@ export class Whiteboard {
     }
     for (const [, img] of this.images) {
       client.send({
-        $case: 'imageCreatedOrUpdated',
-        imageCreatedOrUpdated: {
+        $case: 'imageCreated',
+        imageCreated: {
           image: imageToMessage(img)
         }
       });

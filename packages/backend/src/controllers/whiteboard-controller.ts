@@ -136,27 +136,6 @@ export const handleWhiteboardMessage = (
       );
       return;
     }
-    case 'updateImagePosition': {
-      const { imageId, position } = message.body.updateImagePosition;
-      if (position === undefined) {
-        client.send(makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED)); // CHANGE TO: ErrorReason.INVALID_MESSAGE
-      } else {
-        whiteboard.handleOperation(
-          {
-            type: OperationType.IMG_MOVE,
-            data: {
-              causedBy: message.messageId,
-              change: {
-                id: decodeUUID(imageId),
-                position
-              }
-            }
-          },
-          client
-        );
-      }
-      return;
-    }
     case 'updateNotePosition': {
       const { noteId, position } = message.body.updateNotePosition;
       if (position === undefined) {

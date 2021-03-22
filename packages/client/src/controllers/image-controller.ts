@@ -1,8 +1,5 @@
 import { v4 } from 'uuid';
-import {
-  makeCreateImageMessage,
-  makeUpdateImagePosMessage
-} from '../connection/messages';
+import { makeCreateImageMessage } from '../connection/messages';
 import { reqResponseService } from '../connection/ServerContext';
 import { ClientToServerMessage } from '../protocol/protocol';
 import { discardPatch, localAddImage, localUpdatePos } from '../store/images';
@@ -22,16 +19,4 @@ export const addImage = (position: Coordinates, data: Uint8Array) => {
     // undoes the changes.
     discardPatch(image.id, patchId);
   });
-};
-
-export const updateImagePosition = (
-  figureId: Img['id'],
-  newPos: Coordinates
-): void => {
-  const patchId = localUpdatePos(figureId, newPos);
-  const body: ClientToServerMessage['body'] = makeUpdateImagePosMessage(
-    figureId,
-    newPos
-  );
-  reqResponseService.send(body, () => discardPatch(figureId, patchId));
 };
