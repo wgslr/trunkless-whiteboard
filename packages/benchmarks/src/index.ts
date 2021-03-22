@@ -86,7 +86,17 @@ const createLine = async (client: Client) => {
 };
 
 const clientsN = parseInt(process.argv[2]);
+if (isNaN(clientsN)) {
+  console.error('Requires at least one numeric parameter.');
+  process.exit(1);
+}
 const talkerClients = Math.min(parseInt(process.argv[2] || '1'), clientsN);
+
+const outputFile = process.argv[3];
+const log = (message: string) =>
+  outputFile != null
+    ? fs.appendFileSync(outputFile, message + '\n')
+    : console.log(message);
 
 const runTest = async () => {
   const messageN = 100;
@@ -117,13 +127,13 @@ const runTest = async () => {
   if (grouped.length > 0) {
     const t0 = fp.min(grouped.map(g => g.sent.timestamp))!;
 
-    console.log('t;min;max;avg;');
+    log('t,min,max,avg');
     grouped.forEach(g => {
       const l = groupToLatency(g);
-      console.log(
+      log(
         [g.sent.timestamp - t0, l.min, l.max, l.mean]
           .map(x => x! / 1000n) // convert to microsecond
-          .join(';')
+          .join(',')
       );
     });
   }
