@@ -1,7 +1,8 @@
+/* eslint-disable no-unused-vars */
 import { encodeUUID } from 'encoding';
 import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
-import { noteToMessage, resultToMessage } from '../encoding';
+import { noteToMessage, resultToMessage, imageToMessage } from '../encoding';
 import {
   ClientToServerMessage,
   Coordinates,
@@ -29,6 +30,13 @@ export type Note = {
   text: string;
 };
 
+export type Img = {
+  id: UUID;
+  position: Coordinates;
+  data: Uint8Array;
+  zIndex: number;
+};
+
 export type Line = {
   id: UUID;
   points: Coordinates[];
@@ -36,6 +44,7 @@ export type Line = {
 
 export type LinePatch = Line;
 
+/* eslint-disable-next-line no-shadow */
 export enum OperationType {
   FIGURE_MOVE,
   LINE_CREATE,
@@ -46,6 +55,8 @@ export enum OperationType {
   NOTE_UPADTE,
   NOTE_MOVE,
   NOTE_DELETE,
+  IMG_ADD,
+  IMG_MOVE,
   ADD_PENDING_CLIENT,
   APPROVE_PENDING_CLIENT,
   DENY_PENDING_CLIENT
@@ -123,8 +134,23 @@ export type Operation =
       data: {
         deniedClient: ClientConnection;
       };
+    }
+  | {
+      type: OperationType.IMG_ADD;
+      data: {
+        img: Img;
+        causedBy: ClientToServerMessage['messageId'];
+      };
+    }
+  | {
+      type: OperationType.IMG_MOVE;
+      data: {
+        change: Pick<Img, 'id' | 'position'>;
+        causedBy: ClientToServerMessage['messageId'];
+      };
     };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 class OperationError extends Error {
   constructor(message?: string) {
     super(message);
@@ -142,6 +168,7 @@ export class Whiteboard {
   pendingClients: Map<ClientConnection['id'], ClientConnection> = new Map();
   notes: Map<Note['id'], Note> = new Map();
   lines: Map<Line['id'], Line> = new Map();
+  images: Map<Img['id'], Img> = new Map();
 
   constructor(host: ClientConnection, id?: UUID) {
     this.id = id ?? uuidv4();
@@ -349,7 +376,35 @@ export class Whiteboard {
         }
         break;
       }
-      case OperationType.NOTE_MOVE: {
+      case OperationType.IMG_ADD: {
+        const { img: imgData, causedBy } = op.data;
+        const img: Img = {
+          ...imgData,
+          zIndex: this.images.size
+        };
+        if (!this.areCoordsWithinBounds(img.position)) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
+            }),
+            causedBy
+          );
+        } else {
+          this.images.set(img.id, img);
+          this.sendToClients(
+            {
+              $case: 'imageCreated',
+              imageCreated: {
+                image: imageToMessage(img)
+              }
+            },
+            causedBy
+          );
+        }
+        break;
+      }
+      case OperationType.IMG_MOVE: {
         const { change, causedBy } = op.data;
         if (!this.areCoordsWithinBounds(change.position)) {
           client.send(
@@ -361,8 +416,8 @@ export class Whiteboard {
           );
           return;
         }
-        const note = this.notes.get(change.id);
-        if (!note) {
+        const img = this.images.get(change.id);
+        if (!img) {
           client.send(
             resultToMessage({
               result: 'error',
@@ -373,21 +428,11 @@ export class Whiteboard {
           return;
         }
         const updated = {
-          ...note,
+          ...img,
           position: change.position
         };
 
-        this.notes.set(note.id, updated);
-        this.sendToClients(
-          {
-            $case: 'noteCreatedOrUpdated',
-            noteCreatedOrUpdated: {
-              note: noteToMessage(updated)
-            }
-          },
-          causedBy
-        );
-
+        this.images.set(img.id, updated);
         break;
       }
       case OperationType.ADD_PENDING_CLIENT: {
@@ -435,6 +480,7 @@ export class Whiteboard {
             }))
           }
         });
+        this.bootstrapClient(approvedClient);
         break;
       }
       case OperationType.DENY_PENDING_CLIENT: {
@@ -510,6 +556,14 @@ export class Whiteboard {
         $case: 'noteCreatedOrUpdated',
         noteCreatedOrUpdated: {
           note: noteToMessage(note)
+        }
+      });
+    }
+    for (const [, img] of this.images) {
+      client.send({
+        $case: 'imageCreated',
+        imageCreated: {
+          image: imageToMessage(img)
         }
       });
     }

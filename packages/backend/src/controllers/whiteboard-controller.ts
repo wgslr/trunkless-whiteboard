@@ -3,7 +3,8 @@ import {
   makeErrorMessage,
   makeSuccessMessage,
   messageToLine,
-  messageToNote
+  messageToNote,
+  messageToImage
 } from '../encoding';
 import { ClientConnection } from '../models/client-connection';
 import { OperationType } from '../models/whiteboard';
@@ -118,6 +119,18 @@ export const handleWhiteboardMessage = (
         {
           type: OperationType.NOTE_DELETE,
           data: { causedBy: message.messageId, noteId: decodeUUID(noteId) }
+        },
+        client
+      );
+      return;
+    }
+    case 'createImage': {
+      const body = message.body.createImage;
+      const data = messageToImage(body.image!);
+      whiteboard.handleOperation(
+        {
+          type: OperationType.IMG_ADD,
+          data: { img: data, causedBy: message.messageId }
         },
         client
       );

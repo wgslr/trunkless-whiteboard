@@ -2,10 +2,21 @@ import * as uuid from 'uuid';
 import {
   ClientToServerMessage,
   Line as LineProto,
-  Note as NoteProto
+  Note as NoteProto,
+  Image as ImageProto
 } from '../protocol/protocol';
-import type { Line, Note, UUID } from '../types';
+import type { Line, Note, Img } from '../types';
 import { coordToNumber, numberToCoord } from '../utils';
+import { encodeUUID, decodeUUID } from 'encoding';
+
+export const makeCreateImageMessage = (
+  img: Img
+): ClientToServerMessage['body'] => ({
+  $case: 'createImage',
+  createImage: {
+    image: imageToMessage(img)
+  }
+});
 
 export const makeCreateNoteMessage = (
   note: Note
@@ -113,38 +124,35 @@ export const makeApproveOrDenyJoinMessage = (
   }
 });
 
-// TODO deduplciate with backend code
-const encodeUUID = (id: UUID): Uint8Array => Uint8Array.from(uuid.parse(id));
+export const decodeLineData = (data: LineProto): Line => ({
+  id: decodeUUID(data.id),
+  points: new Set(data.points.map(coordToNumber))
+});
 
-const decodeUUID = (id: Uint8Array): UUID => uuid.stringify(id);
+export const lineToMessage = (line: Line): LineProto => ({
+  id: encodeUUID(line.id),
+  points: [...line.points].map(numberToCoord)
+});
 
-export function decodeLineData(data: LineProto): Line {
-  const points = data.points;
+export const noteToMessage = (note: Note): NoteProto => ({
+  ...note,
+  id: encodeUUID(note.id)
+});
 
-  return {
-    id: decodeUUID(data.id),
-    points: new Set(data.points.map(coordToNumber))
-  };
-}
+export const messageToNote = (noteMsg: NoteProto): Note => ({
+  id: uuid.stringify(noteMsg.id),
+  text: noteMsg.text,
+  position: noteMsg.position!
+});
 
-export function lineToMessage(line: Line): LineProto {
-  return {
-    id: encodeUUID(line.id),
-    points: [...line.points].map(numberToCoord)
-  };
-}
+export const imageToMessage = (img: Img): ImageProto => ({
+  ...img,
+  id: encodeUUID(img.id)
+});
 
-export function noteToMessage(note: Note): NoteProto {
-  return {
-    ...note,
-    id: encodeUUID(note.id)
-  };
-}
-
-export function messageToNote(noteMsg: NoteProto): Note {
-  return {
-    id: uuid.stringify(noteMsg.id),
-    text: noteMsg.text,
-    position: noteMsg.position!
-  };
-}
+export const messageToImage = (imgMsg: ImageProto): Img => ({
+  id: uuid.stringify(imgMsg.id),
+  data: imgMsg.data,
+  position: imgMsg.position!,
+  zIndex: imgMsg.zIndex
+});

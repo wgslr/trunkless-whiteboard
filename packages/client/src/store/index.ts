@@ -1,11 +1,40 @@
-import type { Line, Note } from '../types';
+import type { Line, Note, Img } from '../types';
 import { removeNullish } from '../utils';
-import { sendLinesUpdate, sendNotesUpdate } from './hooks';
+import { sendLinesUpdate, sendNotesUpdate, sendImgsUpdate } from './hooks';
 import { getEffectiveLine, LineTimeline } from './timelines/line';
 import { getEffectiveNote, NoteTimeline } from './timelines/note';
+import { getEffectiveImg, ImgTimeline } from './timelines/image';
+import fp from 'lodash/fp';
 
 const noteTimelines: { [noteId: string]: NoteTimeline } = Object.create(null);
 const lineTimelines: { [lineId: string]: LineTimeline } = Object.create(null);
+const imgTimelines: { [imgId: string]: ImgTimeline } = Object.create(null);
+
+export const updateImages = <T>(
+  callback: (nTimelines: typeof imgTimelines) => T
+): T => {
+  const result = callback(imgTimelines);
+  effectiveImgsCache = null;
+  sendImgsUpdate();
+  return result;
+};
+
+let effectiveImgsCache: Img[] | null = null;
+const calculateEffectiveImgs = (): void => {
+  const imgTimelinesArray = Object.values(imgTimelines);
+  // sort the images for deterministic drawing order
+  effectiveImgsCache = fp.sortBy(
+    img => img.zIndex,
+    removeNullish(imgTimelinesArray.map(getEffectiveImg))
+  );
+};
+
+export const getEffectiveImgs = (): Img[] => {
+  if (effectiveImgsCache === null) {
+    calculateEffectiveImgs();
+  }
+  return effectiveImgsCache!;
+};
 
 const clearObj = (o: any): void => {
   for (const key of Object.keys(o)) {
@@ -39,9 +68,10 @@ let effectiveNotesCache: Map<Note['id'], Note> | null = null;
 const calculateEffectiveNotes = (): void => {
   const noteTimelinesArray = Object.values(noteTimelines);
   effectiveNotesCache = new Map(
-    removeNullish(
-      noteTimelinesArray.map(nt => getEffectiveNote(nt))
-    ).map(note => [note.id, note])
+    removeNullish(noteTimelinesArray.map(getEffectiveNote)).map(note => [
+      note.id,
+      note
+    ])
   );
 };
 
@@ -56,9 +86,10 @@ let effectiveLinesCache: Map<Line['id'], Line> | null = null;
 const calculateEffectiveLines = (): void => {
   const lineTimelinesArray = Object.values(lineTimelines);
   effectiveLinesCache = new Map(
-    removeNullish(
-      lineTimelinesArray.map(lt => getEffectiveLine(lt))
-    ).map(line => [line.id, line])
+    removeNullish(lineTimelinesArray.map(getEffectiveLine)).map(line => [
+      line.id,
+      line
+    ])
   );
 };
 

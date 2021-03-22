@@ -3,9 +3,10 @@ import { errorReasonToJSON, ServerToClientMessage } from '../protocol/protocol';
 import { clientState } from '../store/auth';
 import * as linesStore from '../store/lines';
 import * as notesStore from '../store/notes';
+import * as imagesStore from '../store/images';
 import { usersState } from '../store/users';
 import { actions as alertsActions } from '../store/alerts';
-import { decodeLineData, messageToNote } from './messages';
+import { decodeLineData, messageToImage, messageToNote } from './messages';
 
 export const handleConnected = () => {
   clientState.v = { state: 'ANONYMOUS' };
@@ -37,6 +38,11 @@ export const handleMessage = (message: ServerToClientMessage): void => {
     case 'noteDeleted': {
       const id = decodeUUID(message.body.noteDeleted.noteId);
       notesStore.setServerState(id, null);
+      break;
+    }
+    case 'imageCreated': {
+      const imgData = messageToImage(message.body.imageCreated.image!);
+      imagesStore.setServerState(imgData.id, imgData);
       break;
     }
     case 'clientWantsToJoin': {
