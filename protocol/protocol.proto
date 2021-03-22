@@ -14,12 +14,6 @@ enum ErrorReason {
   USER_DOES_NOT_EXIST = 7;
 }
 
-enum FigureType {
-  NOTE = 0;
-  LINE = 1;
-  IMAGE = 2;
-}
-
 message Coordinates {
   int32 x = 1;
   int32 y = 2;
