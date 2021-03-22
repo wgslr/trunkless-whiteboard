@@ -25,6 +25,7 @@ export const WhiteboardPrompt: React.FunctionComponent = () => {
           minLength={36}
           value={whiteboardId}
           onChange={e => setWhiteboardId(e.target.value)}
+          autoFocus
         />
         <input
           type="submit"

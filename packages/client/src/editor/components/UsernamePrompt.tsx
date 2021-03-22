@@ -16,6 +16,7 @@ export const UsernamePrompt: React.FunctionComponent = () => {
           value={username}
           onChange={e => setUsername(e.target.value)}
           required
+          autoFocus
         />
         <input type="submit" value="Set username" />
       </form>
