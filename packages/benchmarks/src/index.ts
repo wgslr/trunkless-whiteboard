@@ -4,6 +4,8 @@ import { Client } from './client';
 import { MAX_HEIGHT } from './config';
 import { getGroupedByTrigger } from './message-log';
 import { groupToLatency } from './message-processing';
+import fp from 'lodash/fp';
+import { group } from 'node:console';
 
 // const client = new Client();
 
@@ -62,7 +64,6 @@ const setupWhiteboard = async (clientsNum: number) => {
     })
   );
   const whiteboardId = await createWhiteboard(host);
-  console.log(whiteboardId);
   // do serially for getNextMessage to work reliably
   for (const user of users) {
     await addClientToWhiteboard(host, user, whiteboardId);
@@ -85,56 +86,47 @@ const createLine = async (client: Client) => {
 };
 
 const clientsN = parseInt(process.argv[2]);
-console.log({ clientsN });
+const talkerClients = Math.min(parseInt(process.argv[2] || '1'), clientsN);
 
 const runTest = async () => {
   const messageN = 1000;
-  const [host, ...clients] = await setupWhiteboard(clientsN);
+  const clients = await setupWhiteboard(clientsN);
 
-  const lineId = await createLine(host);
-  const sendTimestamps = [];
+  const lineId = await createLine(clients[0]);
   const promises = [];
   for (let i = 0; i < messageN; ++i) {
-    sendTimestamps.push(process.hrtime.bigint());
-    promises.push(
-      host.send({
-        $case: 'addPointsToLine',
-        addPointsToLine: {
-          lineId,
-          points: [{ x: Math.floor(i / MAX_HEIGHT), y: i % MAX_HEIGHT }]
-        }
-      })
-    );
+    for (let j = 0; j < talkerClients; ++j) {
+      promises.push(
+        clients[j].send({
+          $case: 'addPointsToLine',
+          addPointsToLine: {
+            lineId,
+            points: [{ x: Math.floor(i / MAX_HEIGHT), y: i % MAX_HEIGHT }]
+          }
+        })
+      );
+    }
     await sleep(50); // frequency of draw buffer flush
   }
-  console.log('waiting for acks');
   await Promise.all(promises);
   await sleep(1000); // give some time for all clients to receive
 
-  const grouped = getGroupedByTrigger();
-  console.log(grouped);
+  const grouped = getGroupedByTrigger().filter(
+    g => g.sent.message.body?.$case === 'addPointsToLine'
+  );
+  if (grouped.length > 0) {
+    const t0 = fp.min(grouped.map(g => g.sent.timestamp))!;
 
-  // const lineUpdateMessagesPerClient = clients
-  //   .map(c => c.receivedMessages)
-  //   .map(messageArray =>
-  //     messageArray
-  //       .filter(([_time, msg]) => msg.body?.$case === 'lineCreatedOrUpdated')
-  //       .slice(1) // drop the first one, which is the result of line creation and not update
-  //       .map(([time, _msg]) => time)
-  //   );
-
-  // const iterations = lodash
-  //   .zip(...lineUpdateMessagesPerClient)
-  //   .map(x => removeNullish(x));
-  // const latencies = lodash
-  //   .zip(sendTimestamps, iterations)
-  //   .filter(x => x[0] !== undefined && x[1] !== undefined)
-  //   .map(x => processIteration(x[0]!, removeNullish(x[1]!))); // a lot of forcing undefined out of types
-
-  console.log('min;max;avg;');
-  grouped.map(groupToLatency).forEach(l => {
-    console.log([l.min, l.max, l.mean].map(x => x / 1000n).join(';'));
-  });
+    console.log('t;min;max;avg;');
+    grouped.forEach(g => {
+      const l = groupToLatency(g);
+      console.log(
+        [(g.sent.timestamp - t0) / 1000n, l.min, l.max, l.mean]
+          .map(x => x / 1000n)
+          .join(';')
+      );
+    });
+  }
 
   clients.forEach(c => c.socket.close());
   process.exit(0);
