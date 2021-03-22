@@ -20,7 +20,7 @@ export const renderImages = async (
   ctx: CanvasRenderingContext2D,
   images: Img[]
 ) => {
-  const htmlImgs = await Promise.all(images.map(i => loadImage(i)));
+  const htmlImgs = await Promise.all(images.map(loadImage));
   htmlImgs.forEach(([image, htmlImg]) =>
     ctx.drawImage(htmlImg, image.position.x, image.position.y)
   );

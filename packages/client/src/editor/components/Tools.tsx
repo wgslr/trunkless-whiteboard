@@ -11,12 +11,11 @@ import Erase from '../../cursors/Erase';
 export default function Tools() {
   const [mode, setMode] = useRecoilState(modeState);
   const [, setImgData] = useRecoilState(imgState);
-  const imageUpload = useRef(null);
+  const imageUpload = useRef<HTMLInputElement>(null);
 
   const handleMode = (event: React.MouseEvent<HTMLElement>, newMode: Mode) => {
     if (newMode === 'image') {
-      // @ts-ignore: type definition is optional null, but it's set in the input below
-      imageUpload.current.click();
+      imageUpload.current!.click();
       setMode('image');
     } else if (newMode != null) {
       setMode(newMode);
@@ -25,8 +24,8 @@ export default function Tools() {
 
   const onImageUploadClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
-      let image = event.target.files[0];
-      let reader = new FileReader();
+      const image = event.target.files[0];
+      const reader = new FileReader();
       reader.readAsArrayBuffer(image);
       reader.onload = () => {
         setImgData(new Uint8Array(reader.result as ArrayBuffer));
