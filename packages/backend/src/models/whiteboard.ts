@@ -368,6 +368,47 @@ export class Whiteboard {
         }
         break;
       }
+      case OperationType.NOTE_MOVE: {
+        const { change, causedBy } = op.data;
+        if (change.position && !this.areCoordsWithinBounds(change.position)) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
+            }),
+            causedBy
+          );
+          return;
+        }
+        const note = this.notes.get(change.id);
+        if (!note) {
+          client.send(
+            resultToMessage({
+              result: 'error',
+              reason: ErrorReason.FIGURE_NOT_EXISTS
+            }),
+            causedBy
+          );
+          return;
+        }
+        const updated = {
+          ...note,
+          position: change.position ?? note.position
+        };
+
+        this.notes.set(note.id, updated);
+        this.sendToClients(
+          {
+            $case: 'noteCreatedOrUpdated',
+            noteCreatedOrUpdated: {
+              note: noteToMessage(updated)
+            }
+          },
+          causedBy
+        );
+
+        break;
+      }
       case OperationType.IMG_ADD: {
         const { img: imgData, causedBy } = op.data;
         const img: Img = {
