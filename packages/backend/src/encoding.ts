@@ -1,23 +1,73 @@
+import { decodeUUID } from 'encoding';
 import * as uuid from 'uuid';
-import { Line, ServerToClientMessage } from './protocol/protocol';
-import type { Result, UUID } from './types';
+import { Note, Line, Img } from './models/whiteboard';
+import {
+  ClientToServerMessage,
+  ErrorReason,
+  Line as LineProto,
+  Note as NoteProto,
+  Image as ImageProto,
+  ServerToClientMessage
+} from './protocol/protocol';
+import type { Result } from './types';
 
-export const encodeUUID = (id: UUID): Uint8Array =>
-  Uint8Array.from(uuid.parse(id));
+export type ClientToServerCase = NonNullable<
+  ClientToServerMessage['body']
+>['$case'];
 
-export const decodeUUID = (id: Uint8Array): UUID => uuid.stringify(id);
-
-export const resultToMessage = (result: Result): ServerToClientMessage => {
+export const resultToMessage = (
+  result: Result
+): ServerToClientMessage['body'] => {
   if (result.result === 'success') {
-    return { body: { $case: 'success', success: {} } };
+    return makeSuccessMessage();
   } else {
-    return { body: { $case: 'error', error: { reason: result.reason } } };
+    return makeErrorMessage(result.reason);
   }
 };
 
-export const messageToLine = (data: Line) => {
-  return {
-    id: decodeUUID(data.id),
-    bitmap: new Map(data.bitmap.map(point => [point.coordinates!, point.value]))
-  };
-};
+export const makeSuccessMessage = (): ServerToClientMessage['body'] => ({
+  $case: 'success',
+  success: {}
+});
+
+export const makeErrorMessage = (
+  reason: ErrorReason
+): ServerToClientMessage['body'] => ({
+  $case: 'error',
+  error: { reason }
+});
+
+export const messageToLine = (data: LineProto): Line => ({
+  id: decodeUUID(data.id),
+  points: data.points
+});
+
+export const noteToMessage = (note: Note): NoteProto => ({
+  ...note,
+  id: Uint8Array.from(uuid.parse(note.id))
+});
+
+export const messageToNote = (noteMsg: NoteProto): Note => ({
+  id: uuid.stringify(noteMsg.id),
+  text: noteMsg.text,
+  position: noteMsg.position!
+});
+
+export const imageToMessage = (img: Img): ImageProto => ({
+  ...img,
+  id: Uint8Array.from(uuid.parse(img.id))
+});
+
+export const messageToImage = (imgMsg: ImageProto): Img => ({
+  id: uuid.stringify(imgMsg.id),
+  data: imgMsg.data,
+  position: imgMsg.position!,
+  zIndex: imgMsg.zIndex
+});
+
+export const newServerToClientMessage = (
+  body: ServerToClientMessage['body']
+): ServerToClientMessage => ({
+  messageId: uuid.v4(),
+  body
+});

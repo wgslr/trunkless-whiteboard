@@ -1,9 +1,21 @@
 syntax = "proto3";
 
-enum FigureType {
-  NOTE = 0;
-  LINE = 1;
-  IMAGE = 2;
+/** Models used in the messages **/
+
+enum ErrorReason {
+  OPERATION_NOT_ALLOWED = 0;
+  WHITEBOARD_DOES_NOT_EXIST = 1;
+  COORDINATES_OUT_OF_BOUNDS = 2;
+  FIGURE_NOT_EXISTS = 3;
+  INTERNAL_SERVER_ERROR = 4;
+  INVALID_MESSAGE = 5;
+  HOST_DECLINED_JOIN = 6;
+  USER_DOES_NOT_EXIST = 7;
+}
+
+message ConnectedClient {
+  bytes client_id = 1;
+  string username = 2;
 }
 
 message Coordinates {
@@ -11,71 +23,123 @@ message Coordinates {
   int32 y = 2;
 }
 
-message Note {
-  /* UUID in byte representation. Saves bandwidth, but more
-     problematic in code */
-  bytes id = 1;
-  Coordinates coordinates = 2;
-  string content = 3;
-}
-
-message BitmapPoint {
-  Coordinates coordinates = 1;
-  int32 value = 2;
-}
-
 message Line {
   bytes id = 1;
-  repeated BitmapPoint bitmap = 2;
+  repeated Coordinates points = 2;
 }
 
-message CreateWhiteboardRequest {}
-message WhiteboardCreated { string whiteboard_id = 1; }
-
-// Requests that the server sends
-// information about all figures present in a whiteboard.
-message GetAllFiguresRequest {}
-
-//
-message GetAllFiguresResponse { repeated Note notes = 1; }
-
-message MoveFigure {
-  bytes figure_id = 1;
-  Coordinates new_coordinates = 2;
+message Note {
+  bytes id = 1;
+  Coordinates position = 2;
+  string text = 3;
 }
 
-message FigureMoved {
-  bytes figure_id = 1;
-  Coordinates new_coordinates = 2;
-}
-// Client sends this message to request joining a whiteboard
-message JoinWhiteboard { bytes whiteboard_id = 1; }
-
-enum ErrorReason {
-  OPERATION_NOT_ALLOWED = 0;
-  WHITEBOARD_DOES_NOT_EXIST = 1;
+message Image {
+  bytes id = 1;
+  Coordinates position = 2;
+  bytes data = 3;
+  int32 z_index = 4;
 }
 
-message ResultError { ErrorReason reason = 1; }
-message ResultSuccess {}
+/** Wrapper messages **/
 
 message ClientToServerMessage {
+  string message_id = 100;
   oneof body {
-    CreateWhiteboardRequest create_whiteboard_request = 1;
-    GetAllFiguresRequest get_all_figures_request = 2;
-    JoinWhiteboard join_whiteboard = 3;
-    MoveFigure move_figure = 5;
-    Line line_drawn = 6;
+    ClientHello client_hello = 1;
+    CreateWhiteboardRequest create_whiteboard_request = 10;
+    JoinWhiteboard join_whiteboard = 11;
+    ApproveOrDenyJoin approve_or_deny_join = 12;
+    CreateNote create_note = 20;
+    UpdateNoteText update_note_text = 21;
+    UpdateNotePosition update_note_position = 22;
+    DeleteNote delete_note = 23;
+    CreateLine create_line = 30;
+    AddPointsToLine add_points_to_line = 31;
+    RemovePointsFromLine remove_points_from_line = 32;
+    DeleteLine delete_line = 33;
+    CreateImage create_image = 40;
   }
 }
 
 message ServerToClientMessage {
+  string message_id = 100;
+  optional string caused_by = 101;
   oneof body {
-    ResultError error = 1;
-    ResultSuccess success = 2;
-    WhiteboardCreated whiteboard_created = 3;
-    GetAllFiguresResponse get_all_figures_response = 4;
-    FigureMoved figure_moved = 5;
-    Line line_drawn = 6;
+    ResultSuccess success = 1;
+    ResultError error = 2;
+    WhiteboardCreated whiteboard_created = 10;
+    ClientWantsToJoin client_wants_to_join = 11;
+    JoinApproved join_approved = 12;
+    JoinDenied join_denied = 13;
+    ConnectedClients connected_clients = 14;
+    NoteCreatedOrUpdated note_created_or_updated = 20;
+    NoteDeleted note_deleted = 21;
+    LineCreatedOrUpdated line_created_or_updated = 30;
+    LineDeleted line_deleted = 31;
+    ImageCreated image_created = 40;
   }
 }
+
+/** General-purpose messages **/
+
+message ResultSuccess {}
+message ResultError { ErrorReason reason = 2; }
+
+/** User management messages **/
+
+message ClientHello { string username = 1; }
+message ConnectedClients { repeated ConnectedClient connected_clients = 1; }
+
+message ClientWantsToJoin {
+  bytes client_id = 1;
+  string username = 2;
+}
+message ApproveOrDenyJoin {
+  bool approve = 1;
+  bytes client_id = 2;
+}
+
+message JoinApproved {}
+message JoinDenied {}
+
+message CreateWhiteboardRequest {}
+message JoinWhiteboard { bytes whiteboard_id = 1; }
+message WhiteboardCreated { bytes whiteboard_id = 1; }
+
+/** Line-related messages **/
+
+message CreateLine { Line line = 1; }
+message AddPointsToLine {
+  bytes line_id = 1;
+  repeated Coordinates points = 2;
+}
+message RemovePointsFromLine {
+  bytes line_id = 1;
+  repeated Coordinates points = 2;
+}
+message DeleteLine { bytes line_id = 1; }
+
+message LineCreatedOrUpdated { Line line = 1; }
+message LineDeleted { bytes line_id = 1; }
+
+/** Sticky note-related messages **/
+
+message CreateNote { Note note = 1; }
+message UpdateNotePosition {
+  bytes note_id = 1;
+  Coordinates position = 2;
+}
+message UpdateNoteText {
+  bytes note_id = 1;
+  string text = 2;
+}
+message DeleteNote { bytes note_id = 1; }
+
+message NoteCreatedOrUpdated { Note note = 1; }
+message NoteDeleted { bytes note_id = 1; }
+
+/** Image-related messages **/
+
+message CreateImage { Image image = 1; }
+message ImageCreated { Image image = 1; }

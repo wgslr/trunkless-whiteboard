@@ -1,70 +1,52 @@
-import { decodeUUID, messageToLine, resultToMessage } from '../encoding';
+import { makeErrorMessage } from '../encoding';
 import { ClientConnection } from '../models/client-connection';
-import {
-  addWhiteboard,
-  connectClient,
-  OperationType
-} from '../models/whiteboard';
-import { ClientToServerMessage } from '../protocol/protocol';
+import { ClientToServerMessage, ErrorReason } from '../protocol/protocol';
+import { ALLOWED_MESSAGES } from './allowed-messages';
+import { handleNobodyMessage as handleHandshakeMessage } from './anonymous-controller';
+import { handlePreWhiteboardMessage } from './pre-whiteboard-controller';
+import { handleWhiteboardMessage } from './whiteboard-controller';
+import logger from '../lib/logger';
 
 export const dispatch = (
   message: ClientToServerMessage,
   client: ClientConnection
-) => {
-  switch (message.body?.$case) {
-    case 'createWhiteboardRequest': {
-      client.whiteboard = addWhiteboard(client);
-      break;
-    }
-    case 'getAllFiguresRequest': {
-      if (client.whiteboard) {
-        client.send({
-          // @ts-ignore
-          body: {
-            $case: 'getAllFiguresResponse',
-            getAllFiguresResponse: {
-              // @ts-ignore: FIXME Figure and Note are not overlapping
-              notes: [...client.whiteboard.figures.values()].map(encodeNote)
-            }
-          }
-        });
-      }
-      break;
-    }
-    case 'joinWhiteboard': {
-      const whiteboardId = decodeUUID(message.body.joinWhiteboard.whiteboardId);
-      console.log(`Client wants to join whiteboard ${whiteboardId}`);
-      const result = connectClient(client, whiteboardId);
+): void => {
+  if (!message.body || !message.body.$case) {
+    return;
+  }
 
-      const response = resultToMessage(result);
-      client.send(response);
-      break;
-    }
-    case 'moveFigure': {
-      // TODO
-      break;
-    }
-    case 'lineDrawn': {
-      const data = message.body.lineDrawn;
-      const decodedData = messageToLine(data);
-      console.log(`Line drawn`, decodedData);
+  const $case = message.body?.$case;
 
-      if (client.whiteboard) {
-        client.whiteboard.handleOperation({
-          type: OperationType.LINE_ADD,
-          data: { line: decodedData }
-        });
-      } else {
-        console.warn(
-          'Received LineDrawn message from client not connected to a whiteboard'
-        );
-      }
-
-      break;
+  try {
+    if (
+      client.fsm.state === 'ANONYMOUS' &&
+      ALLOWED_MESSAGES.ANONYMOUS.includes($case)
+    ) {
+      handleHandshakeMessage(message, client);
+    } else if (
+      client.fsm.state === 'NO_WHITEBOARD' &&
+      ALLOWED_MESSAGES.NO_WHITEBOARD.includes($case)
+    ) {
+      handlePreWhiteboardMessage(message, client);
+    } else if (
+      (client.fsm.state === 'USER' && ALLOWED_MESSAGES.USER.includes($case)) ||
+      (client.fsm.state === 'HOST' && ALLOWED_MESSAGES.HOST.includes($case))
+    ) {
+      handleWhiteboardMessage(message, client);
+    } else {
+      logger.warn(
+        `Invalid client status (${client.fsm.state}) or message type (${message.body.$case})`
+      );
+      client.send(
+        makeErrorMessage(ErrorReason.OPERATION_NOT_ALLOWED),
+        message.messageId
+      );
     }
-    default: {
-      // TODO send error about unrecognized message
-      break;
-    }
+  } catch (error) {
+    logger.error(`Dispatch caught error: ${error}`, error);
+    client.send(
+      makeErrorMessage(ErrorReason.INTERNAL_SERVER_ERROR),
+      message.messageId
+    );
   }
 };

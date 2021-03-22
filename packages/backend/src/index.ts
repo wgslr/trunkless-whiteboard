@@ -1,4 +1,5 @@
 import server from './server';
+import logger from './lib/logger';
 
-const PORT = 3001;
-server.listen(PORT, () => console.log(`Listening on ${PORT}`));
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, () => logger.info(`Listening on ${PORT}`));

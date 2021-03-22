@@ -1,6 +1,13 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: rgb(225, 238, 255);
+}
+
 .App {
   text-align: center;
-  background-color: rgb(219, 219, 219);
 }
 
 .App-logo {
@@ -36,4 +43,54 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.stickersRoot {
+  position: relative;
+  z-index: 1;
+}
+
+.stickyNote {
+  position: absolute;
+  text-align: left;
+
+  min-width: '200px';
+  height: '100px';
+  background-color: #f2d233;
+}
+.stickyNote .delete {
+  cursor: pointer;
+  width: 15px;
+  vertical-align: top;
+}
+.stickyNote textarea {
+  max-width: calc(100% - 30px);
+  max-height: calc(100% - 30px);
+  background-color: #f2d233;
+  resize: none;
+}
+
+main {
+  display: flex;
+  justify-content: center;
+}
+
+form input {
+  margin-left: 10px;
+  margin-bottom: 10px;
+}
+
+.userList {
+  background-color: white;
+  background-color: white;
+  margin-top: 48px; /* Match height of editor toolbar */
+  margin-left: 20px;
+  padding: 20px;
+  height: 600px;
+  text-align: left;
+  border: 1px solid black;
+}
+
+.userList h2 {
+  margin-top: 0;
 }
