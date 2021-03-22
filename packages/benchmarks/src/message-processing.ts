@@ -1,4 +1,5 @@
 import { ReceivedMessage, SentMessage } from './message-log';
+import fp from 'lodash/fp';
 
 export type Group = {
   sent: SentMessage;
@@ -16,8 +17,8 @@ export const groupByTrigger = (
 
 export const groupToLatency = (group: Group) => {
   const deltas = group.received.map(r => r.timestamp - group.sent.timestamp);
-  const minLatency = min(deltas);
-  const maxLatency = max(deltas);
+  const minLatency = fp.min(deltas);
+  const maxLatency = fp.max(deltas);
   const meanLatency = avg(deltas);
   return {
     min: minLatency,
@@ -26,7 +27,5 @@ export const groupToLatency = (group: Group) => {
   };
 };
 
-const sum = (arr: bigint[]) => arr.reduce((acc, x) => acc + x, BigInt(0));
-const avg = (arr: bigint[]) => sum(arr) / BigInt(arr.length);
-const max = (arr: bigint[]) => arr.reduce((m, e) => (e > m ? e : m));
-const min = (arr: bigint[]) => arr.reduce((m, e) => (e < m ? e : m));
+const sum = (arr: bigint[]): bigint => arr.reduce((acc, x) => acc + x);
+const avg = (arr: bigint[]): bigint => sum(arr) / BigInt(arr.length);

@@ -89,7 +89,7 @@ const clientsN = parseInt(process.argv[2]);
 const talkerClients = Math.min(parseInt(process.argv[2] || '1'), clientsN);
 
 const runTest = async () => {
-  const messageN = 1000;
+  const messageN = 100;
   const clients = await setupWhiteboard(clientsN);
 
   const lineId = await createLine(clients[0]);
@@ -121,8 +121,8 @@ const runTest = async () => {
     grouped.forEach(g => {
       const l = groupToLatency(g);
       console.log(
-        [(g.sent.timestamp - t0) / 1000n, l.min, l.max, l.mean]
-          .map(x => x / 1000n)
+        [g.sent.timestamp - t0, l.min, l.max, l.mean]
+          .map(x => x! / 1000n) // convert to microsecond
           .join(';')
       );
     });
