@@ -90,7 +90,6 @@ message ClientWantsToJoin {
   bytes client_id = 1;
   string username = 2;
 }
-message CancelClientWantsToJoin { bytes client_id = 1; }
 message ApproveOrDenyJoin {
   bool approve = 1;
   bytes client_id = 2;
@@ -132,7 +131,6 @@ message ServerToClientMessage {
     LineDeleted line_deleted = 10;
     ImageCreated image_created = 12;
     ClientWantsToJoin client_wants_to_join = 30;
-    CancelClientWantsToJoin cancel_client_wants_to_join = 31;
     JoinApproved join_approved = 32;
     JoinDenied join_denied = 33;
     ConnectedClients connected_clients = 34;
