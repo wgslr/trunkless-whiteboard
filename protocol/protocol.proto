@@ -1,7 +1,6 @@
 syntax = "proto3";
 
-message ResultError { ErrorReason reason = 2; }
-message ResultSuccess {}
+/** Models used in the messages **/
 
 enum ErrorReason {
   OPERATION_NOT_ALLOWED = 0;
@@ -14,9 +13,25 @@ enum ErrorReason {
   USER_DOES_NOT_EXIST = 7;
 }
 
+message ConnectedClient {
+  bytes client_id = 1;
+  string username = 2;
+}
+
 message Coordinates {
   int32 x = 1;
   int32 y = 2;
+}
+
+message Line {
+  bytes id = 1;
+  repeated Coordinates points = 2;
+}
+
+message Note {
+  bytes id = 1;
+  Coordinates position = 2;
+  string text = 3;
 }
 
 message Image {
@@ -26,23 +41,73 @@ message Image {
   int32 z_index = 4;
 }
 
-message CreateImage { Image image = 1; }
+/** Wrapper messages **/
 
-// broadcasted to all
-message ImageCreated { Image image = 1; }
-
-message Note {
-  /* UUID in byte representation. Saves bandwidth, but more
-     problematic in code */
-  bytes id = 1;
-  Coordinates position = 2;
-  string text = 3;
+message ClientToServerMessage {
+  string message_id = 100;
+  oneof body {
+    ClientHello client_hello = 1;
+    CreateWhiteboardRequest create_whiteboard_request = 10;
+    JoinWhiteboard join_whiteboard = 11;
+    ApproveOrDenyJoin approve_or_deny_join = 12;
+    CreateNote create_note = 20;
+    UpdateNoteText update_note_text = 21;
+    UpdateNotePosition update_note_position = 22;
+    DeleteNote delete_note = 23;
+    CreateLine create_line = 30;
+    AddPointsToLine add_points_to_line = 31;
+    RemovePointsFromLine remove_points_from_line = 32;
+    DeleteLine delete_line = 33;
+    CreateImage create_image = 40;
+  }
 }
 
-message Line {
-  bytes id = 1;
-  repeated Coordinates points = 2;
+message ServerToClientMessage {
+  string message_id = 100;
+  optional string caused_by = 101;
+  oneof body {
+    ResultSuccess success = 1;
+    ResultError error = 2;
+    WhiteboardCreated whiteboard_created = 10;
+    ClientWantsToJoin client_wants_to_join = 11;
+    JoinApproved join_approved = 12;
+    JoinDenied join_denied = 13;
+    ConnectedClients connected_clients = 14;
+    NoteCreatedOrUpdated note_created_or_updated = 20;
+    NoteDeleted note_deleted = 21;
+    LineCreatedOrUpdated line_created_or_updated = 30;
+    LineDeleted line_deleted = 31;
+    ImageCreated image_created = 40;
+  }
 }
+
+/** General-purpose messages **/
+
+message ResultSuccess {}
+message ResultError { ErrorReason reason = 2; }
+
+/** User management messages **/
+
+message ClientHello { string username = 1; }
+message ConnectedClients { repeated ConnectedClient connected_clients = 1; }
+
+message ClientWantsToJoin {
+  bytes client_id = 1;
+  string username = 2;
+}
+message ApproveOrDenyJoin {
+  bool approve = 1;
+  bytes client_id = 2;
+}
+
+message JoinApproved {}
+message JoinDenied {}
+
+message CreateWhiteboardRequest {}
+message JoinWhiteboard { bytes whiteboard_id = 1; }
+message WhiteboardCreated { bytes whiteboard_id = 1; }
+
+/** Line-related messages **/
 
 message CreateLine { Line line = 1; }
 message AddPointsToLine {
@@ -58,6 +123,8 @@ message DeleteLine { bytes line_id = 1; }
 message LineCreatedOrUpdated { Line line = 1; }
 message LineDeleted { bytes line_id = 1; }
 
+/** Sticky note-related messages **/
+
 message CreateNote { Note note = 1; }
 message UpdateNotePosition {
   bytes note_id = 1;
@@ -69,70 +136,10 @@ message UpdateNoteText {
 }
 message DeleteNote { bytes note_id = 1; }
 
-// broadcasted to all
 message NoteCreatedOrUpdated { Note note = 1; }
 message NoteDeleted { bytes note_id = 1; }
 
-message ClientHello { string username = 1; }
+/** Image-related messages **/
 
-message CreateWhiteboardRequest {}
-message JoinWhiteboard { bytes whiteboard_id = 1; }
-message WhiteboardCreated { bytes whiteboard_id = 1; }
-
-message ConnectedClient {
-  bytes client_id = 1;
-  string username = 2;
-}
-message ConnectedClients { repeated ConnectedClient connected_clients = 1; }
-
-// message to the host
-message ClientWantsToJoin {
-  bytes client_id = 1;
-  string username = 2;
-}
-message ApproveOrDenyJoin {
-  bool approve = 1;
-  bytes client_id = 2;
-}
-
-// client approved or denied
-message JoinApproved {}
-message JoinDenied {}
-
-message ClientToServerMessage {
-  string message_id = 100;
-  oneof body {
-    CreateWhiteboardRequest create_whiteboard_request = 1;
-    JoinWhiteboard join_whiteboard = 2;
-    CreateNote create_note = 7;
-    UpdateNoteText update_note_text = 8;
-    UpdateNotePosition update_note_position = 9;
-    DeleteNote delete_note = 10;
-    CreateLine create_line = 20;
-    AddPointsToLine add_points_to_line = 21;
-    RemovePointsFromLine remove_points_from_line = 22;
-    DeleteLine delete_line = 23;
-    ClientHello client_hello = 30;
-    ApproveOrDenyJoin approve_or_deny_join = 31;
-    CreateImage create_image = 40;
-  }
-}
-
-message ServerToClientMessage {
-  string message_id = 100;
-  optional string caused_by = 101;
-  oneof body {
-    ResultError error = 1;
-    ResultSuccess success = 2;
-    WhiteboardCreated whiteboard_created = 3;
-    LineCreatedOrUpdated line_created_or_updated = 6;
-    NoteCreatedOrUpdated note_created_or_updated = 8;
-    NoteDeleted note_deleted = 9;
-    LineDeleted line_deleted = 10;
-    ImageCreated image_created = 12;
-    ClientWantsToJoin client_wants_to_join = 30;
-    JoinApproved join_approved = 32;
-    JoinDenied join_denied = 33;
-    ConnectedClients connected_clients = 34;
-  }
-}
+message CreateImage { Image image = 1; }
+message ImageCreated { Image image = 1; }
