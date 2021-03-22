@@ -56,7 +56,6 @@ export enum OperationType {
   NOTE_MOVE,
   NOTE_DELETE,
   IMG_ADD,
-  IMG_MOVE,
   ADD_PENDING_CLIENT,
   APPROVE_PENDING_CLIENT,
   DENY_PENDING_CLIENT
@@ -139,13 +138,6 @@ export type Operation =
       type: OperationType.IMG_ADD;
       data: {
         img: Img;
-        causedBy: ClientToServerMessage['messageId'];
-      };
-    }
-  | {
-      type: OperationType.IMG_MOVE;
-      data: {
-        change: Pick<Img, 'id' | 'position'>;
         causedBy: ClientToServerMessage['messageId'];
       };
     };
@@ -402,37 +394,6 @@ export class Whiteboard {
             causedBy
           );
         }
-        break;
-      }
-      case OperationType.IMG_MOVE: {
-        const { change, causedBy } = op.data;
-        if (!this.areCoordsWithinBounds(change.position)) {
-          client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
-            }),
-            causedBy
-          );
-          return;
-        }
-        const img = this.images.get(change.id);
-        if (!img) {
-          client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.FIGURE_NOT_EXISTS
-            }),
-            causedBy
-          );
-          return;
-        }
-        const updated = {
-          ...img,
-          position: change.position
-        };
-
-        this.images.set(img.id, updated);
         break;
       }
       case OperationType.ADD_PENDING_CLIENT: {
