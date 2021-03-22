@@ -2,27 +2,16 @@
 import { encodeUUID } from 'encoding';
 import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
-import { noteToMessage, resultToMessage, imageToMessage } from '../encoding';
+import { imageToMessage, noteToMessage, resultToMessage } from '../encoding';
+import logger from '../lib/logger';
 import {
   ClientToServerMessage,
   Coordinates,
   ErrorReason,
-  FigureType,
   ServerToClientMessage
 } from '../protocol/protocol';
 import { UUID } from '../types';
 import { ClientConnection } from './client-connection';
-import logger from '../lib/logger';
-
-export abstract class Figure {
-  id: UUID;
-  type: FigureType;
-  location: Coordinates;
-
-  constructor(id?: UUID) {
-    this.id = id || uuidv4();
-  }
-}
 
 export type Note = {
   id: UUID;
