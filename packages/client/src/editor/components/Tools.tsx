@@ -11,12 +11,11 @@ import Erase from '../../cursors/Erase';
 export default function Tools() {
   const [mode, setMode] = useRecoilState(modeState);
   const [, setImgData] = useRecoilState(imgState);
-  const imageUpload = useRef(null);
+  const imageUpload = useRef<HTMLInputElement>(null);
 
   const handleMode = (event: React.MouseEvent<HTMLElement>, newMode: Mode) => {
     if (newMode === 'image') {
-      // @ts-ignore: type definition is optional null, but it's set in the input below
-      imageUpload.current.click();
+      imageUpload.current!.click();
       setMode('image');
     } else if (newMode != null) {
       setMode(newMode);
