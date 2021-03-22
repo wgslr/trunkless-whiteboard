@@ -25,8 +25,8 @@ export default function Tools() {
 
   const onImageUploadClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
-      let image = event.target.files[0];
-      let reader = new FileReader();
+      const image = event.target.files[0];
+      const reader = new FileReader();
       reader.readAsArrayBuffer(image);
       reader.onload = () => {
         setImgData(new Uint8Array(reader.result as ArrayBuffer));
