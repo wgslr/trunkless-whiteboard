@@ -9,8 +9,7 @@ enum ErrorReason {
   FIGURE_NOT_EXISTS = 3;
   INTERNAL_SERVER_ERROR = 4;
   INVALID_MESSAGE = 5;
-  HOST_DECLINED_JOIN = 6;
-  USER_DOES_NOT_EXIST = 7;
+  USER_DOES_NOT_EXIST = 6;
 }
 
 message ConnectedClient {
