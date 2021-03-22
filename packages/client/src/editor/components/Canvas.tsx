@@ -96,8 +96,6 @@ const Canvas = (props: { x: number; y: number }) => {
       ></canvas>
     </div>
   );
-  // Layered canvas
-  // https://github.com/federicojacobi/layeredCanvas
 };
 
 export default Canvas;
