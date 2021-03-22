@@ -1,6 +1,6 @@
 import { proxy } from 'valtio';
 
-type ConnectionState =
+export type ConnectionState =
   | {
       state: 'INITIALIZING';
     }

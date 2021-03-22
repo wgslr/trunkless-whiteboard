@@ -1,11 +1,12 @@
 import { decodeUUID } from 'encoding';
 import * as uuid from 'uuid';
-import { Line, Note } from './models/whiteboard';
+import { Note, Line, Img } from './models/whiteboard';
 import {
   ClientToServerMessage,
   ErrorReason,
   Line as LineProto,
   Note as NoteProto,
+  Image as ImageProto,
   ServerToClientMessage
 } from './protocol/protocol';
 import type { Result } from './types';
@@ -50,6 +51,18 @@ export const messageToNote = (noteMsg: NoteProto): Note => ({
   id: uuid.stringify(noteMsg.id),
   text: noteMsg.text,
   position: noteMsg.position!
+});
+
+export const imageToMessage = (img: Img): ImageProto => ({
+  ...img,
+  id: Uint8Array.from(uuid.parse(img.id))
+});
+
+export const messageToImage = (imgMsg: ImageProto): Img => ({
+  id: uuid.stringify(imgMsg.id),
+  data: imgMsg.data,
+  position: imgMsg.position!,
+  zIndex: imgMsg.zIndex
 });
 
 export const newServerToClientMessage = (

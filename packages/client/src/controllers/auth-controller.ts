@@ -9,14 +9,19 @@ import { reqResponseService } from '../connection/ServerContext';
 import { clearStores } from '../store';
 import { clientState } from '../store/auth';
 import { usersState } from '../store/users';
+import { actions as alertsActions } from '../store/alerts';
 
 export const setUsername = (username: string) => {
   const body = makeClientHelloMessage(username);
 
   reqResponseService.send(body, response => {
     if (response === 'timeout') {
-      // TODO display the error in the gui
       console.log('ClientHello timeout');
+      alertsActions.addAlert({
+        title: 'Request timeout',
+        message: 'Unable to connect to server',
+        level: 'error'
+      });
     } else if (response?.$case === 'success') {
       clientState.v = {
         state: 'NO_WHITEBOARD',
@@ -34,8 +39,12 @@ export const joinWhiteboard = (whiteboardId: string) => {
 
   reqResponseService.send(body, response => {
     if (response === 'timeout') {
-      // TODO display the error in the gui
       console.log('JoinWhiteboard timeout');
+      alertsActions.addAlert({
+        title: 'Request timeout',
+        message: 'Unable to join whiteboard',
+        level: 'error'
+      });
     } else if (response?.$case === 'success') {
       if (clientState.v.state !== 'NO_WHITEBOARD') {
         console.error(
@@ -61,8 +70,12 @@ export const createWhiteboard = () => {
 
   reqResponseService.send(body, response => {
     if (response === 'timeout') {
-      // TODO display the error in the gui
       console.log('CreateWhiteboard timeout');
+      alertsActions.addAlert({
+        title: 'Request timeout',
+        message: 'Unable to create whiteboard',
+        level: 'error'
+      });
     } else if (response?.$case === 'whiteboardCreated') {
       if (clientState.v.state !== 'NO_WHITEBOARD') {
         console.error(
@@ -89,8 +102,12 @@ export const approveUser = (clientId: string) => {
 
   reqResponseService.send(body, response => {
     if (response === 'timeout') {
-      // TODO display the error in the gui
       console.log('ApproveUser timeout');
+      alertsActions.addAlert({
+        title: 'Request timeout',
+        message: 'No response from server for user join approval',
+        level: 'error'
+      });
     } else if (response?.$case === 'success') {
       usersState.pending = usersState.pending.filter(
         user => user.id !== clientId
@@ -108,8 +125,12 @@ export const denyUser = (clientId: string) => {
 
   reqResponseService.send(body, response => {
     if (response === 'timeout') {
-      // TODO display the error in the gui
       console.log('DenyUser timeout');
+      alertsActions.addAlert({
+        title: 'Request timeout',
+        message: 'No response from server for user join denial',
+        level: 'error'
+      });
     } else if (response?.$case === 'success') {
       usersState.pending = usersState.pending.filter(
         user => user.id !== clientId

@@ -9,7 +9,7 @@ export type UUID = ReturnType<typeof uuidv4>;
 
 export type MessageId = UUID;
 
-export type Mode = 'draw' | 'erase' | 'note';
+export type Mode = 'draw' | 'erase' | 'note' | 'image';
 
 export type Line = {
   id: UUID;
@@ -25,7 +25,8 @@ export type Note = {
 export type Img = {
   id: UUID;
   position: Coordinates;
-  data: string; // ts img object?
+  data: Uint8Array; // ts img object?
+  zIndex: number;
 };
 
 export enum MessageCode {

@@ -3,8 +3,10 @@ import { errorReasonToJSON, ServerToClientMessage } from '../protocol/protocol';
 import { clientState } from '../store/auth';
 import * as linesStore from '../store/lines';
 import * as notesStore from '../store/notes';
+import * as imagesStore from '../store/images';
 import { usersState } from '../store/users';
-import { decodeLineData, messageToNote } from './messages';
+import { actions as alertsActions } from '../store/alerts';
+import { decodeLineData, messageToImage, messageToNote } from './messages';
 
 export const handleConnected = () => {
   clientState.v = { state: 'ANONYMOUS' };
@@ -38,6 +40,11 @@ export const handleMessage = (message: ServerToClientMessage): void => {
       notesStore.setServerState(id, null);
       break;
     }
+    case 'imageCreated': {
+      const imgData = messageToImage(message.body.imageCreated.image!);
+      imagesStore.setServerState(imgData.id, imgData);
+      break;
+    }
     case 'clientWantsToJoin': {
       const user = {
         id: decodeUUID(message.body.clientWantsToJoin.clientId),
@@ -64,6 +71,11 @@ export const handleMessage = (message: ServerToClientMessage): void => {
           state: 'NO_WHITEBOARD',
           username: clientState.v.username
         };
+        alertsActions.addAlert({
+          title: 'Entry denied',
+          message: 'The host denied your entry to the whiteboard',
+          level: 'warning'
+        });
       } else {
         console.warn('Received join denial in non-pending state');
       }
