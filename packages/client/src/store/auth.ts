@@ -27,6 +27,11 @@ export type ConnectionState =
       whiteboardId: string;
     }
   | {
+      state: 'SESSION_ENDED';
+      username: string;
+      whiteboardId: string;
+    }
+  | {
       state: 'DISCONNECTED';
     };
 

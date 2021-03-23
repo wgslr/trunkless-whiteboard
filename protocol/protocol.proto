@@ -7,13 +7,14 @@ enum ErrorReason {
   WHITEBOARD_DOES_NOT_EXIST = 1;
   COORDINATES_OUT_OF_BOUNDS = 2;
   FIGURE_NOT_EXISTS = 3;
-  INTERNAL_SERVER_ERROR = 4;
-  INVALID_MESSAGE = 5;
-  HOST_DECLINED_JOIN = 6;
+  // returned when client tries to create a figure with a non-unique ID
+  ID_CONFLICT = 4;
+  INTERNAL_SERVER_ERROR = 5;
+  INVALID_MESSAGE = 6;
   USER_DOES_NOT_EXIST = 7;
 }
 
-message ConnectedClient {
+message User {
   bytes client_id = 1;
   string username = 2;
 }
@@ -32,13 +33,14 @@ message Note {
   bytes id = 1;
   Coordinates position = 2;
   string text = 3;
+  optional bytes creator_id = 4; // ignored by the server if sent by client
 }
 
 message Image {
   bytes id = 1;
   Coordinates position = 2;
   bytes data = 3;
-  int32 z_index = 4;
+  optional int32 z_index = 4; // ignored by the server if sent by client
 }
 
 /** Wrapper messages **/
@@ -50,6 +52,7 @@ message ClientToServerMessage {
     CreateWhiteboardRequest create_whiteboard_request = 10;
     JoinWhiteboard join_whiteboard = 11;
     ApproveOrDenyJoin approve_or_deny_join = 12;
+    LeaveWhiteboard leave_whiteboard = 13;
     CreateNote create_note = 20;
     UpdateNoteText update_note_text = 21;
     UpdateNotePosition update_note_position = 22;
@@ -72,7 +75,8 @@ message ServerToClientMessage {
     ClientWantsToJoin client_wants_to_join = 11;
     JoinApproved join_approved = 12;
     JoinDenied join_denied = 13;
-    ConnectedClients connected_clients = 14;
+    UserListChanged user_list_changed = 14;
+    WhiteboardSessionEnded whiteboard_session_ended = 15;
     NoteCreatedOrUpdated note_created_or_updated = 20;
     NoteDeleted note_deleted = 21;
     LineCreatedOrUpdated line_created_or_updated = 30;
@@ -89,7 +93,10 @@ message ResultError { ErrorReason reason = 2; }
 /** User management messages **/
 
 message ClientHello { string username = 1; }
-message ConnectedClients { repeated ConnectedClient connected_clients = 1; }
+message UserListChanged {
+  repeated User present = 1;
+  repeated User past = 2;
+}
 
 message ClientWantsToJoin {
   bytes client_id = 1;
@@ -99,6 +106,7 @@ message ApproveOrDenyJoin {
   bool approve = 1;
   bytes client_id = 2;
 }
+message LeaveWhiteboard {}
 
 message JoinApproved {}
 message JoinDenied {}
@@ -106,6 +114,7 @@ message JoinDenied {}
 message CreateWhiteboardRequest {}
 message JoinWhiteboard { bytes whiteboard_id = 1; }
 message WhiteboardCreated { bytes whiteboard_id = 1; }
+message WhiteboardSessionEnded {}
 
 /** Line-related messages **/
 

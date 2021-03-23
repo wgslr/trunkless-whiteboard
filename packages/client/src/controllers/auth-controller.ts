@@ -3,13 +3,17 @@ import {
   makeClientHelloMessage,
   makeCreateWhiteboardMessage,
   makeJoinWhiteboardMessage,
-  makeApproveOrDenyJoinMessage
+  makeApproveOrDenyJoinMessage,
+  makeLeaveWhiteboardMessage
 } from '../connection/messages';
 import { reqResponseService } from '../connection/ServerContext';
 import { clearStores } from '../store';
 import { clientState } from '../store/auth';
-import { usersState } from '../store/users';
+import { resetUsersState, usersState } from '../store/users';
 import { actions as alertsActions } from '../store/alerts';
+import { resetEditorState } from '../editor/state';
+import { resetDrawingState } from '../editor/drawing-state';
+import { clearHistory } from '../editor/history';
 
 export const setUsername = (username: string) => {
   const body = makeClientHelloMessage(username);
@@ -140,4 +144,37 @@ export const denyUser = (clientId: string) => {
     }
   });
   console.log('DenyUser sent');
+};
+
+export const leaveWhiteboard = () => {
+  // also handles the user clicking 'exit' after the session has been ended by host
+  if (
+    clientState.v.state === 'WHITEBOARD_HOST' ||
+    clientState.v.state === 'WHITEBOARD_USER' ||
+    clientState.v.state === 'SESSION_ENDED'
+  ) {
+    const username = clientState.v.username;
+    const cleanup = () => {
+      clientState.v = {
+        state: 'NO_WHITEBOARD',
+        username
+      };
+      resetGlobalState();
+    };
+
+    if (clientState.v.state !== 'SESSION_ENDED') {
+      const body = makeLeaveWhiteboardMessage();
+      reqResponseService.send(body, cleanup);
+    } else {
+      cleanup();
+    }
+  }
+};
+
+export const resetGlobalState = () => {
+  clearStores();
+  resetEditorState();
+  resetUsersState();
+  resetDrawingState();
+  clearHistory();
 };

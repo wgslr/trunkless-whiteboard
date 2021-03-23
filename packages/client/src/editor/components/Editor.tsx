@@ -1,19 +1,24 @@
+import download from 'downloadjs';
+import * as htmlToImage from 'html-to-image';
 import React from 'react';
+import { useSnapshot } from 'valtio';
+import { leaveWhiteboard } from '../../controllers/auth-controller';
+import { actions as alertActions } from '../../store/alerts';
+import { clientState } from '../../store/auth';
 import { undo } from '../history';
 import Canvas from './Canvas';
+import ExitTool from './ExitTool';
+import SaveTool from './SaveTool';
 import Stickies from './Stickies';
 import Tools from './Tools';
 import UndoTool from './UndoTool';
-import * as htmlToImage from 'html-to-image';
-import download from 'downloadjs';
-import { actions as alertActions } from '../../store/alerts';
-import SaveTool from './SaveTool';
 
 const EDITOR_FIELD_ID = 'editor-field';
 
 const Editor = (props: { x: number; y: number }) => {
+  const cState = useSnapshot(clientState);
   const handleSave = () => {
-    const filenameSafeDate = (new Date()).toISOString().replace(/:/g, '-');
+    const filenameSafeDate = new Date().toISOString().replace(/:/g, '-');
     const filename = `${filenameSafeDate}-whiteboard.png`;
     htmlToImage
       .toPng(document.getElementById(EDITOR_FIELD_ID)!)
@@ -26,6 +31,7 @@ const Editor = (props: { x: number; y: number }) => {
         })
       );
   };
+  const isWhiteboardActive = cState.v.state !== 'SESSION_ENDED';
 
   return (
     <div
@@ -35,10 +41,20 @@ const Editor = (props: { x: number; y: number }) => {
         width: props.x
       }}
     >
-      <div>
-        <Tools />
-        <SaveTool onClick={handleSave} />
-        <UndoTool onClick={undo} />
+      <div style={{ position: 'relative' }}>
+        {isWhiteboardActive ? (
+          <>
+            <Tools />
+            <SaveTool onClick={handleSave} />
+            <UndoTool onClick={undo} />
+            <ExitTool onClick={leaveWhiteboard} />
+          </>
+        ) : (
+          <>
+            <SaveTool onClick={handleSave} />
+            <ExitTool onClick={leaveWhiteboard} />
+          </>
+        )}
       </div>
       <div id={EDITOR_FIELD_ID}>
         <Stickies />

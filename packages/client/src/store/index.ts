@@ -44,6 +44,7 @@ const clearObj = (o: any): void => {
 export const clearStores = () => {
   updateNotes(clearObj);
   updateLineStore(clearObj);
+  updateImages(clearObj);
 };
 
 export const updateNotes = <T>(

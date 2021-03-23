@@ -2,7 +2,7 @@
 import { encodeUUID } from 'encoding';
 import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
-import { imageToMessage, noteToMessage, resultToMessage } from '../encoding';
+import { imageToMessage, makeErrorMessage, noteToMessage } from '../encoding';
 import logger from '../lib/logger';
 import {
   ClientToServerMessage,
@@ -11,24 +11,30 @@ import {
   ServerToClientMessage
 } from '../protocol/protocol';
 import { UUID } from '../types';
-import { ClientConnection } from './client-connection';
+import { ClientConnection, ClientFSM } from './client-connection';
 
 export type Note = {
   id: UUID;
   position: Coordinates;
   text: string;
+  creatorId?: UUID;
 };
 
 export type Img = {
   id: UUID;
   position: Coordinates;
   data: Uint8Array;
-  zIndex: number;
+  zIndex?: number;
 };
 
 export type Line = {
   id: UUID;
   points: Coordinates[];
+};
+
+export type User = {
+  id: UUID;
+  username: string;
 };
 
 export type LinePatch = Line;
@@ -47,7 +53,8 @@ export enum OperationType {
   IMG_ADD,
   ADD_PENDING_CLIENT,
   APPROVE_PENDING_CLIENT,
-  DENY_PENDING_CLIENT
+  DENY_PENDING_CLIENT,
+  END_SESSION
 }
 
 export type Operation =
@@ -124,6 +131,12 @@ export type Operation =
       };
     }
   | {
+      type: OperationType.END_SESSION;
+      data: {
+        causedBy: ClientToServerMessage['messageId'] | undefined;
+      };
+    }
+  | {
       type: OperationType.IMG_ADD;
       data: {
         img: Img;
@@ -145,11 +158,13 @@ export class Whiteboard {
   MAX_HEIGHT = 600;
   id: UUID;
   host: ClientConnection;
-  clients: ClientConnection[];
+  clients: ClientConnection[] = [];
+  pastUsers: User[] = [];
   pendingClients: Map<ClientConnection['id'], ClientConnection> = new Map();
   notes: Map<Note['id'], Note> = new Map();
   lines: Map<Line['id'], Line> = new Map();
   images: Map<Img['id'], Img> = new Map();
+  ended: boolean = false;
 
   constructor(host: ClientConnection, id?: UUID) {
     this.id = id ?? uuidv4();
@@ -158,9 +173,21 @@ export class Whiteboard {
   }
 
   handleOperation(op: Operation, client: ClientConnection): void {
+    if (this.ended) {
+      logger.error(`Ended whiteboard session cannot handleOperation`);
+      client.send(makeErrorMessage(ErrorReason.WHITEBOARD_DOES_NOT_EXIST));
+      return;
+    }
     switch (op.type) {
       case OperationType.LINE_CREATE: {
         const { line, causedBy } = op.data;
+        if (this.lines.has(line.id)) {
+          client.send(
+            makeErrorMessage(ErrorReason.ID_CONFLICT),
+            op.data.causedBy
+          );
+          return;
+        }
         const sanitizedLine = {
           id: line.id,
           points: this.removeInvalidCoords(line.points)
@@ -186,10 +213,7 @@ export class Whiteboard {
         const line = this.lines.get(patch.id);
         if (!line) {
           client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.FIGURE_NOT_EXISTS
-            }),
+            makeErrorMessage(ErrorReason.FIGURE_NOT_EXISTS),
             causedBy
           );
           return;
@@ -218,10 +242,7 @@ export class Whiteboard {
         const line = this.lines.get(patch.id);
         if (!line) {
           client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.FIGURE_NOT_EXISTS
-            }),
+            makeErrorMessage(ErrorReason.FIGURE_NOT_EXISTS),
             causedBy
           );
           return;
@@ -258,10 +279,7 @@ export class Whiteboard {
         const line = this.lines.get(lineId);
         if (!line) {
           client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.FIGURE_NOT_EXISTS
-            }),
+            makeErrorMessage(ErrorReason.FIGURE_NOT_EXISTS),
             causedBy
           );
           return;
@@ -279,13 +297,21 @@ export class Whiteboard {
       }
       case OperationType.NOTE_ADD: {
         // TODO validate unique id
-        const { note, causedBy } = op.data;
+        const { note: noteData, causedBy } = op.data;
+        if (this.notes.has(noteData.id)) {
+          client.send(
+            makeErrorMessage(ErrorReason.ID_CONFLICT),
+            op.data.causedBy
+          );
+          return;
+        }
+        const note: Note = {
+          ...noteData,
+          creatorId: client.id
+        };
         if (!this.areCoordsWithinBounds(note.position)) {
           client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
-            }),
+            makeErrorMessage(ErrorReason.COORDINATES_OUT_OF_BOUNDS),
             causedBy
           );
         } else {
@@ -307,10 +333,7 @@ export class Whiteboard {
         const note = this.notes.get(change.id);
         if (!note) {
           client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.FIGURE_NOT_EXISTS
-            }),
+            makeErrorMessage(ErrorReason.FIGURE_NOT_EXISTS),
             causedBy
           );
           return;
@@ -348,10 +371,7 @@ export class Whiteboard {
           );
         } else {
           client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.FIGURE_NOT_EXISTS
-            }),
+            makeErrorMessage(ErrorReason.FIGURE_NOT_EXISTS),
             causedBy
           );
         }
@@ -361,10 +381,7 @@ export class Whiteboard {
         const { change, causedBy } = op.data;
         if (change.position && !this.areCoordsWithinBounds(change.position)) {
           client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
-            }),
+            makeErrorMessage(ErrorReason.COORDINATES_OUT_OF_BOUNDS),
             causedBy
           );
           return;
@@ -372,10 +389,7 @@ export class Whiteboard {
         const note = this.notes.get(change.id);
         if (!note) {
           client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.FIGURE_NOT_EXISTS
-            }),
+            makeErrorMessage(ErrorReason.FIGURE_NOT_EXISTS),
             causedBy
           );
           return;
@@ -400,16 +414,20 @@ export class Whiteboard {
       }
       case OperationType.IMG_ADD: {
         const { img: imgData, causedBy } = op.data;
+        if (this.images.has(imgData.id)) {
+          client.send(
+            makeErrorMessage(ErrorReason.ID_CONFLICT),
+            op.data.causedBy
+          );
+          return;
+        }
         const img: Img = {
           ...imgData,
           zIndex: this.images.size
         };
         if (!this.areCoordsWithinBounds(img.position)) {
           client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
-            }),
+            makeErrorMessage(ErrorReason.COORDINATES_OUT_OF_BOUNDS),
             causedBy
           );
         } else {
@@ -439,9 +457,6 @@ export class Whiteboard {
             username: pendingClient.fsm.username
           }
         });
-
-        // TODO setup timeout
-
         break;
       }
       case OperationType.APPROVE_PENDING_CLIENT: {
@@ -462,15 +477,7 @@ export class Whiteboard {
           joinApproved: {}
         });
 
-        this.sendToClients({
-          $case: 'connectedClients',
-          connectedClients: {
-            connectedClients: this.clients.map(userClient => ({
-              username: userClient.username!,
-              clientId: encodeUUID(userClient.id)
-            }))
-          }
-        });
+        this.sendCurrentClientList();
         this.bootstrapClient(approvedClient);
         break;
       }
@@ -491,14 +498,51 @@ export class Whiteboard {
         });
         break;
       }
-      // case OperationType.RETURN_ALL_FIGURES: {
-      //   // FIXME send only to requester
-      //   this.sendToClients(
-      //     new GetAllRespMsg(Array.from(this.notes.values()))
-      //   );
-      // }
+      case OperationType.END_SESSION: {
+        const { causedBy } = op.data;
+        logger.info(`Ending session of whiteboard ${this.id}`);
+        this.sendToClients(
+          {
+            $case: 'whiteboardSessionEnded',
+            whiteboardSessionEnded: {}
+          },
+          causedBy
+        );
+        this.clients.forEach(c => c.handleWhiteboardEndedByHost());
+        this.ended = true;
+        whiteboards.delete(this.id);
+      }
     }
   }
+
+  public sendCurrentClientList = () => {
+    this.sendToClients({
+      $case: 'userListChanged',
+      userListChanged: {
+        present: this.clients.map(userClient => ({
+          username: userClient.username!,
+          clientId: encodeUUID(userClient.id)
+        })),
+        past: this.pastUsers.map(u => ({
+          username: u.username,
+          clientId: encodeUUID(u.id)
+        }))
+      }
+    });
+  };
+
+  public detachClient = (client: ClientConnection) => {
+    this.clients = this.clients.filter(c => c !== client);
+    const clientFSM = client.fsm as Extract<
+      ClientFSM,
+      { whiteboard: Whiteboard }
+    >;
+    this.pastUsers.push({
+      id: client.id,
+      username: clientFSM.username
+    });
+    this.sendCurrentClientList();
+  };
 
   private removeInvalidCoords(coordList: Coordinates[]): Coordinates[] {
     return coordList.filter(c => this.areCoordsWithinBounds(c));
@@ -517,6 +561,9 @@ export class Whiteboard {
     message: ServerToClientMessage['body'],
     previousMessageId?: string
   ) {
+    if (this.ended) {
+      return;
+    }
     logger.debug(
       `Sending message to ${this.clients.length} clients: ${message?.$case}`
     );

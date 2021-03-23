@@ -3,12 +3,13 @@ import { TypedEmitter } from 'tiny-typed-emitter';
 import * as uuid from 'uuid';
 import type * as WebSocket from 'ws';
 import { dispatch } from '../controllers/router';
+import { makeSuccessMessage } from '../encoding';
+import logger from '../lib/logger';
 import {
   ClientToServerMessage,
   ServerToClientMessage
 } from '../protocol/protocol';
 import { UUID } from '../types';
-import logger from '../lib/logger';
 import { addWhiteboard, OperationType, Whiteboard } from './whiteboard';
 
 let connections: ClientConnection[] = [];
@@ -19,7 +20,7 @@ declare interface ClientConnectionEvents {
   message: (decoded: ClientToServerMessage) => void;
 }
 
-type ClientFSM =
+export type ClientFSM =
   | {
       state: 'ANONYMOUS';
     }
@@ -56,6 +57,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     this.socket = socket;
     this.setupSocketListeners();
     this.on('message', msg => dispatch(msg, this));
+    this.on('disconnect', this.handleDisconnect);
   }
 
   get fsm(): Readonly<ClientFSM> {
@@ -115,7 +117,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     this._fsm = { state: 'NO_WHITEBOARD', username: this._fsm.username };
   }
 
-  public becomeHost(): Whiteboard['id'] {
+  public becomeHost(): Whiteboard {
     if (this._fsm.state !== 'NO_WHITEBOARD') {
       throw new IllegalStateTransition();
     }
@@ -124,7 +126,39 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
       whiteboard: addWhiteboard(this),
       username: this._fsm.username
     };
-    return this._fsm.whiteboard.id;
+    return this._fsm.whiteboard;
+  }
+
+  public handleDisconnect = (causedByMessageId?: UUID): void => {
+    if (this._fsm.state === 'USER') {
+      this._fsm.whiteboard.detachClient(this);
+      this._fsm = {
+        state: 'NO_WHITEBOARD',
+        username: this._fsm.username
+      };
+      this.send(makeSuccessMessage(), causedByMessageId);
+    } else if (this._fsm.state === 'HOST') {
+      this._fsm.whiteboard.handleOperation(
+        {
+          type: OperationType.END_SESSION,
+          data: { causedBy: causedByMessageId }
+        },
+        this
+      );
+      this._fsm = {
+        state: 'NO_WHITEBOARD',
+        username: this._fsm.username
+      };
+    }
+  };
+
+  public handleWhiteboardEndedByHost(): void {
+    if (this._fsm.state === 'USER') {
+      this._fsm = {
+        state: 'NO_WHITEBOARD',
+        username: this._fsm.username
+      };
+    }
   }
 
   private setupSocketListeners() {

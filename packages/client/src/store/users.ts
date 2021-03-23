@@ -7,11 +7,25 @@ export type User = {
 };
 
 type UsersState = {
-  joined: User[];
+  past: User[];
+  present: User[];
   pending: User[];
 };
 
 export const usersState = proxy<UsersState>({
-  joined: [],
+  past: [],
+  present: [],
   pending: []
 });
+
+export const getUsername = (
+  userId: User['id'],
+  state: UsersState
+): string | undefined =>
+  [...state.present, ...state.past].find(u => u.id === userId)?.username;
+
+export const resetUsersState = () => {
+  usersState.past = [];
+  usersState.present = [];
+  usersState.pending = [];
+};

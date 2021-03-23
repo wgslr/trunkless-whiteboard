@@ -29,16 +29,17 @@ export const handlePreWhiteboardMessage = (
   // TODO  improve handling of those messages
   switch (message.body.$case) {
     case 'createWhiteboardRequest': {
-      const whiteboardId = client.becomeHost();
+      const whiteboard = client.becomeHost();
       client.send(
         {
           $case: 'whiteboardCreated',
           whiteboardCreated: {
-            whiteboardId: encodeUUID(whiteboardId)
+            whiteboardId: encodeUUID(whiteboard.id)
           }
         },
         message.messageId
       );
+      whiteboard.sendCurrentClientList();
       break;
     }
     case 'joinWhiteboard': {
@@ -46,6 +47,9 @@ export const handlePreWhiteboardMessage = (
       logger.info(`Client wants to join whiteboard ${whiteboardId}`);
       const whiteboard = getWhiteboard(whiteboardId);
       if (!whiteboard) {
+        logger.info(
+          `Client wanted to join nonexistent whiteboard ${whiteboardId}`
+        );
         client.send(
           makeErrorMessage(ErrorReason.WHITEBOARD_DOES_NOT_EXIST),
           message.messageId
