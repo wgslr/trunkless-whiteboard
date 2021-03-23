@@ -71,7 +71,7 @@ The execute the production build with:
 
   yarn exec:prod
 
-The app should now be exposed at `laclhost:3001`.
+The app should now be exposed at `localhost:3001`.
 
 --------------------------------------------------------------------------------
 
