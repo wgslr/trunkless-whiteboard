@@ -57,7 +57,7 @@ To run a development setup, the easiest way is to run the following in the root 
   yarn start:dev
 
 This will start the server and a client for you.
-The client is expose at `localhost:3000` by default.
+The client is exposed at `localhost:3000` by default.
 
 You may also run each package separately by entering the package folders and running the same commands.
 
