@@ -23,3 +23,9 @@ export const getUsername = (
   state: UsersState
 ): string | undefined =>
   [...state.present, ...state.past].find(u => u.id === userId)?.username;
+
+export const resetUsersState = () => {
+  usersState.past = [];
+  usersState.present = [];
+  usersState.pending = [];
+};

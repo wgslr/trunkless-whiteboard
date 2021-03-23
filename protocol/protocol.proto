@@ -52,6 +52,7 @@ message ClientToServerMessage {
     CreateWhiteboardRequest create_whiteboard_request = 10;
     JoinWhiteboard join_whiteboard = 11;
     ApproveOrDenyJoin approve_or_deny_join = 12;
+    LeaveWhiteboard leave_whiteboard = 13;
     CreateNote create_note = 20;
     UpdateNoteText update_note_text = 21;
     UpdateNotePosition update_note_position = 22;
@@ -105,6 +106,7 @@ message ApproveOrDenyJoin {
   bool approve = 1;
   bytes client_id = 2;
 }
+message LeaveWhiteboard {}
 
 message JoinApproved {}
 message JoinDenied {}

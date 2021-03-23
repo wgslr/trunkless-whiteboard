@@ -10,7 +10,8 @@ const commonWhiteboardMessages: ClientToServerCase[] = [
   'deleteLine',
   'updateNotePosition',
   'updateNoteText',
-  'createImage'
+  'createImage',
+  'leaveWhiteboard'
 ];
 
 export const ALLOWED_MESSAGES: {

@@ -3,18 +3,14 @@ import { TypedEmitter } from 'tiny-typed-emitter';
 import * as uuid from 'uuid';
 import type * as WebSocket from 'ws';
 import { dispatch } from '../controllers/router';
+import { makeSuccessMessage } from '../encoding';
+import logger from '../lib/logger';
 import {
   ClientToServerMessage,
   ServerToClientMessage
 } from '../protocol/protocol';
 import { UUID } from '../types';
-import logger from '../lib/logger';
-import {
-  addWhiteboard,
-  endSession,
-  OperationType,
-  Whiteboard
-} from './whiteboard';
+import { addWhiteboard, OperationType, Whiteboard } from './whiteboard';
 
 let connections: ClientConnection[] = [];
 
@@ -133,15 +129,22 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     return this._fsm.whiteboard;
   }
 
-  public handleDisconnect = (): void => {
+  public handleDisconnect = (causedByMessageId?: UUID): void => {
     if (this._fsm.state === 'USER') {
       this._fsm.whiteboard.detachClient(this);
       this._fsm = {
         state: 'NO_WHITEBOARD',
         username: this._fsm.username
       };
+      this.send(makeSuccessMessage(), causedByMessageId);
     } else if (this._fsm.state === 'HOST') {
-      endSession(this._fsm.whiteboard);
+      this._fsm.whiteboard.handleOperation(
+        {
+          type: OperationType.END_SESSION,
+          data: { causedBy: causedByMessageId }
+        },
+        this
+      );
       this._fsm = {
         state: 'NO_WHITEBOARD',
         username: this._fsm.username

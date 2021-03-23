@@ -35,3 +35,7 @@ const undoErase = (action: Extract<Action, { type: 'ERASED' }>) => {
     addPointsToLine(lineId, points);
   });
 };
+
+export const clearHistory = () => {
+  history.length = 0;
+};

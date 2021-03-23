@@ -9,7 +9,7 @@ export type UUID = ReturnType<typeof uuidv4>;
 
 export type MessageId = UUID;
 
-export type Mode = 'draw' | 'erase' | 'note' | 'image';
+export type Mode = 'none' | 'draw' | 'erase' | 'note' | 'image';
 
 export type Line = {
   id: UUID;

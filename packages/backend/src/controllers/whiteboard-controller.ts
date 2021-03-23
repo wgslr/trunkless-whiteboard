@@ -201,6 +201,9 @@ export const handleWhiteboardMessage = (
       client.send(makeSuccessMessage(), message.messageId);
       break;
     }
+    case 'leaveWhiteboard':
+      client.handleDisconnect(message.messageId);
+      break;
     default: {
       logger.warn(`Unhandled message type: ${message.body.$case}`);
       client.send(makeErrorMessage(ErrorReason.INTERNAL_SERVER_ERROR));
