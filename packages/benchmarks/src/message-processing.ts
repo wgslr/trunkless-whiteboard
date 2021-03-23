@@ -27,5 +27,19 @@ export const groupToLatency = (group: Group) => {
   };
 };
 
+export const groupToBufferAmount = (group: Group) => {
+  const deltas = group.received.map(
+    r => r.bufferAfterSending - group.sent.bufferBeforeSending
+  );
+  const minLatency = fp.min(deltas);
+  const maxLatency = fp.max(deltas);
+  const meanLatency = deltas.reduce((acc, x) => acc + x) / deltas.length;
+  return {
+    min: minLatency,
+    max: maxLatency,
+    mean: meanLatency
+  };
+};
+
 const sum = (arr: bigint[]): bigint => arr.reduce((acc, x) => acc + x);
 const avg = (arr: bigint[]): bigint => sum(arr) / BigInt(arr.length);

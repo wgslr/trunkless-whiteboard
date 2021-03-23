@@ -15,6 +15,7 @@ export type ReceivedMessage = {
   timestamp: bigint;
   clientName: string;
   message: ServerToClientMessage;
+  bufferAfterSending: number;
 };
 
 export const sentMessages: SentMessage[] = [];
