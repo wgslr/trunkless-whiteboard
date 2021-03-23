@@ -439,9 +439,6 @@ export class Whiteboard {
             username: pendingClient.fsm.username
           }
         });
-
-        // TODO setup timeout
-
         break;
       }
       case OperationType.APPROVE_PENDING_CLIENT: {
@@ -491,12 +488,6 @@ export class Whiteboard {
         });
         break;
       }
-      // case OperationType.RETURN_ALL_FIGURES: {
-      //   // FIXME send only to requester
-      //   this.sendToClients(
-      //     new GetAllRespMsg(Array.from(this.notes.values()))
-      //   );
-      // }
     }
   }
 
