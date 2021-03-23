@@ -1,17 +1,17 @@
 import lodash from 'lodash';
 import { useCallback, useEffect } from 'react';
-import { useRecoilValue } from 'recoil';
+import { useSnapshot } from 'valtio';
 import {
   addLine,
   addPointsToLine,
   removePointsFromLine
 } from '../controllers/line-controller';
 import { getEffectiveLines } from '../store';
-import { Line, CoordNumber, Mode, UUID } from '../types';
+import { CoordNumber, Line, Mode, UUID } from '../types';
 import { coordToNumber, setIntersection, setUnion } from '../utils';
-import { calculateErasePoints, calculateLinePoints } from './math';
-import { modeState } from './state';
 import { history } from './history';
+import { calculateErasePoints, calculateLinePoints } from './math';
+import { editorState } from './state';
 
 type Context =
   | {
@@ -167,7 +167,7 @@ const finishErase = () => {
 export const useDrawing = (
   canvas: React.RefObject<HTMLCanvasElement>
 ): void => {
-  const mode = useRecoilValue(modeState);
+  const { mode } = useSnapshot(editorState);
 
   const handlePointerDown = useCallback(
     (event: PointerEvent) => {

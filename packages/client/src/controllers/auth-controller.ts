@@ -9,8 +9,9 @@ import {
 import { reqResponseService } from '../connection/ServerContext';
 import { clearStores } from '../store';
 import { clientState } from '../store/auth';
-import { usersState } from '../store/users';
+import { resetUsersState, usersState } from '../store/users';
 import { actions as alertsActions } from '../store/alerts';
+import { resetEditorState } from '../editor/state';
 
 export const setUsername = (username: string) => {
   const body = makeClientHelloMessage(username);
@@ -144,6 +145,7 @@ export const denyUser = (clientId: string) => {
 };
 
 export const leaveWhiteboard = () => {
+  // also handles the user clicking 'exit' after the session has been ended by host
   if (
     clientState.v.state === 'WHITEBOARD_HOST' ||
     clientState.v.state === 'WHITEBOARD_USER' ||
@@ -158,5 +160,7 @@ export const leaveWhiteboard = () => {
       username: clientState.v.username
     };
     clearStores();
+    resetEditorState();
+    resetUsersState();
   }
 };

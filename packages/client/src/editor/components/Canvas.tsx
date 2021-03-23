@@ -1,18 +1,19 @@
 import React, { useEffect, useRef } from 'react';
 import { useRecoilValue } from 'recoil';
-import { addNote } from '../../controllers/note-controller';
+import { useSnapshot } from 'valtio';
 import { addImage } from '../../controllers/image-controller';
-import { useEffectiveLines, useEffectiveImages } from '../../store/hooks';
+import { addNote } from '../../controllers/note-controller';
+import { useEffectiveImages, useEffectiveLines } from '../../store/hooks';
 import { useDrawing } from '../drawing-state';
-import { renderLines, renderImages } from '../render';
-import { modeState, imgState } from '../state';
+import { renderImages, renderLines } from '../render';
+import { editorState, imgState } from '../state';
 
 const Canvas = (props: { x: number; y: number }) => {
   const effectiveLines = useEffectiveLines();
   const effectiveImages = useEffectiveImages();
   const whiteboardCanvas = useRef<HTMLCanvasElement>(null);
   const imageCanvas = useRef<HTMLCanvasElement>(null);
-  const mode = useRecoilValue(modeState);
+  const { mode } = useSnapshot(editorState);
   const imgData = useRecoilValue(imgState);
 
   const getCtx = (layer: number) => {

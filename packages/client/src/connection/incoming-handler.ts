@@ -1,9 +1,11 @@
 import { decodeUUID } from 'encoding';
+import { resetEditorState } from '../editor/state';
 import {
   errorReasonToJSON,
   ServerToClientMessage,
   User as UserProto
 } from '../protocol/protocol';
+import { clearStores } from '../store';
 import { actions as alertsActions } from '../store/alerts';
 import { clientState } from '../store/auth';
 import * as imagesStore from '../store/images';
@@ -112,7 +114,7 @@ const handleSessionEnded = () => {
     clientState.v.state !== 'WHITEBOARD_USER' &&
     clientState.v.state !== 'WHITEBOARD_HOST'
   ) {
-    console.warn(
+    console.info(
       'Received whiteboard session end notification in non-whiteboard state'
     );
     return;
@@ -121,4 +123,5 @@ const handleSessionEnded = () => {
     ...clientState.v,
     state: 'SESSION_ENDED'
   };
+  resetEditorState();
 };

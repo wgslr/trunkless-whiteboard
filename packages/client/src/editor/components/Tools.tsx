@@ -1,24 +1,25 @@
-import React, { useRef } from 'react';
-import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab';
-import { useRecoilState } from 'recoil';
-import { modeState, imgState } from '../state';
-import { Mode } from '../../types';
-import NoteAddIcon from '@material-ui/icons/NoteAdd';
 import ImageIcon from '@material-ui/icons/Image';
+import NoteAddIcon from '@material-ui/icons/NoteAdd';
+import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab';
+import React, { useRef } from 'react';
+import { useSetRecoilState } from 'recoil';
+import { useSnapshot } from 'valtio';
 import Draw from '../../cursors/Draw';
 import Erase from '../../cursors/Erase';
+import { Mode } from '../../types';
+import { editorState, imgState } from '../state';
 
 export default function Tools() {
-  const [mode, setMode] = useRecoilState(modeState);
-  const [, setImgData] = useRecoilState(imgState);
+  const setImgState = useSetRecoilState(imgState);
+  const { mode } = useSnapshot(editorState);
   const imageUpload = useRef<HTMLInputElement>(null);
 
   const handleMode = (event: React.MouseEvent<HTMLElement>, newMode: Mode) => {
     if (newMode === 'image') {
       imageUpload.current!.click();
-      setMode('image');
+      editorState.mode = 'image';
     } else if (newMode != null) {
-      setMode(newMode);
+      editorState.mode = newMode;
     }
   };
 
@@ -28,7 +29,7 @@ export default function Tools() {
       const reader = new FileReader();
       reader.readAsArrayBuffer(image);
       reader.onload = () => {
-        setImgData(new Uint8Array(reader.result as ArrayBuffer));
+        setImgState(new Uint8Array(reader.result as ArrayBuffer));
       };
     }
   };
