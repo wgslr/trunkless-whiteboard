@@ -17,7 +17,7 @@ export default function Tools() {
   const handleMode = (event: React.MouseEvent<HTMLElement>, newMode: Mode) => {
     if (newMode === 'image') {
       imageUpload.current!.click();
-      editorState.mode = 'image';
+      editorState.mode = 'none'; // image mode will be set after loading the image
     } else if (newMode != null) {
       editorState.mode = newMode;
     } else {
@@ -32,6 +32,7 @@ export default function Tools() {
       reader.readAsArrayBuffer(image);
       reader.onload = () => {
         setImgState(new Uint8Array(reader.result as ArrayBuffer));
+        editorState.mode = 'image';
       };
     }
   };
