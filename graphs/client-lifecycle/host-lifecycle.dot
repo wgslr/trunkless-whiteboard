@@ -31,6 +31,10 @@ Digraph G2 {
     [label = "participate in the whiteboard", style="dashed"]
 
     "client: HOST\nserver: HOST"
+    -> "client: NO_WHITEBOARD\nserver: NO_WHITEBOARD"
+    [label = "LeaveWhiteboard", color = "deeppink"]
+
+    "client: HOST\nserver: HOST"
     -> "client: disconnected\nserver: disconnected"
     [label = "disconnect"]
 }
