@@ -75,4 +75,4 @@ The app should now be exposed at `localhost:3001`.
 
 --------------------------------------------------------------------------------
 
-_If you want to setup a server configuration on your own, see_ `server_configuration`.
+_If you want to setup a public server configuration on your own, see_ `server_configuration`.
