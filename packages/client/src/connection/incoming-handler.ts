@@ -120,6 +120,13 @@ const handleSessionEnded = () => {
     return;
   }
   console.info('Received session endeed');
+  if (clientState.v.state !== 'WHITEBOARD_HOST') {
+    alertsActions.addAlert({
+      title: 'Whiteboard session ended',
+      level: 'info'
+    });
+  }
+
   clientState.v = {
     ...clientState.v,
     state: 'SESSION_ENDED'
