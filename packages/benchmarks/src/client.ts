@@ -10,9 +10,11 @@ import {
 
 let clientCount = 0;
 
+// eslint-disable-next-line no-unused-vars
 type CallbackInternal = (message: ServerToClientMessage['body']) => void;
 
 interface Events {
+  // eslint-disable-next-line no-unused-vars
   message: (decoded: ServerToClientMessage) => void;
   disconnected: () => void;
   connected: () => void;
