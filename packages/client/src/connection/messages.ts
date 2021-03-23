@@ -124,6 +124,11 @@ export const makeApproveOrDenyJoinMessage = (
   }
 });
 
+export const makeLeaveWhiteboardMessage = (): ClientToServerMessage['body'] => ({
+  $case: 'leaveWhiteboard',
+  leaveWhiteboard: {}
+});
+
 export const decodeLineData = (data: LineProto): Line => ({
   id: decodeUUID(data.id),
   points: new Set(data.points.map(coordToNumber))

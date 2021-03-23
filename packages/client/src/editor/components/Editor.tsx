@@ -1,17 +1,19 @@
+import download from 'downloadjs';
+import * as htmlToImage from 'html-to-image';
 import React, { useEffect } from 'react';
+import { useSetRecoilState } from 'recoil';
+import { useSnapshot } from 'valtio';
+import { leaveWhiteboard } from '../../controllers/auth-controller';
+import { actions as alertActions } from '../../store/alerts';
+import { clientState } from '../../store/auth';
 import { undo } from '../history';
+import { modeState } from '../state';
 import Canvas from './Canvas';
+import ExitTool from './ExitTool';
+import SaveTool from './SaveTool';
 import Stickies from './Stickies';
 import Tools from './Tools';
 import UndoTool from './UndoTool';
-import * as htmlToImage from 'html-to-image';
-import download from 'downloadjs';
-import { actions as alertActions } from '../../store/alerts';
-import SaveTool from './SaveTool';
-import { useSnapshot } from 'valtio';
-import { clientState } from '../../store/auth';
-import { useSetRecoilState } from 'recoil';
-import { imgState, modeState } from '../state';
 
 const EDITOR_FIELD_ID = 'editor-field';
 
@@ -48,15 +50,19 @@ const Editor = (props: { x: number; y: number }) => {
         width: props.x
       }}
     >
-      <div>
+      <div style={{ position: 'relative' }}>
         {isWhiteboardActive ? (
           <>
             <Tools />
             <SaveTool onClick={handleSave} />
             <UndoTool onClick={undo} />
+            <ExitTool onClick={leaveWhiteboard} />
           </>
         ) : (
-          <SaveTool onClick={handleSave} />
+          <>
+            <SaveTool onClick={handleSave} />
+            <ExitTool onClick={leaveWhiteboard} />
+          </>
         )}
       </div>
       <div id={EDITOR_FIELD_ID}>

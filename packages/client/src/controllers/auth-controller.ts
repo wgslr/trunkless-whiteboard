@@ -3,7 +3,8 @@ import {
   makeClientHelloMessage,
   makeCreateWhiteboardMessage,
   makeJoinWhiteboardMessage,
-  makeApproveOrDenyJoinMessage
+  makeApproveOrDenyJoinMessage,
+  makeLeaveWhiteboardMessage
 } from '../connection/messages';
 import { reqResponseService } from '../connection/ServerContext';
 import { clearStores } from '../store';
@@ -140,4 +141,22 @@ export const denyUser = (clientId: string) => {
     }
   });
   console.log('DenyUser sent');
+};
+
+export const leaveWhiteboard = () => {
+  if (
+    clientState.v.state === 'WHITEBOARD_HOST' ||
+    clientState.v.state === 'WHITEBOARD_USER' ||
+    clientState.v.state === 'SESSION_ENDED'
+  ) {
+    if (clientState.v.state !== 'SESSION_ENDED') {
+      const body = makeLeaveWhiteboardMessage();
+      reqResponseService.send(body);
+    }
+    clientState.v = {
+      state: 'NO_WHITEBOARD',
+      username: clientState.v.username
+    };
+    clearStores();
+  }
 };
