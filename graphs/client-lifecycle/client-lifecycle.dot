@@ -13,7 +13,7 @@ Digraph G2 {
 
     "client: ANONYMOUS\nserver: ANONYMOUS"
     -> "client: ANONYMOUS\nserver: NO_WHITEBOARD"
-    [label = "ClientHello", color = "deeppinK"]
+    [label = "ClientHello", color = "deeppink"]
 
     "client: ANONYMOUS\nserver: NO_WHITEBOARD"
     -> "client: NO_WHITEBOARD\nserver: NO_WHITEBOARD"
@@ -60,6 +60,14 @@ Digraph G2 {
     "client: USER\nserver: USER"
     -> "client: USER\nserver: USER"
     [label = "participate in the whiteboard", style="dashed"]
+
+    "client: USER\nserver: USER"
+    -> "client: SESSION_ENDED\nserver: SESSION_ENDED"
+    [label = "WhiteboardSessionEnded", color="blue"]
+
+    "client: SESSION_ENDED\nserver: SESSION_ENDED"
+    -> "client: NO_WHITEBOARD\nserver: NO_WHITEBOARD"
+    [label = "LeaveWhiteboard", color="deeppink"]
 
     "client: USER\nserver: USER"
     -> "client: disconnected\nserver: disconnected"
