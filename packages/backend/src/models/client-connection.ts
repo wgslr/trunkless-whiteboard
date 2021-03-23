@@ -9,7 +9,12 @@ import {
 } from '../protocol/protocol';
 import { UUID } from '../types';
 import logger from '../lib/logger';
-import { addWhiteboard, OperationType, Whiteboard } from './whiteboard';
+import {
+  addWhiteboard,
+  endSession,
+  OperationType,
+  Whiteboard
+} from './whiteboard';
 
 let connections: ClientConnection[] = [];
 
@@ -56,7 +61,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     this.socket = socket;
     this.setupSocketListeners();
     this.on('message', msg => dispatch(msg, this));
-    this.on('disconnect', () => this.leaveWhiteboard());
+    this.on('disconnect', this.handleDisconnect);
   }
 
   get fsm(): Readonly<ClientFSM> {
@@ -128,9 +133,28 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     return this._fsm.whiteboard;
   }
 
-  public leaveWhiteboard(): void {
+  public handleDisconnect = (): void => {
     if (this._fsm.state === 'USER') {
       this._fsm.whiteboard.detachClient(this);
+      this._fsm = {
+        state: 'NO_WHITEBOARD',
+        username: this._fsm.username
+      };
+    } else if (this._fsm.state === 'HOST') {
+      endSession(this._fsm.whiteboard);
+      this._fsm = {
+        state: 'NO_WHITEBOARD',
+        username: this._fsm.username
+      };
+    }
+  };
+
+  public handleWhiteboardEndedByHost(): void {
+    if (this._fsm.state === 'USER') {
+      this._fsm = {
+        state: 'NO_WHITEBOARD',
+        username: this._fsm.username
+      };
     }
   }
 

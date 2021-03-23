@@ -3,7 +3,12 @@ import { encodeUUID } from 'encoding';
 import fp from 'lodash/fp';
 import { timeStamp } from 'node:console';
 import { v4 as uuidv4 } from 'uuid';
-import { imageToMessage, noteToMessage, resultToMessage } from '../encoding';
+import {
+  imageToMessage,
+  makeErrorMessage,
+  noteToMessage,
+  resultToMessage
+} from '../encoding';
 import logger from '../lib/logger';
 import {
   ClientToServerMessage,
@@ -157,6 +162,7 @@ export class Whiteboard {
   notes: Map<Note['id'], Note> = new Map();
   lines: Map<Line['id'], Line> = new Map();
   images: Map<Img['id'], Img> = new Map();
+  ended: boolean = false;
 
   constructor(host: ClientConnection, id?: UUID) {
     this.id = id ?? uuidv4();
@@ -165,6 +171,11 @@ export class Whiteboard {
   }
 
   handleOperation(op: Operation, client: ClientConnection): void {
+    if (this.ended) {
+      logger.error(`Ended whiteboard session cannot handleOperation`);
+      client.send(makeErrorMessage(ErrorReason.WHITEBOARD_DOES_NOT_EXIST));
+      return;
+    }
     switch (op.type) {
       case OperationType.LINE_CREATE: {
         const { line, causedBy } = op.data;
@@ -519,6 +530,16 @@ export class Whiteboard {
     this.sendCurrentClientList();
   };
 
+  public endSession = () => {
+    logger.info(`Ending session of whiteboard ${this.id}`);
+    this.sendToClients({
+      $case: 'whiteboardSessionEnded',
+      whiteboardSessionEnded: {}
+    });
+    this.clients.forEach(c => c.handleWhiteboardEndedByHost());
+    this.ended = true;
+  };
+
   private removeInvalidCoords(coordList: Coordinates[]): Coordinates[] {
     return coordList.filter(c => this.areCoordsWithinBounds(c));
   }
@@ -536,6 +557,9 @@ export class Whiteboard {
     message: ServerToClientMessage['body'],
     previousMessageId?: string
   ) {
+    if (this.ended) {
+      return;
+    }
     logger.debug(
       `Sending message to ${this.clients.length} clients: ${message?.$case}`
     );
@@ -597,3 +621,8 @@ export const countWhiteboards = () => whiteboards.size;
 
 export const getWhiteboard = (id: Whiteboard['id']): Whiteboard | null =>
   whiteboards.get(id) ?? null;
+
+export const endSession = (whiteboard: Whiteboard) => {
+  whiteboard.endSession();
+  whiteboards.delete(whiteboard.id);
+};

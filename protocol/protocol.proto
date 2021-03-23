@@ -72,6 +72,7 @@ message ServerToClientMessage {
     JoinApproved join_approved = 12;
     JoinDenied join_denied = 13;
     UserListChanged user_list_changed = 14;
+    WhiteboardSessionEnded whiteboard_session_ended = 15;
     NoteCreatedOrUpdated note_created_or_updated = 20;
     NoteDeleted note_deleted = 21;
     LineCreatedOrUpdated line_created_or_updated = 30;
@@ -108,6 +109,7 @@ message JoinDenied {}
 message CreateWhiteboardRequest {}
 message JoinWhiteboard { bytes whiteboard_id = 1; }
 message WhiteboardCreated { bytes whiteboard_id = 1; }
+message WhiteboardSessionEnded {}
 
 /** Line-related messages **/
 

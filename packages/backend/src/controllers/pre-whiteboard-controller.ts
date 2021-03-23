@@ -47,6 +47,9 @@ export const handlePreWhiteboardMessage = (
       logger.info(`Client wants to join whiteboard ${whiteboardId}`);
       const whiteboard = getWhiteboard(whiteboardId);
       if (!whiteboard) {
+        logger.info(
+          `Client wanted to join nonexistent whiteboard ${whiteboardId}`
+        );
         client.send(
           makeErrorMessage(ErrorReason.WHITEBOARD_DOES_NOT_EXIST),
           message.messageId

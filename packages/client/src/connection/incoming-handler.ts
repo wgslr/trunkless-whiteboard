@@ -95,10 +95,30 @@ export const handleMessage = (message: ServerToClientMessage): void => {
       usersState.past = data.past.map(parseUser);
       break;
     }
+    case 'whiteboardSessionEnded': {
+      handleSessionEnded();
+      break;
+    }
     case 'error': {
       const reason = errorReasonToJSON(message.body.error.reason);
       console.warn('Server responded with error:', reason);
       break;
     }
   }
+};
+
+const handleSessionEnded = () => {
+  if (
+    clientState.v.state !== 'WHITEBOARD_USER' &&
+    clientState.v.state !== 'WHITEBOARD_HOST'
+  ) {
+    console.warn(
+      'Received whiteboard session end notification in non-whiteboard state'
+    );
+    return;
+  }
+  clientState.v = {
+    ...clientState.v,
+    state: 'SESSION_ENDED'
+  };
 };
