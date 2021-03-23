@@ -1,30 +1,18 @@
 import { decodeUUID, encodeUUID } from 'encoding';
-import { encode } from 'node:punycode';
 import * as uuid from 'uuid';
-import { Note, Line, Img } from './models/whiteboard';
+import { Img, Line, Note } from './models/whiteboard';
 import {
   ClientToServerMessage,
   ErrorReason,
+  Image as ImageProto,
   Line as LineProto,
   Note as NoteProto,
-  Image as ImageProto,
   ServerToClientMessage
 } from './protocol/protocol';
-import type { Result } from './types';
 
 export type ClientToServerCase = NonNullable<
   ClientToServerMessage['body']
 >['$case'];
-
-export const resultToMessage = (
-  result: Result
-): ServerToClientMessage['body'] => {
-  if (result.result === 'success') {
-    return makeSuccessMessage();
-  } else {
-    return makeErrorMessage(result.reason);
-  }
-};
 
 export const makeSuccessMessage = (): ServerToClientMessage['body'] => ({
   $case: 'success',

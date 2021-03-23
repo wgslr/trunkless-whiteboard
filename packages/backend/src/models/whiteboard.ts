@@ -2,12 +2,7 @@
 import { encodeUUID } from 'encoding';
 import fp from 'lodash/fp';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  imageToMessage,
-  makeErrorMessage,
-  noteToMessage,
-  resultToMessage
-} from '../encoding';
+import { imageToMessage, makeErrorMessage, noteToMessage } from '../encoding';
 import logger from '../lib/logger';
 import {
   ClientToServerMessage,
@@ -211,10 +206,7 @@ export class Whiteboard {
         const line = this.lines.get(patch.id);
         if (!line) {
           client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.FIGURE_NOT_EXISTS
-            }),
+            makeErrorMessage(ErrorReason.FIGURE_NOT_EXISTS),
             causedBy
           );
           return;
@@ -243,10 +235,7 @@ export class Whiteboard {
         const line = this.lines.get(patch.id);
         if (!line) {
           client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.FIGURE_NOT_EXISTS
-            }),
+            makeErrorMessage(ErrorReason.FIGURE_NOT_EXISTS),
             causedBy
           );
           return;
@@ -283,10 +272,7 @@ export class Whiteboard {
         const line = this.lines.get(lineId);
         if (!line) {
           client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.FIGURE_NOT_EXISTS
-            }),
+            makeErrorMessage(ErrorReason.FIGURE_NOT_EXISTS),
             causedBy
           );
           return;
@@ -318,10 +304,7 @@ export class Whiteboard {
         };
         if (!this.areCoordsWithinBounds(note.position)) {
           client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
-            }),
+            makeErrorMessage(ErrorReason.COORDINATES_OUT_OF_BOUNDS),
             causedBy
           );
         } else {
@@ -343,10 +326,7 @@ export class Whiteboard {
         const note = this.notes.get(change.id);
         if (!note) {
           client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.FIGURE_NOT_EXISTS
-            }),
+            makeErrorMessage(ErrorReason.FIGURE_NOT_EXISTS),
             causedBy
           );
           return;
@@ -384,10 +364,7 @@ export class Whiteboard {
           );
         } else {
           client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.FIGURE_NOT_EXISTS
-            }),
+            makeErrorMessage(ErrorReason.FIGURE_NOT_EXISTS),
             causedBy
           );
         }
@@ -397,10 +374,7 @@ export class Whiteboard {
         const { change, causedBy } = op.data;
         if (change.position && !this.areCoordsWithinBounds(change.position)) {
           client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
-            }),
+            makeErrorMessage(ErrorReason.COORDINATES_OUT_OF_BOUNDS),
             causedBy
           );
           return;
@@ -408,10 +382,7 @@ export class Whiteboard {
         const note = this.notes.get(change.id);
         if (!note) {
           client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.FIGURE_NOT_EXISTS
-            }),
+            makeErrorMessage(ErrorReason.FIGURE_NOT_EXISTS),
             causedBy
           );
           return;
@@ -449,10 +420,7 @@ export class Whiteboard {
         };
         if (!this.areCoordsWithinBounds(img.position)) {
           client.send(
-            resultToMessage({
-              result: 'error',
-              reason: ErrorReason.COORDINATES_OUT_OF_BOUNDS
-            }),
+            makeErrorMessage(ErrorReason.COORDINATES_OUT_OF_BOUNDS),
             causedBy
           );
         } else {
