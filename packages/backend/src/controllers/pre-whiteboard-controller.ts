@@ -29,16 +29,17 @@ export const handlePreWhiteboardMessage = (
   // TODO  improve handling of those messages
   switch (message.body.$case) {
     case 'createWhiteboardRequest': {
-      const whiteboardId = client.becomeHost();
+      const whiteboard = client.becomeHost();
       client.send(
         {
           $case: 'whiteboardCreated',
           whiteboardCreated: {
-            whiteboardId: encodeUUID(whiteboardId)
+            whiteboardId: encodeUUID(whiteboard.id)
           }
         },
         message.messageId
       );
+      whiteboard.sendCurrentClientList();
       break;
     }
     case 'joinWhiteboard': {

@@ -499,7 +499,7 @@ export class Whiteboard {
     }
   }
 
-  private sendCurrentClientList = () => {
+  public sendCurrentClientList = () => {
     this.sendToClients({
       $case: 'userListChanged',
       userListChanged: {
