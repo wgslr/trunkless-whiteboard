@@ -7,9 +7,11 @@ enum ErrorReason {
   WHITEBOARD_DOES_NOT_EXIST = 1;
   COORDINATES_OUT_OF_BOUNDS = 2;
   FIGURE_NOT_EXISTS = 3;
-  INTERNAL_SERVER_ERROR = 4;
-  INVALID_MESSAGE = 5;
-  USER_DOES_NOT_EXIST = 6;
+  // returned when client tries to create a figure with a non-unique ID
+  ID_CONFLICT = 4;
+  INTERNAL_SERVER_ERROR = 5;
+  INVALID_MESSAGE = 6;
+  USER_DOES_NOT_EXIST = 7;
 }
 
 message User {

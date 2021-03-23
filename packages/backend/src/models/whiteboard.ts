@@ -179,6 +179,13 @@ export class Whiteboard {
     switch (op.type) {
       case OperationType.LINE_CREATE: {
         const { line, causedBy } = op.data;
+        if (this.lines.has(line.id)) {
+          client.send(
+            makeErrorMessage(ErrorReason.ID_CONFLICT),
+            op.data.causedBy
+          );
+          return;
+        }
         const sanitizedLine = {
           id: line.id,
           points: this.removeInvalidCoords(line.points)
@@ -298,6 +305,13 @@ export class Whiteboard {
       case OperationType.NOTE_ADD: {
         // TODO validate unique id
         const { note: noteData, causedBy } = op.data;
+        if (this.notes.has(noteData.id)) {
+          client.send(
+            makeErrorMessage(ErrorReason.ID_CONFLICT),
+            op.data.causedBy
+          );
+          return;
+        }
         const note: Note = {
           ...noteData,
           creatorId: client.id
@@ -422,6 +436,13 @@ export class Whiteboard {
       }
       case OperationType.IMG_ADD: {
         const { img: imgData, causedBy } = op.data;
+        if (this.images.has(imgData.id)) {
+          client.send(
+            makeErrorMessage(ErrorReason.ID_CONFLICT),
+            op.data.causedBy
+          );
+          return;
+        }
         const img: Img = {
           ...imgData,
           zIndex: this.images.size
