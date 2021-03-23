@@ -1,5 +1,4 @@
 import { decodeUUID, encodeUUID } from 'encoding';
-import { encode } from 'node:punycode';
 import * as uuid from 'uuid';
 import { Note, Line, Img } from './models/whiteboard';
 import {
