@@ -94,3 +94,9 @@ form input {
 .userList h2 {
   margin-top: 0;
 }
+
+.noteCreator {
+  margin-left: 5px;
+  font-size: 12px;
+  margin-bottom: 5px;
+}

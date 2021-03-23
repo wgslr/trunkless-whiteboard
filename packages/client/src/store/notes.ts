@@ -50,11 +50,14 @@ export const localMoveNote = (id: Note['id'], newX: number, newY: number) => {
     if (!nt) {
       throw new Error('Tried moving note without NoteTimeline');
     }
-    const {patchId, timeline, figureId} = patchPosition(nt, {x: newX, y: newY});
+    const { patchId, timeline, figureId } = patchPosition(nt, {
+      x: newX,
+      y: newY
+    });
     noteTimelines[figureId] = timeline;
     return patchId;
   });
-}
+};
 
 export const setServerState = (id: Note['id'], state: Note | null) => {
   return updateNoteStore(noteTimelines => {

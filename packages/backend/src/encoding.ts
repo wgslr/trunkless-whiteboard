@@ -1,4 +1,5 @@
-import { decodeUUID } from 'encoding';
+import { decodeUUID, encodeUUID } from 'encoding';
+import { encode } from 'node:punycode';
 import * as uuid from 'uuid';
 import { Note, Line, Img } from './models/whiteboard';
 import {
@@ -44,13 +45,15 @@ export const messageToLine = (data: LineProto): Line => ({
 
 export const noteToMessage = (note: Note): NoteProto => ({
   ...note,
-  id: Uint8Array.from(uuid.parse(note.id))
+  id: encodeUUID(note.id),
+  creatorId: note.creatorId ? encodeUUID(note.creatorId) : undefined
 });
 
 export const messageToNote = (noteMsg: NoteProto): Note => ({
   id: uuid.stringify(noteMsg.id),
   text: noteMsg.text,
-  position: noteMsg.position!
+  position: noteMsg.position!,
+  creatorId: noteMsg.creatorId ? decodeUUID(noteMsg.creatorId) : undefined
 });
 
 export const imageToMessage = (img: Img): ImageProto => ({
