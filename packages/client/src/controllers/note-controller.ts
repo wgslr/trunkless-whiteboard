@@ -49,8 +49,15 @@ export const deleteNote = (figureId: Note['id']): void => {
   }
 };
 
-export const moveNote = (figureId: Note['id'], newX: number, newY: number): void => {
+export const moveNote = (
+  figureId: Note['id'],
+  newX: number,
+  newY: number
+): void => {
   const patchId = localMoveNote(figureId, newX, newY);
-  const body: ClientToServerMessage['body'] = makeUpdateNotePositionMessage(figureId, {x: newX, y: newY});
-  reqResponseService.send(body, () => discardPatch(figureId, patchId))
-}
+  const body: ClientToServerMessage['body'] = makeUpdateNotePositionMessage(
+    figureId,
+    { x: newX, y: newY }
+  );
+  reqResponseService.send(body, () => discardPatch(figureId, patchId));
+};

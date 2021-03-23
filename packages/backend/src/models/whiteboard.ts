@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { encodeUUID } from 'encoding';
 import fp from 'lodash/fp';
-import { timeStamp } from 'node:console';
 import { v4 as uuidv4 } from 'uuid';
 import { imageToMessage, noteToMessage, resultToMessage } from '../encoding';
 import logger from '../lib/logger';
@@ -18,13 +17,14 @@ export type Note = {
   id: UUID;
   position: Coordinates;
   text: string;
+  creatorId?: UUID;
 };
 
 export type Img = {
   id: UUID;
   position: Coordinates;
   data: Uint8Array;
-  zIndex: number;
+  zIndex?: number;
 };
 
 export type Line = {
@@ -286,7 +286,11 @@ export class Whiteboard {
       }
       case OperationType.NOTE_ADD: {
         // TODO validate unique id
-        const { note, causedBy } = op.data;
+        const { note: noteData, causedBy } = op.data;
+        const note: Note = {
+          ...noteData,
+          creatorId: client.id
+        };
         if (!this.areCoordsWithinBounds(note.position)) {
           client.send(
             resultToMessage({

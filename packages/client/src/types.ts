@@ -20,6 +20,7 @@ export type Note = {
   id: UUID;
   position: Coordinates;
   text: string;
+  creatorId?: UUID;
 };
 
 export type Img = {

@@ -31,13 +31,14 @@ message Note {
   bytes id = 1;
   Coordinates position = 2;
   string text = 3;
+  optional bytes creator_id = 4; // ignored by the server if sent by client
 }
 
 message Image {
   bytes id = 1;
   Coordinates position = 2;
   bytes data = 3;
-  int32 z_index = 4;
+  optional int32 z_index = 4; // ignored by the server if sent by client
 }
 
 /** Wrapper messages **/

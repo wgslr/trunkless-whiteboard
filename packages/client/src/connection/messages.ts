@@ -135,24 +135,29 @@ export const lineToMessage = (line: Line): LineProto => ({
 });
 
 export const noteToMessage = (note: Note): NoteProto => ({
-  ...note,
-  id: encodeUUID(note.id)
+  id: encodeUUID(note.id),
+  position: note.position,
+  text: note.text
+  // client does not send the creator id to the server
 });
 
 export const messageToNote = (noteMsg: NoteProto): Note => ({
   id: uuid.stringify(noteMsg.id),
   text: noteMsg.text,
-  position: noteMsg.position!
+  position: noteMsg.position!,
+  creatorId: decodeUUID(noteMsg.creatorId!)
 });
 
 export const imageToMessage = (img: Img): ImageProto => ({
-  ...img,
-  id: encodeUUID(img.id)
+  id: encodeUUID(img.id),
+  data: img.data,
+  position: img.position
+  // client does not send the zIndex to server
 });
 
 export const messageToImage = (imgMsg: ImageProto): Img => ({
   id: uuid.stringify(imgMsg.id),
   data: imgMsg.data,
   position: imgMsg.position!,
-  zIndex: imgMsg.zIndex
+  zIndex: imgMsg.zIndex!
 });

@@ -30,7 +30,10 @@ const newPatch = (diff: Diff): Patch => ({
 export const getEffectiveNote = (nt: NoteTimeline): Note | null => {
   // Flattens information about the note, going from newest patch to oldest
 
-  const current: Partial<Note> = { id: nt.figureId };
+  const current: Partial<Note> = {
+    id: nt.figureId,
+    creatorId: nt.committed?.creatorId
+  };
   const patchesReverse = [...nt.patches.map(p => p.diff)].reverse();
   if (nt.committed) {
     patchesReverse.push(nt.committed); // lowest priority
@@ -96,11 +99,11 @@ export const patchPosition = (
   nt: NoteTimeline,
   newPosition: Coordinates
 ): Result => {
-  const patch = newPatch({ position: newPosition});
+  const patch = newPatch({ position: newPosition });
   const timeline = {
     ...nt,
     patches: nt.patches.concat(patch)
-  }
+  };
   return {
     timeline,
     figureId: nt.figureId,

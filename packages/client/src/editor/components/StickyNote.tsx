@@ -1,6 +1,8 @@
 import DeleteIcon from '@material-ui/icons/Delete';
 import React from 'react';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
+import { useSnapshot } from 'valtio';
+import { getUsername, usersState } from '../../store/users';
 import { Note, UUID } from '../../types';
 
 interface NoteProps {
@@ -11,7 +13,13 @@ interface NoteProps {
 }
 
 const StickyNote: React.FunctionComponent<NoteProps> = props => {
+  const users = useSnapshot(usersState);
   const { note } = props;
+  const creatorId = note.creatorId;
+  let creatorName = undefined;
+  if (creatorId) {
+    creatorName = getUsername(creatorId, users) || creatorId;
+  }
 
   const onMove = (e: DraggableEvent, d: DraggableData) => {
     e.preventDefault();
@@ -43,6 +51,7 @@ const StickyNote: React.FunctionComponent<NoteProps> = props => {
         >
           <DeleteIcon />
         </span>
+        <div className="noteCreator">created by: {creatorName}</div>
       </div>
     </Draggable>
   );
