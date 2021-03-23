@@ -62,12 +62,16 @@ Digraph G2 {
     [label = "participate in the whiteboard", style="dashed"]
 
     "client: USER\nserver: USER"
-    -> "client: SESSION_ENDED\nserver: SESSION_ENDED"
+    -> "client: SESSION_ENDED\nserver: NO_WHITEBOARD"
     [label = "WhiteboardSessionEnded", color="blue"]
 
-    "client: SESSION_ENDED\nserver: SESSION_ENDED"
+    "client: USER\nserver: USER"
     -> "client: NO_WHITEBOARD\nserver: NO_WHITEBOARD"
     [label = "LeaveWhiteboard", color="deeppink"]
+
+    "client: SESSION_ENDED\nserver: NO_WHITEBOARD"
+    -> "client: NO_WHITEBOARD\nserver: NO_WHITEBOARD"
+    [label = "leave whiteboard button", color="black"]
 
     "client: USER\nserver: USER"
     -> "client: disconnected\nserver: disconnected"
