@@ -1,11 +1,15 @@
 import { decodeUUID } from 'encoding';
-import { errorReasonToJSON, ServerToClientMessage } from '../protocol/protocol';
+import {
+  errorReasonToJSON,
+  ServerToClientMessage,
+  User as UserProto
+} from '../protocol/protocol';
+import { actions as alertsActions } from '../store/alerts';
 import { clientState } from '../store/auth';
+import * as imagesStore from '../store/images';
 import * as linesStore from '../store/lines';
 import * as notesStore from '../store/notes';
-import * as imagesStore from '../store/images';
 import { usersState } from '../store/users';
-import { actions as alertsActions } from '../store/alerts';
 import { decodeLineData, messageToImage, messageToNote } from './messages';
 
 export const handleConnected = () => {
@@ -81,13 +85,14 @@ export const handleMessage = (message: ServerToClientMessage): void => {
       }
       break;
     }
-    case 'connectedClients': {
-      const connectedClients = message.body.connectedClients.connectedClients;
-      const joinedClients = connectedClients.map(connectedClient => ({
+    case 'userListChanged': {
+      const data = message.body.userListChanged;
+      const parseUser = (connectedClient: UserProto) => ({
         username: connectedClient.username,
         id: decodeUUID(connectedClient.clientId)
-      }));
-      usersState.joined = joinedClients;
+      });
+      usersState.present = data.present.map(parseUser);
+      usersState.past = data.past.map(parseUser);
       break;
     }
     case 'error': {

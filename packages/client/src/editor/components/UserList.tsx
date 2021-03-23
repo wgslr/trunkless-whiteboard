@@ -32,7 +32,7 @@ const UserList = () => {
     <div className="userList">
       <h2>Connected users</h2>
       <ul>
-        {users.joined.map(u => (
+        {users.present.map(u => (
           <UserDisplay key={u.id} user={u} />
         ))}
       </ul>

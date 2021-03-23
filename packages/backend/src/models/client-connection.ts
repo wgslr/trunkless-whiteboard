@@ -19,7 +19,7 @@ declare interface ClientConnectionEvents {
   message: (decoded: ClientToServerMessage) => void;
 }
 
-type ClientFSM =
+export type ClientFSM =
   | {
       state: 'ANONYMOUS';
     }
@@ -56,6 +56,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     this.socket = socket;
     this.setupSocketListeners();
     this.on('message', msg => dispatch(msg, this));
+    this.on('disconnect', () => this.leaveWhiteboard());
   }
 
   get fsm(): Readonly<ClientFSM> {
@@ -115,7 +116,7 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
     this._fsm = { state: 'NO_WHITEBOARD', username: this._fsm.username };
   }
 
-  public becomeHost(): Whiteboard['id'] {
+  public becomeHost(): Whiteboard {
     if (this._fsm.state !== 'NO_WHITEBOARD') {
       throw new IllegalStateTransition();
     }
@@ -124,7 +125,13 @@ export class ClientConnection extends TypedEmitter<ClientConnectionEvents> {
       whiteboard: addWhiteboard(this),
       username: this._fsm.username
     };
-    return this._fsm.whiteboard.id;
+    return this._fsm.whiteboard;
+  }
+
+  public leaveWhiteboard(): void {
+    if (this._fsm.state === 'USER') {
+      this._fsm.whiteboard.detachClient(this);
+    }
   }
 
   private setupSocketListeners() {

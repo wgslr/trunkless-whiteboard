@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { encodeUUID } from 'encoding';
 import fp from 'lodash/fp';
+import { timeStamp } from 'node:console';
 import { v4 as uuidv4 } from 'uuid';
 import { imageToMessage, noteToMessage, resultToMessage } from '../encoding';
 import logger from '../lib/logger';
@@ -11,7 +12,7 @@ import {
   ServerToClientMessage
 } from '../protocol/protocol';
 import { UUID } from '../types';
-import { ClientConnection } from './client-connection';
+import { ClientConnection, ClientFSM } from './client-connection';
 
 export type Note = {
   id: UUID;
@@ -29,6 +30,11 @@ export type Img = {
 export type Line = {
   id: UUID;
   points: Coordinates[];
+};
+
+export type User = {
+  id: UUID;
+  username: string;
 };
 
 export type LinePatch = Line;
@@ -145,7 +151,8 @@ export class Whiteboard {
   MAX_HEIGHT = 600;
   id: UUID;
   host: ClientConnection;
-  clients: ClientConnection[];
+  clients: ClientConnection[] = [];
+  pastUsers: User[] = [];
   pendingClients: Map<ClientConnection['id'], ClientConnection> = new Map();
   notes: Map<Note['id'], Note> = new Map();
   lines: Map<Line['id'], Line> = new Map();
@@ -459,15 +466,7 @@ export class Whiteboard {
           joinApproved: {}
         });
 
-        this.sendToClients({
-          $case: 'connectedClients',
-          connectedClients: {
-            connectedClients: this.clients.map(userClient => ({
-              username: userClient.username!,
-              clientId: encodeUUID(userClient.id)
-            }))
-          }
-        });
+        this.sendCurrentClientList();
         this.bootstrapClient(approvedClient);
         break;
       }
@@ -490,6 +489,35 @@ export class Whiteboard {
       }
     }
   }
+
+  public sendCurrentClientList = () => {
+    this.sendToClients({
+      $case: 'userListChanged',
+      userListChanged: {
+        present: this.clients.map(userClient => ({
+          username: userClient.username!,
+          clientId: encodeUUID(userClient.id)
+        })),
+        past: this.pastUsers.map(u => ({
+          username: u.username,
+          clientId: encodeUUID(u.id)
+        }))
+      }
+    });
+  };
+
+  public detachClient = (client: ClientConnection) => {
+    this.clients = this.clients.filter(c => c !== client);
+    const clientFSM = client.fsm as Extract<
+      ClientFSM,
+      { whiteboard: Whiteboard }
+    >;
+    this.pastUsers.push({
+      id: client.id,
+      username: clientFSM.username
+    });
+    this.sendCurrentClientList();
+  };
 
   private removeInvalidCoords(coordList: Coordinates[]): Coordinates[] {
     return coordList.filter(c => this.areCoordsWithinBounds(c));
