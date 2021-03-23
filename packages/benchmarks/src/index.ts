@@ -3,23 +3,20 @@ import { v4 } from 'uuid';
 import { Client } from './client';
 import { MAX_HEIGHT } from './config';
 import { getGroupedByTrigger } from './message-log';
-import { groupToLatency } from './message-processing';
+import { groupToLatency, groupToBufferAmount } from './message-processing';
 import fp from 'lodash/fp';
-import { group } from 'node:console';
-
-// const client = new Client();
+import fs from 'fs';
 
 class UnexpectedResponseError extends Error {}
 
 const sleep = (ms: number): Promise<void> =>
   new Promise(resolve => setTimeout(resolve, ms));
 
-const doHandshake = async (client: Client) => {
-  return await client.send({
+const doHandshake = async (client: Client) =>
+  await client.send({
     $case: 'clientHello',
     clientHello: { username: client.name }
   });
-};
 
 const createWhiteboard = async (client: Client) => {
   const result = await client.send({
@@ -90,22 +87,24 @@ if (isNaN(clientsN)) {
   console.error('Requires at least one numeric parameter.');
   process.exit(1);
 }
-const talkerClients = Math.min(parseInt(process.argv[2] || '1'), clientsN);
 
-const outputFile = process.argv[3];
+const defaultOutputFile = `${new Date()
+  .toISOString()
+  .replace(/:/g, '-')}_out.csv`;
+const outputFile = process.argv[3] || defaultOutputFile;
 const log = (message: string) =>
-  outputFile != null
+  outputFile === '-'
     ? fs.appendFileSync(outputFile, message + '\n')
     : console.log(message);
 
 const runTest = async () => {
-  const messageN = 100;
+  const messageN = 1000;
   const clients = await setupWhiteboard(clientsN);
 
   const lineId = await createLine(clients[0]);
   const promises = [];
   for (let i = 0; i < messageN; ++i) {
-    for (let j = 0; j < talkerClients; ++j) {
+    for (let j = 0; j < clientsN; ++j) {
       promises.push(
         clients[j].send({
           $case: 'addPointsToLine',
@@ -127,12 +126,15 @@ const runTest = async () => {
   if (grouped.length > 0) {
     const t0 = fp.min(grouped.map(g => g.sent.timestamp))!;
 
-    log('t,min,max,avg');
+    log(
+      't,latency_min,latency_max,latency_avg,buffer_min,buffer_max,buffer_avg'
+    );
     grouped.forEach(g => {
       const l = groupToLatency(g);
+      const k = groupToBufferAmount(g);
       log(
-        [g.sent.timestamp - t0, l.min, l.max, l.mean]
-          .map(x => x! / 1000n) // convert to microsecond
+        [g.sent.timestamp - t0, l.min, l.max, l.mean, k.min, k.mean, k.max]
+          .map(x => BigInt(x)! / 1000n) // convert to microsecond
           .join(',')
       );
     });
@@ -141,13 +143,5 @@ const runTest = async () => {
   clients.forEach(c => c.socket.close());
   process.exit(0);
 };
+
 runTest();
-
-const processIteration = (
-  sendTimestamp: bigint,
-  receivedMessageTimestamps: bigint[]
-) => {};
-
-// const create_whiteboard = (host: Client) => {
-//   host.send({ $case: 'createWhiteboardRequest' });
-// };
