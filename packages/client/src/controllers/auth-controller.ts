@@ -153,16 +153,22 @@ export const leaveWhiteboard = () => {
     clientState.v.state === 'WHITEBOARD_USER' ||
     clientState.v.state === 'SESSION_ENDED'
   ) {
+    const username = clientState.v.username;
+    const cleanup = () => {
+      clientState.v = {
+        state: 'NO_WHITEBOARD',
+        username
+      };
+      resetGlobalState();
+    };
+
     if (clientState.v.state !== 'SESSION_ENDED') {
       const body = makeLeaveWhiteboardMessage();
-      reqResponseService.send(body);
+      reqResponseService.send(body, cleanup);
+    } else {
+      cleanup();
     }
-    clientState.v = {
-      state: 'NO_WHITEBOARD',
-      username: clientState.v.username
-    };
   }
-  resetGlobalState();
 };
 
 export const resetGlobalState = () => {

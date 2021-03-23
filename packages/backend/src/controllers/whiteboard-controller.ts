@@ -202,7 +202,7 @@ export const handleWhiteboardMessage = (
       break;
     }
     case 'leaveWhiteboard':
-      client.handleDisconnect();
+      client.handleDisconnect(message.messageId);
       break;
     default: {
       logger.warn(`Unhandled message type: ${message.body.$case}`);

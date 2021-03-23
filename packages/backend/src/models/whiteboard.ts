@@ -58,7 +58,8 @@ export enum OperationType {
   IMG_ADD,
   ADD_PENDING_CLIENT,
   APPROVE_PENDING_CLIENT,
-  DENY_PENDING_CLIENT
+  DENY_PENDING_CLIENT,
+  END_SESSION
 }
 
 export type Operation =
@@ -132,6 +133,12 @@ export type Operation =
       type: OperationType.DENY_PENDING_CLIENT;
       data: {
         deniedClient: ClientConnection;
+      };
+    }
+  | {
+      type: OperationType.END_SESSION;
+      data: {
+        causedBy: ClientToServerMessage['messageId'] | undefined;
       };
     }
   | {
@@ -502,6 +509,20 @@ export class Whiteboard {
         });
         break;
       }
+      case OperationType.END_SESSION: {
+        const { causedBy } = op.data;
+        logger.info(`Ending session of whiteboard ${this.id}`);
+        this.sendToClients(
+          {
+            $case: 'whiteboardSessionEnded',
+            whiteboardSessionEnded: {}
+          },
+          causedBy
+        );
+        this.clients.forEach(c => c.handleWhiteboardEndedByHost());
+        this.ended = true;
+        whiteboards.delete(this.id);
+      }
     }
   }
 
@@ -532,16 +553,6 @@ export class Whiteboard {
       username: clientFSM.username
     });
     this.sendCurrentClientList();
-  };
-
-  public endSession = () => {
-    logger.info(`Ending session of whiteboard ${this.id}`);
-    this.sendToClients({
-      $case: 'whiteboardSessionEnded',
-      whiteboardSessionEnded: {}
-    });
-    this.clients.forEach(c => c.handleWhiteboardEndedByHost());
-    this.ended = true;
   };
 
   private removeInvalidCoords(coordList: Coordinates[]): Coordinates[] {
@@ -625,8 +636,3 @@ export const countWhiteboards = () => whiteboards.size;
 
 export const getWhiteboard = (id: Whiteboard['id']): Whiteboard | null =>
   whiteboards.get(id) ?? null;
-
-export const endSession = (whiteboard: Whiteboard) => {
-  whiteboard.endSession();
-  whiteboards.delete(whiteboard.id);
-};
