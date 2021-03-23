@@ -20,11 +20,13 @@ The repository is a Lerna monorepo consisting of the following packages:
 
 Alternatively to the manual steps below, you may opt for using our Docker image:
 
-  docker run \
-    --name="trunkless-whiteboard" \
-    --publish 3001:3001 \
-    --detach \
-    docker.pkg.github.com/wgslr/trunkless-whiteboard/app-image
+```
+docker run \
+  --name="trunkless-whiteboard" \
+  --publish 3001:3001 \
+  --detach \
+  docker.pkg.github.com/wgslr/trunkless-whiteboard/app-image
+```
 
 The app should now be accessible at `localhost:3001`.
 
@@ -40,21 +42,29 @@ Ensure that you have the following follow installed on you machine:
 
 First install all Node modules in the root folder:
 
-  yarn
+```
+yarn
+```
 
 Generate the protobuf type definitions:
 
-  yarn protoc
+```
+yarn protoc
+```
 
 Link packages together:
 
-  yarn bootstrap
+```
+yarn bootstrap
+```
 
 ### Running Development Build
 
 To run a development setup, the easiest way is to run the following in the root folder:
 
-  yarn start:dev
+```
+yarn start:dev
+```
 
 This will start the server and a client for you.
 The client is exposed at `localhost:3000` by default.
@@ -65,11 +75,15 @@ You may also run each package separately by entering the package folders and run
 
 First build a production build (run from root folder):
 
-  yarn build:prod
+```
+yarn build:prod
+```
 
 The execute the production build with:
 
-  yarn exec:prod
+```
+yarn exec:prod
+```
 
 The app should now be exposed at `localhost:3001`.
 
