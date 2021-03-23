@@ -132,5 +132,4 @@ const handleSessionEnded = () => {
     state: 'SESSION_ENDED'
   };
   resetEditorState();
-  resetUsersState();
 };
