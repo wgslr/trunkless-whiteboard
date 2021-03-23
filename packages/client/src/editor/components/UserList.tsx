@@ -29,24 +29,28 @@ const UserList = () => {
   const users = useSnapshot(usersState);
   const cState = useSnapshot(clientState);
   return (
-    <div className="userList">
-      <h2>Connected users</h2>
-      <ul>
-        {users.present.map(u => (
-          <UserDisplay key={u.id} user={u} />
-        ))}
-      </ul>
-      {cState.v.state === 'WHITEBOARD_HOST' ? (
-        <>
-          <h2>Pending users</h2>
+    <>
+      {cState.v.state !== 'SESSION_ENDED' ? (
+        <div className="userList">
+          <h2>Connected users</h2>
           <ul>
-            {users.pending.map(u => (
-              <PendingUserDisplay key={u.id} user={u} />
+            {users.present.map(u => (
+              <UserDisplay key={u.id} user={u} />
             ))}
           </ul>
-        </>
+          {cState.v.state === 'WHITEBOARD_HOST' ? (
+            <>
+              <h2>Pending users</h2>
+              <ul>
+                {users.pending.map(u => (
+                  <PendingUserDisplay key={u.id} user={u} />
+                ))}
+              </ul>
+            </>
+          ) : null}
+        </div>
       ) : null}
-    </div>
+    </>
   );
 };
 
