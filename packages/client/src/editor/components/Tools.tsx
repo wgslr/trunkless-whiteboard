@@ -20,6 +20,8 @@ export default function Tools() {
       editorState.mode = 'image';
     } else if (newMode != null) {
       editorState.mode = newMode;
+    } else {
+      editorState.mode = 'none';
     }
   };
 

@@ -11,7 +11,7 @@ import { clientState } from '../store/auth';
 import * as imagesStore from '../store/images';
 import * as linesStore from '../store/lines';
 import * as notesStore from '../store/notes';
-import { usersState } from '../store/users';
+import { resetUsersState, usersState } from '../store/users';
 import { decodeLineData, messageToImage, messageToNote } from './messages';
 
 export const handleConnected = () => {
@@ -119,9 +119,11 @@ const handleSessionEnded = () => {
     );
     return;
   }
+  console.info('Received session endeed');
   clientState.v = {
     ...clientState.v,
     state: 'SESSION_ENDED'
   };
   resetEditorState();
+  resetUsersState();
 };

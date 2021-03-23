@@ -12,6 +12,8 @@ import { clientState } from '../store/auth';
 import { resetUsersState, usersState } from '../store/users';
 import { actions as alertsActions } from '../store/alerts';
 import { resetEditorState } from '../editor/state';
+import { resetDrawingState } from '../editor/drawing-state';
+import { clearHistory } from '../editor/history';
 
 export const setUsername = (username: string) => {
   const body = makeClientHelloMessage(username);
@@ -159,8 +161,14 @@ export const leaveWhiteboard = () => {
       state: 'NO_WHITEBOARD',
       username: clientState.v.username
     };
-    clearStores();
-    resetEditorState();
-    resetUsersState();
   }
+  resetGlobalState();
+};
+
+export const resetGlobalState = () => {
+  clearStores();
+  resetEditorState();
+  resetUsersState();
+  resetDrawingState();
+  clearHistory();
 };

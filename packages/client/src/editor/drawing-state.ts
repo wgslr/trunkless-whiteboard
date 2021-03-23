@@ -161,6 +161,10 @@ const finishErase = () => {
   context = { status: 'IDLE' };
 };
 
+export const resetDrawingState = () => {
+  context = { status: 'IDLE' };
+};
+
 /**
  * Sets up listeners on canvas to handle drawing.
  */

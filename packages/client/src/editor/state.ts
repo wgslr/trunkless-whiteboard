@@ -3,7 +3,7 @@ import { proxy } from 'valtio';
 import { Mode, Img } from '../types';
 
 export const editorState = proxy<{ mode: Mode }>({
-  mode: 'draw'
+  mode: 'none'
 });
 
 export const imgState = atom<Img['data']>({
@@ -12,5 +12,5 @@ export const imgState = atom<Img['data']>({
 });
 
 export const resetEditorState = () => {
-  editorState.mode = 'draw';
+  editorState.mode = 'none';
 };
