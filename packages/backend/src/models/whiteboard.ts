@@ -463,12 +463,13 @@ export class Whiteboard {
         });
 
         this.sendToClients({
-          $case: 'connectedClients',
-          connectedClients: {
-            connectedClients: this.clients.map(userClient => ({
+          $case: 'userListChanged',
+          userListChanged: {
+            present: this.clients.map(userClient => ({
               username: userClient.username!,
               clientId: encodeUUID(userClient.id)
-            }))
+            })),
+            past: []
           }
         });
         this.bootstrapClient(approvedClient);

@@ -12,7 +12,7 @@ enum ErrorReason {
   USER_DOES_NOT_EXIST = 6;
 }
 
-message ConnectedClient {
+message User {
   bytes client_id = 1;
   string username = 2;
 }
@@ -71,7 +71,7 @@ message ServerToClientMessage {
     ClientWantsToJoin client_wants_to_join = 11;
     JoinApproved join_approved = 12;
     JoinDenied join_denied = 13;
-    ConnectedClients connected_clients = 14;
+    UserListChanged user_list_changed = 14;
     NoteCreatedOrUpdated note_created_or_updated = 20;
     NoteDeleted note_deleted = 21;
     LineCreatedOrUpdated line_created_or_updated = 30;
@@ -88,7 +88,10 @@ message ResultError { ErrorReason reason = 2; }
 /** User management messages **/
 
 message ClientHello { string username = 1; }
-message ConnectedClients { repeated ConnectedClient connected_clients = 1; }
+message UserListChanged {
+  repeated User present = 1;
+  repeated User past = 2;
+}
 
 message ClientWantsToJoin {
   bytes client_id = 1;

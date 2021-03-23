@@ -81,13 +81,12 @@ export const handleMessage = (message: ServerToClientMessage): void => {
       }
       break;
     }
-    case 'connectedClients': {
-      const connectedClients = message.body.connectedClients.connectedClients;
-      const joinedClients = connectedClients.map(connectedClient => ({
+    case 'userListChanged': {
+      const connectedClients = message.body.userListChanged.present;
+      usersState.joined = connectedClients.map(connectedClient => ({
         username: connectedClient.username,
         id: decodeUUID(connectedClient.clientId)
       }));
-      usersState.joined = joinedClients;
       break;
     }
     case 'error': {
