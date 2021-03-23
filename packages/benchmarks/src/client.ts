@@ -36,12 +36,13 @@ export class ProtobufSocketClient extends TypedEmitter<Events> {
 
     this.socket.addEventListener('message', event => {
       const timestamp = process.hrtime.bigint();
-      let array = new Uint8Array(event.data);
+      const array = new Uint8Array(event.data);
       const message = decode(array);
       receivedMessages.push({
         timestamp,
         message,
-        clientName: this.name
+        clientName: this.name,
+        bufferAfterSending: this.socket.bufferedAmount
       });
       this.emit('message', message);
     });
@@ -90,7 +91,7 @@ export class Client extends ProtobufSocketClient {
   }
 
   public ensureConnected = (): Promise<void> =>
-    new Promise((resolve, reject) => {
+    new Promise(resolve => {
       const handler = () => {
         this.socket.removeEventListener('open', handler);
         resolve();
@@ -98,11 +99,10 @@ export class Client extends ProtobufSocketClient {
       this.socket.addEventListener('open', handler);
     });
 
-  public getNextMessage = (): Promise<ServerToClientMessage['body']> => {
-    return new Promise((resolve, reject) => {
+  public getNextMessage = (): Promise<ServerToClientMessage['body']> =>
+    new Promise(resolve => {
       this.once('message', msg => resolve(msg.body));
     });
-  };
 
   public send = (
     body: ClientToServerMessage['body']
