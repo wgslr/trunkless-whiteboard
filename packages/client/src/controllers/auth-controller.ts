@@ -15,7 +15,11 @@ import { actions as alertsActions } from '../store/alerts';
 import { clientState } from '../store/auth';
 import { resetUsersState, usersState } from '../store/users';
 import type { UUID } from '../types';
-import { pushFrontPage, pushWhiteboardId } from '../urls';
+import {
+  parseWhiteboardIdFromUrl,
+  pushFrontPage,
+  pushWhiteboardId
+} from '../urls';
 
 export const setUsername = (username: string) => {
   const body = makeClientHelloMessage(username);
@@ -33,11 +37,19 @@ export const setUsername = (username: string) => {
         state: 'NO_WHITEBOARD',
         username
       };
+      onReadyForWhiteboard();
     } else if (response?.$case === 'error') {
       console.log('Client hello returned error', response.error);
     }
   });
   console.log('ClientHello sent');
+};
+
+const onReadyForWhiteboard = () => {
+  const idInUrl = parseWhiteboardIdFromUrl();
+  if (idInUrl) {
+    joinWhiteboard(idInUrl);
+  }
 };
 
 export const joinWhiteboard = (whiteboardId: UUID) => {
