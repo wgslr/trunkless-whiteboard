@@ -14,3 +14,14 @@ const get_ws_url = () => {
   }
 };
 export const SERVER_URL = get_ws_url();
+
+// dimensions enforced by server
+export const WHITEBOARD_WIDTH = 1000;
+export const WHITEBOARD_HEIGHT = 800;
+
+// local dispaly of whiteboard will be this many times smaller
+export const SCALE_FACTOR = 0.75;
+
+// dimensions enforced by server
+export const DISPLAY_WIDTH = WHITEBOARD_WIDTH * SCALE_FACTOR;
+export const DISPLAY_HEIGHT = WHITEBOARD_HEIGHT * SCALE_FACTOR;

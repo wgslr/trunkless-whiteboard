@@ -1,14 +1,21 @@
 import React, { useEffect, useRef } from 'react';
 import { useRecoilValue } from 'recoil';
 import { useSnapshot } from 'valtio';
+import {
+  DISPLAY_HEIGHT,
+  DISPLAY_WIDTH,
+  WHITEBOARD_HEIGHT,
+  WHITEBOARD_WIDTH
+} from '../../config';
 import { addImage } from '../../controllers/image-controller';
 import { addNote } from '../../controllers/note-controller';
 import { useEffectiveImages, useEffectiveLines } from '../../store/hooks';
+import { scaleDisplayCoordToVirtual } from '../../utils';
 import { useDrawing } from '../drawing-state';
 import { renderImages, renderLines } from '../render';
 import { editorState, imgState } from '../state';
 
-const Canvas = (props: { x: number; y: number }) => {
+const Canvas = () => {
   const effectiveLines = useEffectiveLines();
   const effectiveImages = useEffectiveImages();
   const whiteboardCanvas = useRef<HTMLCanvasElement>(null);
@@ -48,14 +55,20 @@ const Canvas = (props: { x: number; y: number }) => {
     const c = whiteboardCanvas.current;
     if (c !== null && mode === 'note') {
       const listener = (event: PointerEvent) => {
-        const point = { x: event.offsetX, y: event.offsetY };
+        const point = scaleDisplayCoordToVirtual({
+          x: event.offsetX,
+          y: event.offsetY
+        });
         addNote(point);
       };
       c.addEventListener('pointerdown', listener);
       return () => c.removeEventListener('pointerdown', listener);
     } else if (c !== null && mode === 'image') {
       const listener = (event: PointerEvent) => {
-        const point = { x: event.offsetX, y: event.offsetY };
+        const point = scaleDisplayCoordToVirtual({
+          x: event.offsetX,
+          y: event.offsetY
+        });
         if (imgData.length !== 0) {
           // If imgData is empty string image can't be added
           addImage(point, imgData);
@@ -66,33 +79,42 @@ const Canvas = (props: { x: number; y: number }) => {
     }
   }, [mode, imgData]);
 
+  const commonStyle: React.CSSProperties = {
+    position: 'absolute',
+    left: '0px',
+    top: '0px',
+    height: `${DISPLAY_HEIGHT}px`,
+    width: `${DISPLAY_WIDTH}px`
+  };
+
   return (
-    <div style={{ position: 'relative', width: props.x, height: props.y }}>
+    <div
+      style={{
+        position: 'relative',
+        height: `${DISPLAY_HEIGHT}px`,
+        width: `${DISPLAY_WIDTH}px`
+      }}
+    >
       <canvas
         ref={whiteboardCanvas}
         id="whiteboard-canvas"
-        height={props.y}
-        width={props.x}
+        height={WHITEBOARD_HEIGHT}
+        width={WHITEBOARD_WIDTH}
         style={{
+          ...commonStyle,
           border: '1px solid black',
-          zIndex: 0,
-          position: 'absolute',
-          left: '0px',
-          top: '0px'
+          zIndex: 0
         }}
       ></canvas>
       <canvas
         ref={imageCanvas}
         id="image-canvas"
-        height={props.y}
-        width={props.x}
+        height={WHITEBOARD_HEIGHT}
+        width={WHITEBOARD_WIDTH}
         style={{
-          border: '1px solid black',
+          ...commonStyle,
           backgroundColor: 'white',
-          zIndex: -1,
-          position: 'absolute',
-          left: '0px',
-          top: '0px'
+          zIndex: -1
         }}
       ></canvas>
     </div>

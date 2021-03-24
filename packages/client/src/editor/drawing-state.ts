@@ -8,7 +8,12 @@ import {
 } from '../controllers/line-controller';
 import { getEffectiveLines } from '../store';
 import { CoordNumber, Line, Mode, UUID } from '../types';
-import { coordToNumber, setIntersection, setUnion } from '../utils';
+import {
+  coordToNumber,
+  scaleDisplayCoordToVirtual,
+  setIntersection,
+  setUnion
+} from '../utils';
 import { history } from './history';
 import { calculateErasePoints, calculateLinePoints } from './math';
 import { editorState } from './state';
@@ -175,7 +180,9 @@ export const useDrawing = (
 
   const handlePointerDown = useCallback(
     (event: PointerEvent) => {
-      const point = coordToNumber({ x: event.offsetX, y: event.offsetY });
+      const point = coordToNumber(
+        scaleDisplayCoordToVirtual({ x: event.offsetX, y: event.offsetY })
+      );
       onPointerDown(point, mode);
     },
     [mode]
@@ -186,7 +193,9 @@ export const useDrawing = (
       if (event.target !== canvas.current) {
         return;
       }
-      const point = coordToNumber({ x: event.offsetX, y: event.offsetY });
+      const point = coordToNumber(
+        scaleDisplayCoordToVirtual({ x: event.offsetX, y: event.offsetY })
+      );
       onPointerMove(point);
     },
     [canvas]
@@ -197,7 +206,9 @@ export const useDrawing = (
       if (event.target !== canvas.current) {
         return;
       }
-      const point = coordToNumber({ x: event.offsetX, y: event.offsetY });
+      const point = coordToNumber(
+        scaleDisplayCoordToVirtual({ x: event.offsetX, y: event.offsetY })
+      );
       onPointerUp(point);
     },
     [canvas]

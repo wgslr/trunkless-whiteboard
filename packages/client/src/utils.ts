@@ -1,4 +1,6 @@
 import { Coordinates, CoordNumber } from './types';
+import fp from 'lodash/fp';
+import { SCALE_FACTOR } from './config';
 
 export function isNotNullsih<TValue>(
   value: TValue | null | undefined
@@ -30,3 +32,19 @@ export const setIntersection = <T>(left: Set<T>, right: Set<T>) => {
     left.size > right.size ? [left, right] : [right, left];
   return new Set([...smaller].filter(x => larger.has(x)));
 };
+
+export const scaleDisplayCoordToVirtual = ({
+  x,
+  y
+}: Coordinates): Coordinates => ({
+  x: Math.floor(x / SCALE_FACTOR),
+  y: Math.floor(y / SCALE_FACTOR)
+});
+
+export const scaleVirtualCoordToDisplay = ({
+  x,
+  y
+}: Coordinates): Coordinates => ({
+  x: Math.floor(x * SCALE_FACTOR),
+  y: Math.floor(y * SCALE_FACTOR)
+});

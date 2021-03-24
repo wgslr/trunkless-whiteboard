@@ -154,8 +154,8 @@ class OperationError extends Error {
 const coordToNumber = (coord: Coordinates) => coord.x * 1000000 + coord.y;
 
 export class Whiteboard {
-  MAX_WIDTH = 800;
-  MAX_HEIGHT = 600;
+  MAX_WIDTH = 1000;
+  MAX_HEIGHT = 800;
   id: UUID;
   host: ClientConnection;
   clients: ClientConnection[] = [];

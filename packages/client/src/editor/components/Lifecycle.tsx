@@ -6,9 +6,6 @@ import UserList from './UserList';
 import UsernamePrompt from './UsernamePrompt';
 import WhiteboardPrompt from './WhiteboardPrompt';
 
-const canvasX = 800;
-const canvasY = 600;
-
 export const Lifecycle: React.FunctionComponent = () => {
   const cState = useSnapshot(clientState);
   switch (cState.v.state) {
@@ -43,7 +40,7 @@ export default Lifecycle;
 const Whiteboard: React.FunctionComponent = () => {
   return (
     <>
-      <Editor x={canvasX} y={canvasY} />
+      <Editor />
       <UserList />
     </>
   );

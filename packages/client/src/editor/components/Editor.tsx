@@ -2,6 +2,7 @@ import download from 'downloadjs';
 import * as htmlToImage from 'html-to-image';
 import React from 'react';
 import { useSnapshot } from 'valtio';
+import { DISPLAY_HEIGHT, DISPLAY_WIDTH } from '../../config';
 import { leaveWhiteboard } from '../../controllers/auth-controller';
 import { actions as alertActions } from '../../store/alerts';
 import { clientState } from '../../store/auth';
@@ -15,7 +16,7 @@ import UndoTool from './UndoTool';
 
 const EDITOR_FIELD_ID = 'editor-field';
 
-const Editor = (props: { x: number; y: number }) => {
+const Editor = () => {
   const cState = useSnapshot(clientState);
   const handleSave = () => {
     const filenameSafeDate = new Date().toISOString().replace(/:/g, '-');
@@ -34,13 +35,7 @@ const Editor = (props: { x: number; y: number }) => {
   const isWhiteboardActive = cState.v.state !== 'SESSION_ENDED';
 
   return (
-    <div
-      id="editor"
-      style={{
-        height: props.y,
-        width: props.x
-      }}
-    >
+    <div id="editor">
       <div style={{ position: 'relative' }}>
         {isWhiteboardActive ? (
           <>
@@ -58,7 +53,7 @@ const Editor = (props: { x: number; y: number }) => {
       </div>
       <div id={EDITOR_FIELD_ID}>
         <Stickies />
-        <Canvas {...props} />
+        <Canvas />
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 import { useSnapshot } from 'valtio';
 import { getUsername, usersState } from '../../store/users';
 import { Note, UUID } from '../../types';
+import { scaleVirtualCoordToDisplay } from '../../utils';
 
 interface NoteProps {
   save: (id: UUID, content: string) => void;
@@ -33,7 +34,10 @@ const StickyNote: React.FunctionComponent<NoteProps> = props => {
 
   return (
     <Draggable
-      position={{ x: note.position.x, y: note.position.y }}
+      position={scaleVirtualCoordToDisplay({
+        x: note.position.x,
+        y: note.position.y
+      })}
       onDrag={(e, d) => onMove(e, d)}
       onStop={(e, d) => onMove(e, d)}
       nodeRef={childRef}
