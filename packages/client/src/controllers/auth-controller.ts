@@ -10,6 +10,7 @@ import { reqResponseService } from '../connection/ServerContext';
 import { resetDrawingState } from '../editor/drawing-state';
 import { clearHistory } from '../editor/history';
 import { resetEditorState } from '../editor/state';
+import { ErrorReason } from '../protocol/protocol';
 import { clearStores } from '../store';
 import { actions as alertsActions } from '../store/alerts';
 import { clientState } from '../store/auth';
@@ -78,6 +79,13 @@ export const joinWhiteboard = (whiteboardId: UUID) => {
       }
     } else if (response?.$case === 'error') {
       console.log('JoinWhiteboard returned error', response.error);
+      if (response.error.reason === ErrorReason.WHITEBOARD_DOES_NOT_EXIST) {
+        alertsActions.addAlert({
+          title: 'Whiteboard not found',
+          message: 'Whiteboard you tried to join does not exist',
+          level: 'error'
+        });
+      }
     }
   });
   console.log('JoinWhiteboard sent');
