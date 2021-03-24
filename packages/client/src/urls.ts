@@ -2,15 +2,15 @@ import * as uuid from 'uuid';
 import type { UUID } from './types';
 
 export const pushWhiteboardId = (whiteboardId: string) => {
-  window.history.pushState(null, '', `/${whiteboardId}`);
+  window.location.assign(`#${whiteboardId}`);
 };
 
 export const pushFrontPage = () => {
-  window.history.pushState(null, '', `/`);
+  window.location.assign(`#`);
 };
 
 export const parseWhiteboardIdFromUrl = (): UUID | null => {
-  const pathname = window.location.pathname;
+  const pathname = window.location.hash;
   const maybeId = pathname.slice(1);
   if (maybeId && uuid.validate(maybeId)) {
     return maybeId;
