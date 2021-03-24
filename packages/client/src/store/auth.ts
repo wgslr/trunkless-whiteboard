@@ -2,10 +2,7 @@ import { proxy } from 'valtio';
 
 export type ConnectionState =
   | {
-      state: 'INITIALIZING';
-    }
-  | {
-      state: 'ANONYMOUS';
+      state: 'INITIALIZING' | 'CONNECTING' | 'ANONYMOUS';
     }
   | {
       state: 'NO_WHITEBOARD';

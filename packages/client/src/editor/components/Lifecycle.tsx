@@ -13,6 +13,9 @@ export const Lifecycle: React.FunctionComponent = () => {
   const cState = useSnapshot(clientState);
   switch (cState.v.state) {
     case 'INITIALIZING': {
+      return <div>Initializing...</div>;
+    }
+    case 'CONNECTING': {
       return <div>Connecting...</div>;
     }
     case 'ANONYMOUS': {

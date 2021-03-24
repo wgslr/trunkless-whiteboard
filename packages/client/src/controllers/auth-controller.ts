@@ -1,19 +1,21 @@
 import { decodeUUID } from 'encoding';
 import {
+  makeApproveOrDenyJoinMessage,
   makeClientHelloMessage,
   makeCreateWhiteboardMessage,
   makeJoinWhiteboardMessage,
-  makeApproveOrDenyJoinMessage,
   makeLeaveWhiteboardMessage
 } from '../connection/messages';
 import { reqResponseService } from '../connection/ServerContext';
-import { clearStores } from '../store';
-import { clientState } from '../store/auth';
-import { resetUsersState, usersState } from '../store/users';
-import { actions as alertsActions } from '../store/alerts';
-import { resetEditorState } from '../editor/state';
 import { resetDrawingState } from '../editor/drawing-state';
 import { clearHistory } from '../editor/history';
+import { resetEditorState } from '../editor/state';
+import { clearStores } from '../store';
+import { actions as alertsActions } from '../store/alerts';
+import { clientState } from '../store/auth';
+import { resetUsersState, usersState } from '../store/users';
+import type { UUID } from '../types';
+import { pushFrontPage, pushWhiteboardId } from '../urls';
 
 export const setUsername = (username: string) => {
   const body = makeClientHelloMessage(username);
@@ -38,7 +40,7 @@ export const setUsername = (username: string) => {
   console.log('ClientHello sent');
 };
 
-export const joinWhiteboard = (whiteboardId: string) => {
+export const joinWhiteboard = (whiteboardId: UUID) => {
   const body = makeJoinWhiteboardMessage(whiteboardId);
 
   reqResponseService.send(body, response => {
@@ -88,11 +90,15 @@ export const createWhiteboard = () => {
         return;
       } else {
         clearStores(); // ensure no leftover from other whiteboard
+        const whiteboardId = decodeUUID(
+          response.whiteboardCreated.whiteboardId
+        );
         clientState.v = {
           state: 'WHITEBOARD_HOST',
           username: clientState.v.username,
-          whiteboardId: decodeUUID(response.whiteboardCreated.whiteboardId)
+          whiteboardId
         };
+        pushWhiteboardId(whiteboardId);
       }
     } else if (response?.$case === 'error') {
       console.log('CreateWhiteboard returned error', response.error);
@@ -160,6 +166,7 @@ export const leaveWhiteboard = () => {
         username
       };
       resetGlobalState();
+      pushFrontPage();
     };
 
     if (clientState.v.state !== 'SESSION_ENDED') {
