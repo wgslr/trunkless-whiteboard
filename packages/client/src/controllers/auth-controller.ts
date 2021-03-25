@@ -1,19 +1,26 @@
 import { decodeUUID } from 'encoding';
 import {
+  makeApproveOrDenyJoinMessage,
   makeClientHelloMessage,
   makeCreateWhiteboardMessage,
   makeJoinWhiteboardMessage,
-  makeApproveOrDenyJoinMessage,
   makeLeaveWhiteboardMessage
 } from '../connection/messages';
 import { reqResponseService } from '../connection/ServerContext';
-import { clearStores } from '../store';
-import { clientState } from '../store/auth';
-import { resetUsersState, usersState } from '../store/users';
-import { actions as alertsActions } from '../store/alerts';
-import { resetEditorState } from '../editor/state';
 import { resetDrawingState } from '../editor/drawing-state';
 import { clearHistory } from '../editor/history';
+import { resetEditorState } from '../editor/state';
+import { ErrorReason } from '../protocol/protocol';
+import { clearStores } from '../store';
+import { actions as alertsActions } from '../store/alerts';
+import { clientState } from '../store/auth';
+import { resetUsersState, usersState } from '../store/users';
+import type { UUID } from '../types';
+import {
+  parseWhiteboardIdFromUrl,
+  pushFrontPage,
+  pushWhiteboardId
+} from '../urls';
 
 export const setUsername = (username: string) => {
   const body = makeClientHelloMessage(username);
@@ -31,6 +38,7 @@ export const setUsername = (username: string) => {
         state: 'NO_WHITEBOARD',
         username
       };
+      onReadyForWhiteboard();
     } else if (response?.$case === 'error') {
       console.log('Client hello returned error', response.error);
     }
@@ -38,7 +46,14 @@ export const setUsername = (username: string) => {
   console.log('ClientHello sent');
 };
 
-export const joinWhiteboard = (whiteboardId: string) => {
+const onReadyForWhiteboard = () => {
+  const idInUrl = parseWhiteboardIdFromUrl();
+  if (idInUrl) {
+    joinWhiteboard(idInUrl);
+  }
+};
+
+export const joinWhiteboard = (whiteboardId: UUID) => {
   const body = makeJoinWhiteboardMessage(whiteboardId);
 
   reqResponseService.send(body, response => {
@@ -64,6 +79,13 @@ export const joinWhiteboard = (whiteboardId: string) => {
       }
     } else if (response?.$case === 'error') {
       console.log('JoinWhiteboard returned error', response.error);
+      if (response.error.reason === ErrorReason.WHITEBOARD_DOES_NOT_EXIST) {
+        alertsActions.addAlert({
+          title: 'Whiteboard not found',
+          message: 'Whiteboard you tried to join does not exist',
+          level: 'error'
+        });
+      }
     }
   });
   console.log('JoinWhiteboard sent');
@@ -88,11 +110,15 @@ export const createWhiteboard = () => {
         return;
       } else {
         clearStores(); // ensure no leftover from other whiteboard
+        const whiteboardId = decodeUUID(
+          response.whiteboardCreated.whiteboardId
+        );
         clientState.v = {
           state: 'WHITEBOARD_HOST',
           username: clientState.v.username,
-          whiteboardId: decodeUUID(response.whiteboardCreated.whiteboardId)
+          whiteboardId
         };
+        pushWhiteboardId(whiteboardId);
       }
     } else if (response?.$case === 'error') {
       console.log('CreateWhiteboard returned error', response.error);
@@ -160,6 +186,7 @@ export const leaveWhiteboard = () => {
         username
       };
       resetGlobalState();
+      pushFrontPage();
     };
 
     if (clientState.v.state !== 'SESSION_ENDED') {

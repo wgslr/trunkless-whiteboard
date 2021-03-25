@@ -5,13 +5,13 @@ import {
   ServerToClientMessage,
   User as UserProto
 } from '../protocol/protocol';
-import { clearStores } from '../store';
 import { actions as alertsActions } from '../store/alerts';
 import { clientState } from '../store/auth';
 import * as imagesStore from '../store/images';
 import * as linesStore from '../store/lines';
 import * as notesStore from '../store/notes';
-import { resetUsersState, usersState } from '../store/users';
+import { usersState } from '../store/users';
+import { pushWhiteboardId } from '../urls';
 import { decodeLineData, messageToImage, messageToNote } from './messages';
 
 export const handleConnected = () => {
@@ -60,15 +60,7 @@ export const handleMessage = (message: ServerToClientMessage): void => {
       break;
     }
     case 'joinApproved': {
-      if (clientState.v.state === 'PENDING_APPROVAL') {
-        clientState.v = {
-          state: 'WHITEBOARD_USER',
-          username: clientState.v.username,
-          whiteboardId: clientState.v.whiteboardId
-        };
-      } else {
-        console.warn('Received join approval in non-pending state');
-      }
+      handleJoinApproved();
       break;
     }
     case 'joinDenied': {
@@ -107,6 +99,20 @@ export const handleMessage = (message: ServerToClientMessage): void => {
       break;
     }
   }
+};
+
+const handleJoinApproved = () => {
+  if (clientState.v.state !== 'PENDING_APPROVAL') {
+    console.warn('Received join approval in non-pending state');
+    return;
+  }
+  const whiteboardId = clientState.v.whiteboardId;
+  clientState.v = {
+    state: 'WHITEBOARD_USER',
+    username: clientState.v.username,
+    whiteboardId
+  };
+  pushWhiteboardId(whiteboardId);
 };
 
 const handleSessionEnded = () => {
