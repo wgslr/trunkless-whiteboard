@@ -6,8 +6,6 @@
 
 This project is a proof-of-concept implementation of a whiteboarding protocol created as an assignment for the ELEC-E7320 Internet Protocols course at Aalto University.
 
-Live demo: [trunkless-whiteboard.website](https://trunkless-whiteboard.website)
-
 The repository is a Lerna monorepo consisting of the following packages:
 - `backend` - centralized server code
 - `client` - user client for interacting with the server from a whiteboard
